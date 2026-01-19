@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+class Platform extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'short_name',
+    ];
+
+    // Relationships
+    public function games(): BelongsToMany
+    {
+        return $this->belongsToMany(Game::class);
+    }
+
+    // Helper method
+    public function getGamesCountAttribute(): int
+    {
+        return $this->games()->count();
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->short_name ?? $this->name;
+    }
+}
