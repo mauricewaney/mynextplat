@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\GameController;
+use App\Http\Controllers\Admin\PSNController;
+use App\Http\Controllers\Admin\TrophyUrlImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -9,10 +11,26 @@ use App\Http\Controllers\Admin\GameController;
 |--------------------------------------------------------------------------
 */
 
+// PSN Lookup
+Route::prefix('admin/psn')->group(function () {
+    Route::get('/lookup/{username}', [PSNController::class, 'lookup']);
+    Route::post('/match-games', [PSNController::class, 'matchGames']);
+});
+
+// Trophy URL Import
+Route::prefix('admin/trophy-urls')->group(function () {
+    Route::post('/import', [TrophyUrlImportController::class, 'import']);
+    Route::get('/stats', [TrophyUrlImportController::class, 'stats']);
+    Route::get('/unmatched', [TrophyUrlImportController::class, 'unmatched']);
+    Route::post('/{id}/match', [TrophyUrlImportController::class, 'match']);
+    Route::delete('/{id}', [TrophyUrlImportController::class, 'destroy']);
+});
+
 Route::prefix('admin/games')->group(function () {
     // List & Form Data
     Route::get('/', [GameController::class, 'index']);
     Route::get('/form-data', [GameController::class, 'getFormData']);
+    Route::get('/stats', [GameController::class, 'getStats']);
     Route::get('/test-igdb', [GameController::class, 'testIgdb']);
 
     // Bulk Operations (static routes must come before {id} routes)

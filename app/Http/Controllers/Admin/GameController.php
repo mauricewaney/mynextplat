@@ -86,7 +86,7 @@ class GameController extends Controller
         // Min score
         if ($request->filled('min_score')) {
             $query->where(function ($q) use ($request) {
-                $q->where('metacritic_score', '>=', $request->min_score)
+                $q->where('critic_score', '>=', $request->min_score)
                     ->orWhere('opencritic_score', '>=', $request->min_score);
             });
         }
@@ -110,10 +110,48 @@ class GameController extends Controller
             $query->doesntHave('platforms');
         }
 
+        // Has guide filter
+        if ($request->filled('has_guide') && $request->has_guide) {
+            $query->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            });
+        }
+
+        // Needs data filter (has guide but no difficulty)
+        if ($request->filled('needs_data') && $request->needs_data) {
+            $query->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            })->whereNull('difficulty');
+        }
+
+        // Guide source filters (PSNP, PST, PPX)
+        if ($request->filled('guide_psnp') && $request->guide_psnp) {
+            $query->whereNotNull('psnprofiles_url');
+        }
+        if ($request->filled('guide_pst') && $request->guide_pst) {
+            $query->whereNotNull('playstationtrophies_url');
+        }
+        if ($request->filled('guide_ppx') && $request->guide_ppx) {
+            $query->whereNotNull('powerpyx_url');
+        }
+
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
+
+        // Handle NULL values for numeric columns - put NULLs at the end
+        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'opencritic_score', 'release_date'];
+        if (in_array($sortBy, $nullableColumns)) {
+            // Sort NULLs last regardless of sort direction
+            $query->orderByRaw("CASE WHEN {$sortBy} IS NULL THEN 1 ELSE 0 END")
+                  ->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
 
         $games = $query->paginate(50);
 
@@ -211,6 +249,30 @@ class GameController extends Controller
             'genres' => Genre::orderBy('name')->get(),
             'tags' => Tag::orderBy('name')->get(),
             'platforms' => Platform::orderBy('name')->get(),
+        ]);
+    }
+
+    public function getStats()
+    {
+        $totalGames = Game::count();
+        $gamesWithGuide = Game::where(function ($q) {
+            $q->whereNotNull('playstationtrophies_url')
+              ->orWhereNotNull('powerpyx_url');
+        })->count();
+        $gamesWithDifficulty = Game::whereNotNull('difficulty')->count();
+        $gamesNeedingData = Game::where(function ($q) {
+            $q->whereNotNull('playstationtrophies_url')
+              ->orWhereNotNull('powerpyx_url');
+        })->whereNull('difficulty')->count();
+
+        return response()->json([
+            'total_games' => $totalGames,
+            'with_guide' => $gamesWithGuide,
+            'with_difficulty' => $gamesWithDifficulty,
+            'needs_data' => $gamesNeedingData,
+            'completion_percent' => $gamesWithGuide > 0
+                ? round(($gamesWithGuide - $gamesNeedingData) / $gamesWithGuide * 100, 1)
+                : 0,
         ]);
     }
 
@@ -485,7 +547,7 @@ class GameController extends Controller
             'missable_trophies' => 'nullable|boolean',
 
             // Scores
-            'metacritic_score' => 'nullable|integer|min:0|max:100',
+            'critic_score' => 'nullable|integer|min:0|max:100',
             'opencritic_score' => 'nullable|integer|min:0|max:100',
 
             // Pricing

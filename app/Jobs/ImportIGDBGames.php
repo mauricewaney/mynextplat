@@ -17,6 +17,7 @@ class ImportIGDBGames implements ShouldQueue
     protected int $limit;
     protected int $offset;
     protected ?int $sinceTimestamp;
+    protected array $excludeIds;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -29,12 +30,14 @@ class ImportIGDBGames implements ShouldQueue
      * @param int $limit Number of games to fetch
      * @param int $offset Offset for pagination
      * @param int|null $sinceTimestamp Only fetch games released on or after this Unix timestamp
+     * @param array $excludeIds IGDB IDs to exclude (for reliable continuation)
      */
-    public function __construct(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null)
+    public function __construct(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = [])
     {
         $this->limit = $limit;
         $this->offset = $offset;
         $this->sinceTimestamp = $sinceTimestamp;
+        $this->excludeIds = $excludeIds;
     }
 
     /**
@@ -42,14 +45,17 @@ class ImportIGDBGames implements ShouldQueue
      */
     public function handle(IGDBService $igdbService): void
     {
-        $mode = $this->sinceTimestamp ? 'incremental sync' : 'bulk import';
-        Log::info("Starting IGDB import ({$mode}): limit={$this->limit}, offset={$this->offset}");
+        Log::info("Starting IGDB import: limit={$this->limit}, offset={$this->offset}");
 
-        // Get existing IGDB IDs to skip
-        $existingIgdbIds = Game::whereNotNull('igdb_id')->pluck('igdb_id')->toArray();
+        // Use provided excludeIds, or fetch fresh if not provided (for backward compatibility)
+        $existingIgdbIds = !empty($this->excludeIds)
+            ? $this->excludeIds
+            : Game::whereNotNull('igdb_id')->pluck('igdb_id')->toArray();
 
-        // Fetch games from IGDB
-        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp);
+        Log::info("Excluding " . count($existingIgdbIds) . " existing IGDB IDs from query");
+
+        // Fetch games from IGDB, excluding already imported games
+        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp, $existingIgdbIds);
 
         Log::info("Fetched " . count($igdbGames) . " games from IGDB");
 
@@ -83,7 +89,7 @@ class ImportIGDBGames implements ShouldQueue
                     'release_date' => $gameData['release_date'],
                     'cover_url' => $gameData['cover_url'],
                     'banner_url' => $gameData['banner_url'],
-                    'metacritic_score' => $gameData['metacritic_score'],
+                    'critic_score' => $gameData['critic_score'],
                 ]);
 
                 // Create/attach platforms dynamically

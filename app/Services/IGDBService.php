@@ -222,14 +222,19 @@ class IGDBService
         };
     }
 
+    // Minimum date for trophy-era games (PS3 trophies launched July 2008)
+    // Unix timestamp for 2008-01-01
+    protected const TROPHY_ERA_START = 1182960000;
+
     /**
-     * Fetch PlayStation games from IGDB in bulk
+     * Fetch PlayStation games from IGDB in bulk using cursor-based pagination
      *
      * @param int $limit Number of games to fetch
-     * @param int $offset Offset for pagination
-     * @param int|null $sinceTimestamp Only fetch games released on or after this Unix timestamp
+     * @param int $offset Offset for pagination within current cursor window
+     * @param int|null $sinceTimestamp Continue from this Unix timestamp (cursor-based)
+     * @param array $excludeIds IGDB IDs to exclude (only for games at cursor boundary)
      */
-    public function fetchPlayStationGames(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null): array
+    public function fetchPlayStationGames(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = []): array
     {
         $accessToken = $this->getAccessToken();
 
@@ -239,28 +244,34 @@ class IGDBService
 
         $platformFilter = implode(',', self::PLAYSTATION_PLATFORMS);
 
+        // Ensure we don't fetch pre-trophy era games (before 2008)
+        $minTimestamp = max(self::TROPHY_ERA_START, $sinceTimestamp ?? 0);
+
         // Base fields
         $fields = 'fields name,slug,summary,cover.url,screenshots.url,platforms,genres.name,'
             . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
             . 'first_release_date,aggregated_rating,rating,'
             . 'release_dates.date,release_dates.platform,release_dates.region; ';
 
-        if ($sinceTimestamp !== null) {
-            // Incremental sync: fetch games released on or after the given date
-            // Sort by release date ascending to process oldest first
-            $query = $fields
-                . 'where platforms = (' . $platformFilter . ') & cover != null & first_release_date >= ' . $sinceTimestamp . '; '
-                . 'sort first_release_date asc; '
-                . 'limit ' . $limit . '; '
-                . 'offset ' . $offset . ';';
-        } else {
-            // For bulk import: sort by date (oldest first) for stable pagination
-            $query = $fields
-                . 'where platforms = (' . $platformFilter . ') & cover != null & first_release_date != null; '
-                . 'sort first_release_date asc; '
-                . 'limit ' . $limit . '; '
-                . 'offset ' . $offset . ';';
+        // Build where clause
+        $whereConditions = [
+            'platforms = (' . $platformFilter . ')',
+            'cover != null',
+            'first_release_date >= ' . $minTimestamp,
+        ];
+
+        // Only exclude IDs if we have a reasonable number (for boundary games with same date)
+        // For large exclude lists, we rely on the sinceTimestamp cursor instead
+        if (!empty($excludeIds) && count($excludeIds) <= 500) {
+            $excludeIdsList = implode(',', $excludeIds);
+            $whereConditions[] = 'id != (' . $excludeIdsList . ')';
         }
+
+        $query = $fields
+            . 'where ' . implode(' & ', $whereConditions) . '; '
+            . 'sort first_release_date asc; '
+            . 'limit ' . $limit . '; '
+            . 'offset ' . $offset . ';';
 
         $response = Http::withHeaders([
             'Client-ID' => $this->clientId,
@@ -349,7 +360,7 @@ class IGDBService
             'release_date' => $releaseDate,
             'cover_url' => $coverUrl,
             'banner_url' => $bannerUrl,
-            'metacritic_score' => isset($igdbGame['aggregated_rating']) ? (int) round($igdbGame['aggregated_rating']) : null,
+            'critic_score' => isset($igdbGame['aggregated_rating']) ? (int) round($igdbGame['aggregated_rating']) : null,
             'platforms_data' => $platformsData,
             'genre_names' => $genreNames,
         ];

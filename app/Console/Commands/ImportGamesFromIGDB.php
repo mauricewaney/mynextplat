@@ -16,7 +16,7 @@ class ImportGamesFromIGDB extends Command
                             {--queue : Run in background via queue}
                             {--fresh : Delete all games before importing}';
 
-    protected $description = 'Import PlayStation games from IGDB (auto-syncs from latest release date)';
+    protected $description = 'Import PlayStation games from IGDB (automatically continues from where you left off)';
 
     public function handle(IGDBService $igdbService): int
     {
@@ -49,33 +49,49 @@ class ImportGamesFromIGDB extends Command
             }
         }
 
-        // Determine the sync timestamp based on latest game in DB
-        $sinceTimestamp = null;
-        $latestGame = Game::whereNotNull('release_date')
-            ->orderBy('release_date', 'desc')
-            ->first();
+        // Use cursor-based pagination - find the latest release date in our DB
+        $existingCount = Game::whereNotNull('igdb_id')->count();
+        $cursorTimestamp = null;
+        $boundaryExcludeIds = [];
 
-        if ($latestGame && $latestGame->release_date) {
-            $sinceTimestamp = $latestGame->release_date->timestamp;
-            $this->info("Syncing from: " . $latestGame->release_date->format('Y-m-d') . " ({$latestGame->title})");
+        if ($existingCount > 0) {
+            // Find the maximum first_release_date from existing games (stored as Y-m-d string)
+            $latestGame = Game::whereNotNull('igdb_id')
+                ->whereNotNull('release_date')
+                ->orderBy('release_date', 'desc')
+                ->first();
+
+            if ($latestGame && $latestGame->release_date) {
+                // Convert to Unix timestamp for IGDB query
+                $cursorTimestamp = strtotime($latestGame->release_date);
+
+                // Get IDs of games at this exact release date to exclude (avoid duplicates at boundary)
+                $boundaryExcludeIds = Game::whereNotNull('igdb_id')
+                    ->where('release_date', $latestGame->release_date)
+                    ->pluck('igdb_id')
+                    ->toArray();
+
+                $this->info("Found {$existingCount} existing games - continuing from {$latestGame->release_date}");
+            } else {
+                $this->info("Found {$existingCount} existing games (no release dates) - starting fresh");
+            }
         } else {
-            $this->info("No existing games found, starting full import.");
+            $this->info("No existing games found, starting fresh import.");
         }
 
         if ($useQueue) {
-            ImportIGDBGames::dispatch($limit, 0, $sinceTimestamp);
+            ImportIGDBGames::dispatch($limit, 0, $cursorTimestamp, $boundaryExcludeIds);
             $this->info("Job dispatched to queue. Run 'php artisan queue:work' to process.");
             return Command::SUCCESS;
         }
 
-        // Run synchronously
-        $this->info("Fetching up to {$limit} games...");
+        // Run synchronously - use cursor-based pagination
+        $this->info("Fetching up to {$limit} NEW games from IGDB...");
 
-        // Get existing IGDB IDs to skip
-        $existingIgdbIds = Game::whereNotNull('igdb_id')->pluck('igdb_id')->toArray();
-        $this->info("Found " . count($existingIgdbIds) . " existing games with IGDB IDs");
+        // Disable query logging to prevent memory buildup
+        \DB::disableQueryLog();
 
-        $igdbGames = $igdbService->fetchPlayStationGames($limit, 0, $sinceTimestamp);
+        $igdbGames = $igdbService->fetchPlayStationGames($limit, 0, $cursorTimestamp, $boundaryExcludeIds);
         $this->info("Fetched " . count($igdbGames) . " games from IGDB");
 
         $progressBar = $this->output->createProgressBar(count($igdbGames));
@@ -87,13 +103,15 @@ class ImportGamesFromIGDB extends Command
         $genresCreated = 0;
         $platformsCreated = 0;
 
-        foreach ($igdbGames as $igdbGame) {
+        foreach ($igdbGames as $index => $igdbGame) {
             try {
-                // Skip if already imported (by IGDB ID)
-                if (isset($igdbGame['id']) && in_array($igdbGame['id'], $existingIgdbIds)) {
-                    $skipped++;
-                    $progressBar->advance();
-                    continue;
+                // Skip if already imported (by IGDB ID) - check boundary exclusions and DB
+                if (isset($igdbGame['id'])) {
+                    if (in_array($igdbGame['id'], $boundaryExcludeIds) || Game::where('igdb_id', $igdbGame['id'])->exists()) {
+                        $skipped++;
+                        $progressBar->advance();
+                        continue;
+                    }
                 }
 
                 $gameData = $igdbService->parseGameData($igdbGame);
@@ -115,7 +133,7 @@ class ImportGamesFromIGDB extends Command
                     'release_date' => $gameData['release_date'],
                     'cover_url' => $gameData['cover_url'],
                     'banner_url' => $gameData['banner_url'],
-                    'metacritic_score' => $gameData['metacritic_score'],
+                    'critic_score' => $gameData['critic_score'],
                 ]);
 
                 // Create/attach platforms dynamically
@@ -152,6 +170,9 @@ class ImportGamesFromIGDB extends Command
 
                 $imported++;
 
+                // Clear the game reference to help garbage collection
+                unset($game);
+
             } catch (\Exception $e) {
                 $errors++;
                 $this->newLine();
@@ -159,6 +180,11 @@ class ImportGamesFromIGDB extends Command
             }
 
             $progressBar->advance();
+
+            // Periodic garbage collection every 50 games to prevent memory buildup
+            if (($index + 1) % 50 === 0) {
+                gc_collect_cycles();
+            }
         }
 
         $progressBar->finish();
@@ -178,6 +204,16 @@ class ImportGamesFromIGDB extends Command
                 ['Total Platforms in DB', Platform::count()],
             ]
         );
+
+        // Auto-match trophy URLs if we imported any games and trophy URLs exist
+        if ($imported > 0 && \App\Models\TrophyGuideUrl::unmatched()->exists()) {
+            $this->newLine();
+            $this->info("Matching trophy guide URLs to newly imported games...");
+            $this->callSilently('trophy:match-urls');
+
+            $matchedCount = \App\Models\TrophyGuideUrl::matched()->count();
+            $this->info("Trophy URLs matched: {$matchedCount}");
+        }
 
         return Command::SUCCESS;
     }

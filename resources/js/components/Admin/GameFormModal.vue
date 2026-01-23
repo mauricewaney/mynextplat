@@ -7,10 +7,40 @@
             <!-- Modal -->
             <div class="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <!-- Header -->
-                <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-gray-900">
-                        {{ isEdit ? 'Edit Game' : 'Add New Game' }}
-                    </h2>
+                <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">
+                            {{ isEdit ? 'Edit Game' : 'Add New Game' }}
+                        </h2>
+                        <!-- Guide Links -->
+                        <div v-if="isEdit && (game?.playstationtrophies_url || game?.powerpyx_url)" class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-gray-500">Open guide:</span>
+                            <a
+                                v-if="game?.playstationtrophies_url"
+                                :href="game.playstationtrophies_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
+                            >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                PS Trophies
+                            </a>
+                            <a
+                                v-if="game?.powerpyx_url"
+                                :href="game.powerpyx_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium hover:bg-orange-200"
+                            >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                PowerPyx
+                            </a>
+                        </div>
+                    </div>
                     <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -89,6 +119,33 @@
                     <!-- Trophy Information -->
                     <div class="space-y-4">
                         <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Trophy Information</h3>
+
+                        <!-- Quick Fill from Guide -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Quick Fill (paste guide info)
+                                <span class="text-xs text-gray-400 ml-2">Paste to auto-save, or Enter to save manually</span>
+                            </label>
+                            <textarea
+                                v-model="guideText"
+                                @paste="onGuidePaste"
+                                @input="parseGuideText"
+                                @keydown.enter.prevent="onQuickFillEnter"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                                placeholder="Paste guide info here, e.g.:
+Difficulty: 7/10
+Time: 40-50 hours
+Missable Trophies: 12
+Online Trophies: None"
+                            ></textarea>
+                            <p v-if="parsedFields.length > 0" class="text-xs text-green-600 mt-1">
+                                Parsed: {{ parsedFields.join(', ') }}
+                            </p>
+                            <p v-else class="text-xs text-gray-500 mt-1">
+                                Paste text from PlayStationTrophies or PowerPyx to auto-fill fields
+                            </p>
+                        </div>
 
                         <!-- Difficulty -->
                         <div>
@@ -173,9 +230,9 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Metacritic Score (0-100)</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Critic Score (0-100)</label>
                                 <input
-                                    v-model.number="form.metacritic_score"
+                                    v-model.number="form.critic_score"
                                     type="number"
                                     min="0"
                                     max="100"
@@ -436,6 +493,8 @@ const emit = defineEmits(['close', 'saved']);
 
 const loading = ref(false);
 const errors = ref({});
+const guideText = ref('');
+const parsedFields = ref([]);
 
 // Form data
 const form = ref({
@@ -451,7 +510,7 @@ const form = ref({
     playthroughs_required: 1,
     has_online_trophies: false,
     missable_trophies: false,
-    metacritic_score: null,
+    critic_score: null,
     opencritic_score: null,
     price_current: null,
     price_original: null,
@@ -492,7 +551,7 @@ watch(() => props.game, (game) => {
             playthroughs_required: game.playthroughs_required || 1,
             has_online_trophies: game.has_online_trophies || false,
             missable_trophies: game.missable_trophies || false,
-            metacritic_score: game.metacritic_score || null,
+            critic_score: game.critic_score || null,
             opencritic_score: game.opencritic_score || null,
             price_current: game.price_current || null,
             price_original: game.price_original || null,
@@ -515,6 +574,8 @@ watch(() => props.show, (show) => {
         resetForm();
     }
     errors.value = {};
+    guideText.value = '';
+    parsedFields.value = [];
 });
 
 function resetForm() {
@@ -531,7 +592,7 @@ function resetForm() {
         playthroughs_required: 1,
         has_online_trophies: false,
         missable_trophies: false,
-        metacritic_score: null,
+        critic_score: null,
         opencritic_score: null,
         price_current: null,
         price_original: null,
@@ -581,5 +642,103 @@ function closeModal() {
     if (!loading.value) {
         emit('close');
     }
+}
+
+// Guide text parsing
+function onGuidePaste(event) {
+    // Let the paste happen, then parse after a tick
+    setTimeout(() => {
+        parseGuideText();
+        // Auto-save if we parsed at least one field
+        if (parsedFields.value.length > 0) {
+            setTimeout(() => {
+                submitForm();
+            }, 300); // Brief delay so user sees what was parsed
+        }
+    }, 0);
+}
+
+function onQuickFillEnter() {
+    // Parse first if not already parsed
+    parseGuideText();
+    // Then submit
+    submitForm();
+}
+
+function parseGuideText() {
+    const text = guideText.value;
+    const textLower = text.toLowerCase();
+    const parsed = [];
+
+    // Parse difficulty (e.g., "Difficulty: 7/10", "7.9/10", "Difficulty Rating: 7")
+    const difficultyMatch = text.match(/difficulty[:\s]*(\d+(?:\.\d+)?)\s*(?:\/\s*10)?/i)
+        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10/i);
+    if (difficultyMatch) {
+        const diff = Math.round(parseFloat(difficultyMatch[1]));
+        if (diff >= 1 && diff <= 10) {
+            form.value.difficulty = diff;
+            parsed.push('difficulty');
+        }
+    }
+
+    // Parse time (e.g., "Time: 40-50 hours", "Approximate time: 15-20+ Hours", "50+ hours")
+    const timeMatch = text.match(/time[:\s]*(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)?/i)
+        || text.match(/(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)/i)
+        || text.match(/time[:\s]*(\d+)\+?\s*(?:hours?|hrs?)/i)
+        || text.match(/(\d+)\+?\s*(?:hours?|hrs?)/i);
+    if (timeMatch) {
+        if (timeMatch[2]) {
+            // Range: 40-50 hours
+            form.value.time_min = parseInt(timeMatch[1]);
+            form.value.time_max = parseInt(timeMatch[2]);
+        } else {
+            // Single value: 50 hours or 50+ hours
+            form.value.time_min = parseInt(timeMatch[1]);
+            form.value.time_max = parseInt(timeMatch[1]);
+        }
+        parsed.push('time');
+    }
+
+    // Parse playthroughs (e.g., "Playthroughs: 2", "Minimum number of playthroughs needed: 1")
+    const playthroughMatch = text.match(/(?:minimum\s+)?(?:number\s+of\s+)?playthrough[s]?\s*(?:needed|required)?[:\s]*(\d+)/i)
+        || text.match(/(\d+)\s*playthrough/i);
+    if (playthroughMatch) {
+        form.value.playthroughs_required = parseInt(playthroughMatch[1]);
+        parsed.push('playthroughs');
+    }
+
+    // Parse missable trophies (e.g., "Missable Trophies: 12", "Missable: None", "No Missable")
+    const missableMatch = text.match(/missable\s*(?:trophies?)?[:\s]*(\d+|yes|no|none)/i)
+        || text.match(/(\d+)\s*missable/i);
+    if (missableMatch) {
+        const val = missableMatch[1]?.toLowerCase();
+        if (val === 'no' || val === 'none' || val === '0') {
+            form.value.missable_trophies = false;
+        } else {
+            form.value.missable_trophies = true;
+        }
+        parsed.push('missables');
+    } else if (textLower.includes('no missable')) {
+        form.value.missable_trophies = false;
+        parsed.push('missables');
+    }
+
+    // Parse online trophies (e.g., "Online Trophies: 5", "Online: 0", "No Online")
+    const onlineMatch = text.match(/online\s*(?:trophies?)?[:\s]*(\d+|yes|no|none)/i)
+        || text.match(/(\d+)\s*online\s*troph/i);
+    if (onlineMatch) {
+        const val = onlineMatch[1]?.toLowerCase();
+        if (val === 'no' || val === 'none' || val === '0') {
+            form.value.has_online_trophies = false;
+        } else {
+            form.value.has_online_trophies = true;
+        }
+        parsed.push('online');
+    } else if (textLower.includes('no online')) {
+        form.value.has_online_trophies = false;
+        parsed.push('online');
+    }
+
+    parsedFields.value = parsed;
 }
 </script>

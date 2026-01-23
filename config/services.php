@@ -40,4 +40,12 @@ return [
         'client_secret' => env('IGDB_CLIENT_SECRET'),
     ],
 
+    'psn' => [
+        'npsso' => env('PSN_NPSSO'),
+    ],
+
+    'scraper_api' => [
+        'key' => env('SCRAPER_API_KEY'),
+    ],
+
 ];

@@ -24,6 +24,13 @@ class Game extends Model
         'publisher',
         'release_date',
         'difficulty',
+        'time_min',
+        'time_max',
+        'playthroughs_required',
+        'has_online_trophies',
+        'missable_trophies',
+        'critic_score',
+        'opencritic_score',
         'base_price',
         'psplus_price',
         'current_discount_price',
@@ -82,14 +89,14 @@ class Game extends Model
     }
 
     /**
-     * Get the best available score (metacritic or opencritic)
+     * Get the best available score (critic or opencritic)
      */
     public function getBestScoreAttribute()
     {
-        if ($this->metacritic_score && $this->opencritic_score) {
-            return max($this->metacritic_score, $this->opencritic_score);
+        if ($this->critic_score && $this->opencritic_score) {
+            return max($this->critic_score, $this->opencritic_score);
         }
-        return $this->metacritic_score ?? $this->opencritic_score ?? null;
+        return $this->critic_score ?? $this->opencritic_score ?? null;
     }
 
     public function hasGuides(): bool

@@ -7,15 +7,69 @@
                     <h1 class="text-3xl font-bold text-gray-900">Games</h1>
                     <p class="text-gray-600 mt-1">Manage your PlayStation trophy database</p>
                 </div>
-                <button
-                    @click="openAddModal"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center space-x-2"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    <span>Add Game</span>
-                </button>
+
+                <!-- Progress Stats -->
+                <div v-if="stats" class="flex items-center gap-6 bg-white rounded-lg shadow px-4 py-3">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.with_guide - stats.needs_data }}</div>
+                        <div class="text-xs text-gray-500">Completed</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-orange-600">{{ stats.needs_data }}</div>
+                        <div class="text-xs text-gray-500">Need Data</div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-32 bg-gray-200 rounded-full h-2.5">
+                            <div
+                                class="bg-green-600 h-2.5 rounded-full transition-all duration-300"
+                                :style="{ width: stats.completion_percent + '%' }"
+                            ></div>
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">{{ stats.completion_percent }}% complete</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <router-link
+                        to="/admin/trophy-import"
+                        class="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center space-x-2"
+                        title="Import Trophy URLs"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                        </svg>
+                        <span>Import URLs</span>
+                    </router-link>
+                    <button
+                        @click="showPSNLookup = true"
+                        class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2"
+                        title="PSN Library Lookup"
+                    >
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
+                        </svg>
+                        <span>PSN Lookup</span>
+                    </button>
+                    <button
+                        @click="showInstructions = true"
+                        class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center space-x-2"
+                        title="Admin Instructions"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Help</span>
+                    </button>
+                    <button
+                        @click="openAddModal"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center space-x-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Add Game</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Filters -->
@@ -189,6 +243,56 @@
                 <div class="flex flex-wrap gap-4 mt-4">
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input
+                            v-model="filters.has_guide"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            @change="onFilterChange"
+                        />
+                        <span class="text-sm font-medium text-green-700">Has Guide</span>
+                    </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            v-model="filters.needs_data"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                            @change="onFilterChange"
+                        />
+                        <span class="text-sm font-medium text-orange-700">Needs Data</span>
+                    </label>
+
+                    <!-- Guide Source Filters -->
+                    <div class="flex items-center gap-1 border-l pl-4 ml-2">
+                        <span class="text-xs text-gray-500 mr-1">Guide:</span>
+                        <label class="flex items-center space-x-1 cursor-pointer">
+                            <input
+                                v-model="filters.guide_psnp"
+                                type="checkbox"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                @change="onFilterChange"
+                            />
+                            <span class="text-xs font-medium text-blue-600">PSNP</span>
+                        </label>
+                        <label class="flex items-center space-x-1 cursor-pointer">
+                            <input
+                                v-model="filters.guide_pst"
+                                type="checkbox"
+                                class="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                @change="onFilterChange"
+                            />
+                            <span class="text-xs font-medium text-purple-600">PST</span>
+                        </label>
+                        <label class="flex items-center space-x-1 cursor-pointer">
+                            <input
+                                v-model="filters.guide_ppx"
+                                type="checkbox"
+                                class="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                                @change="onFilterChange"
+                            />
+                            <span class="text-xs font-medium text-orange-500">PPX</span>
+                        </label>
+                    </div>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input
                             v-model="filters.has_online_trophies"
                             type="checkbox"
                             class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
@@ -225,8 +329,16 @@
                     </label>
                 </div>
 
-                <!-- Clear Filters -->
-                <div class="flex justify-end mt-4">
+                <!-- Workflow Options & Clear Filters -->
+                <div class="flex justify-between items-center mt-4">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            v-model="autoAdvance"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="text-sm text-gray-600">Auto-advance to next game after save</span>
+                    </label>
                     <button
                         @click="resetFilters"
                         class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium"
@@ -341,11 +453,11 @@
                             <span v-if="filters.sort_by === 'release_date'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
-                            @click="sortBy('metacritic_score')"
+                            @click="sortBy('critic_score')"
                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         >
                             Score
-                            <span v-if="filters.sort_by === 'metacritic_score'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
+                            <span v-if="filters.sort_by === 'critic_score'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('difficulty')"
@@ -361,13 +473,16 @@
                             Platforms
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Guides
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                         </th>
                     </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                     <tr
-                        v-for="game in games"
+                        v-for="(game, index) in games"
                         :key="game.id"
                         :class="{ 'bg-indigo-50': selectedGames.includes(game.id) }"
                         class="hover:bg-gray-50"
@@ -399,7 +514,7 @@
                             {{ game.release_date ? formatDate(game.release_date) : 'N/A' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <span v-if="game.best_score" class="font-medium">{{ game.best_score }}</span>
+                            <span v-if="game.critic_score" class="font-medium">{{ game.critic_score }}</span>
                             <span v-else class="text-gray-400">N/A</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -427,9 +542,44 @@
                                 <span v-if="!game.platforms || game.platforms.length === 0" class="text-sm text-gray-400">-</span>
                             </div>
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div class="flex items-center gap-2">
+                                <a
+                                    v-if="game.psnprofiles_url"
+                                    :href="game.psnprofiles_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-blue-600 hover:text-blue-800"
+                                    title="PSNProfiles Guide"
+                                >
+                                    PSNP
+                                </a>
+                                <a
+                                    v-if="game.playstationtrophies_url"
+                                    :href="game.playstationtrophies_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-purple-600 hover:text-purple-800"
+                                    title="PlayStationTrophies Guide"
+                                >
+                                    PST
+                                </a>
+                                <a
+                                    v-if="game.powerpyx_url"
+                                    :href="game.powerpyx_url"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-orange-500 hover:text-orange-700"
+                                    title="PowerPyx Guide"
+                                >
+                                    PPX
+                                </a>
+                                <span v-if="!game.psnprofiles_url && !game.playstationtrophies_url && !game.powerpyx_url" class="text-gray-400">-</span>
+                            </div>
+                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
-                                @click="openEditModal(game)"
+                                @click="openEditModal(game, index)"
                                 class="text-indigo-600 hover:text-indigo-900 mr-3"
                             >
                                 Edit
@@ -581,6 +731,196 @@
                 </label>
             </div>
         </BulkActionModal>
+
+        <!-- Instructions Slide Panel -->
+        <div
+            v-if="showInstructions"
+            class="fixed inset-0 z-50 overflow-hidden"
+        >
+            <!-- Backdrop -->
+            <div
+                class="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
+                @click="showInstructions = false"
+            ></div>
+
+            <!-- Panel -->
+            <div class="absolute inset-y-0 right-0 max-w-lg w-full">
+                <div class="h-full bg-white shadow-xl overflow-y-auto">
+                    <!-- Header -->
+                    <div class="sticky top-0 bg-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+                        <h2 class="text-xl font-bold">Admin Instructions</h2>
+                        <button @click="showInstructions = false" class="text-white hover:text-indigo-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-6 space-y-6">
+                        <!-- GUIDE SOURCES -->
+                        <section>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                                <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm mr-2">1</span>
+                                Trophy Guide Sources
+                            </h3>
+                            <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                <p class="text-sm text-gray-700 mb-3">Three sources for trophy guide URLs:</p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold">PSNP</span>
+                                        <span class="text-gray-700">PSNProfiles - <a href="/admin/trophy-import" class="text-blue-600 underline">Manual HTML import</a> (304 pages)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-purple-600 text-white px-2 py-0.5 rounded text-xs font-bold">PST</span>
+                                        <span class="text-gray-700">PlayStationTrophies - <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-purple-600 underline">Manual sitemap</a> (Cloudflare protected)</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-bold">PPX</span>
+                                        <span class="text-gray-700">PowerPyx - Included in initial import</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- INITIAL SETUP -->
+                        <section>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                                <span class="bg-indigo-600 text-white px-2 py-1 rounded text-sm mr-2">2</span>
+                                Initial Setup (One Time)
+                            </h3>
+                            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                                <ol class="space-y-3 text-sm">
+                                    <li class="flex items-start gap-3">
+                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
+                                        <div>
+                                            <code class="bg-gray-800 text-green-400 px-2 py-1 rounded text-xs">php artisan import:all --full</code>
+                                            <p class="text-gray-600 text-xs mt-1">Import all PlayStation games from IGDB + PPX URLs</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
+                                        <div>
+                                            <span class="text-gray-700">Use <a href="/admin/trophy-import" class="text-indigo-600 underline">Trophy URL Importer</a> for PSNP</span>
+                                            <p class="text-gray-600 text-xs mt-1">Manually paste HTML from 304 PSNProfiles guide pages</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
+                                        <div>
+                                            <span class="text-gray-700">Import PST from <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-indigo-600 underline">their guide pages</a></span>
+                                            <p class="text-gray-600 text-xs mt-1">Cloudflare protected - use Trophy URL Importer manually</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">4</span>
+                                        <div>
+                                            <span class="text-gray-700">Match <a href="/admin/trophy-urls/unmatched" class="text-indigo-600 underline">Unmatched URLs</a> to games</span>
+                                            <p class="text-gray-600 text-xs mt-1">Manual matching for URLs that didn't auto-match</p>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </section>
+
+                        <!-- AUTOMATED DAILY -->
+                        <section>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                                <span class="bg-green-600 text-white px-2 py-1 rounded text-sm mr-2">3</span>
+                                Automated (Daily)
+                            </h3>
+                            <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+                                <p class="text-sm text-gray-700 mb-3">Runs automatically with scheduler:</p>
+                                <ol class="space-y-2 text-sm">
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-green-600 font-bold w-12">3 AM</span>
+                                        <span class="text-gray-700">Import new games from IGDB</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-green-600 font-bold w-12">4 AM</span>
+                                        <span class="text-gray-700">Scrape PPX trophy data for new games</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="text-green-600 font-bold w-12">5 AM</span>
+                                        <span class="text-gray-700">Search for new guides (all 3 sites, last 24h)</span>
+                                    </li>
+                                </ol>
+                                <div class="mt-3 pt-3 border-t border-green-200 text-xs text-gray-600">
+                                    <strong>Enable:</strong> <code class="bg-gray-200 px-1 rounded">* * * * * php artisan schedule:run</code>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- WEEKLY MAINTENANCE -->
+                        <section>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                                <span class="bg-purple-600 text-white px-2 py-1 rounded text-sm mr-2">4</span>
+                                Weekly Maintenance
+                            </h3>
+                            <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                                <p class="text-sm text-gray-700 mb-3">Catch any guides the daily search missed:</p>
+                                <ol class="space-y-2 text-sm">
+                                    <li class="flex items-start gap-3">
+                                        <div class="flex-1">
+                                            <span class="text-gray-700">Check <a href="/admin/trophy-import" class="text-purple-600 underline">Trophy URL Importer</a></span>
+                                            <p class="text-gray-500 text-xs mt-1">PSNP/PST may have new guide pages to import</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <div class="flex-1">
+                                            <span class="text-gray-700">Match any new <a href="/admin/trophy-urls/unmatched" class="text-purple-600 underline">Unmatched URLs</a></span>
+                                            <p class="text-gray-500 text-xs mt-1">Manual matching for URLs that didn't auto-match</p>
+                                        </div>
+                                    </li>
+                                </ol>
+                            </div>
+                        </section>
+
+                        <!-- ADDING METADATA -->
+                        <section>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                                <span class="bg-orange-600 text-white px-2 py-1 rounded text-sm mr-2">5</span>
+                                Adding Trophy Data (Manual)
+                            </h3>
+                            <div class="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                                <p class="text-sm text-gray-700 mb-3">Guide metadata (difficulty, time, etc.) must be added manually:</p>
+                                <p class="text-xs font-semibold text-orange-800 mb-2">Fast Workflow:</p>
+                                <ol class="list-decimal list-inside space-y-1 text-sm text-gray-700">
+                                    <li>Enable <strong class="text-orange-600">"Needs Data"</strong> filter + <strong class="text-blue-600">"Auto-advance"</strong></li>
+                                    <li>Click <strong>Edit</strong> on first game</li>
+                                    <li>Click guide link (PSNP/PST/PPX) in modal header</li>
+                                    <li>Copy the guide's summary section</li>
+                                    <li><strong>Paste</strong> into Quick Fill → auto-saves → next game</li>
+                                </ol>
+                                <div class="mt-3 pt-3 border-t border-orange-200 text-xs text-gray-600">
+                                    <strong>Shortcuts:</strong> Paste = auto-save | Enter = save | Escape = close
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Quick Reference -->
+                        <section>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Quick Reference</h3>
+                            <div class="bg-gray-800 text-gray-100 rounded-lg p-4 text-xs font-mono space-y-2 overflow-x-auto">
+                                <p class="text-gray-400"># Initial setup (games + PPX)</p>
+                                <p class="text-green-400">php artisan import:all --full</p>
+                                <p class="text-gray-400 mt-3"># Daily search (runs automatically at 5 AM)</p>
+                                <p class="text-green-400">php artisan trophy:daily-search</p>
+                                <p class="text-gray-400 mt-3"># Manual tools</p>
+                                <p class="text-yellow-400">/admin/trophy-import          <span class="text-gray-500"># PSNP/PST importer</span></p>
+                                <p class="text-yellow-400">/admin/trophy-urls/unmatched  <span class="text-gray-500"># Match URLs to games</span></p>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PSN Lookup Panel -->
+        <PSNLookupPanel
+            :show="showPSNLookup"
+            @close="showPSNLookup = false"
+        />
     </AdminLayout>
 </template>
 
@@ -589,6 +929,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import AdminLayout from './AdminLayout.vue'
 import GameFormModal from './GameFormModal.vue'
 import BulkActionModal from './BulkActionModal.vue'
+import PSNLookupPanel from './PSNLookupPanel.vue'
 
 const games = ref([])
 const total = ref(0)
@@ -599,6 +940,9 @@ const loading = ref(false)
 const selectedGames = ref([])
 const scrapingGames = ref([]) // Track which games are currently being scraped
 const bulkScraping = ref(false)
+const showInstructions = ref(false)
+const showPSNLookup = ref(false)
+const stats = ref(null)
 
 // Form data (genres, tags, platforms)
 const formData = reactive({
@@ -622,6 +966,11 @@ const filters = reactive({
     missable_trophies: false,
     no_genres: false,
     no_platforms: false,
+    has_guide: true,
+    needs_data: false,
+    guide_psnp: false,
+    guide_pst: false,
+    guide_ppx: false,
     sort_by: 'created_at',
     sort_order: 'desc'
 })
@@ -629,6 +978,8 @@ const filters = reactive({
 // Game Modal
 const showGameModal = ref(false)
 const editingGame = ref(null)
+const editingGameIndex = ref(-1)
+const autoAdvance = ref(true)
 
 // Bulk action modals
 const showGenreModal = ref(false)
@@ -741,6 +1092,8 @@ const resetFilters = () => {
     filters.missable_trophies = false
     filters.no_genres = false
     filters.no_platforms = false
+    filters.has_guide = true
+    filters.needs_data = false
     fetchGames(true) // Reset to page 1
 }
 
@@ -778,8 +1131,9 @@ function openAddModal() {
     showGameModal.value = true
 }
 
-function openEditModal(game) {
+function openEditModal(game, index = -1) {
     editingGame.value = game
+    editingGameIndex.value = index >= 0 ? index : games.value.findIndex(g => g.id === game.id)
     showGameModal.value = true
 }
 
@@ -789,7 +1143,23 @@ function closeGameModal() {
 }
 
 function handleGameSaved() {
-    fetchGames()
+    const currentIndex = editingGameIndex.value
+
+    fetchGames().then(() => {
+        // Auto-advance to next game if enabled and there are more games
+        if (autoAdvance.value && currentIndex >= 0 && currentIndex < games.value.length - 1) {
+            const nextGame = games.value[currentIndex + 1]
+            if (nextGame) {
+                // Small delay so user sees the save happened
+                setTimeout(() => {
+                    openEditModal(nextGame, currentIndex + 1)
+                }, 100)
+            }
+        }
+    })
+
+    // Refresh stats to update progress bar
+    fetchStats()
     selectedGames.value = []
 }
 
@@ -1058,9 +1428,22 @@ const submitPlatformModal = async () => {
     }
 }
 
+// Fetch stats
+const fetchStats = async () => {
+    try {
+        const response = await fetch('/api/admin/games/stats')
+        if (response.ok) {
+            stats.value = await response.json()
+        }
+    } catch (error) {
+        console.error('Error fetching stats:', error)
+    }
+}
+
 // Load data on mount
 onMounted(() => {
     fetchFormData()
     fetchGames()
+    fetchStats()
 })
 </script>

@@ -27,7 +27,7 @@ return new class extends Migration
             $table->boolean('missable_trophies')->default(false);
 
             // Scores
-            $table->integer('metacritic_score')->nullable();
+            $table->integer('critic_score')->nullable();
             $table->integer('opencritic_score')->nullable();
 
             // Pricing

@@ -38,3 +38,38 @@ Schedule::call(function () {
     ->name('igdb-import-new-games')
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Trophy Data Scraping
+|--------------------------------------------------------------------------
+|
+| Scrape trophy data from PowerPyx for newly imported games.
+| Runs at 4 AM (1 hour after IGDB import) to catch new games.
+|
+*/
+
+Schedule::command('trophy:scrape --new --limit=200')
+    ->daily()
+    ->at('04:00')
+    ->name('trophy-scrape-new-games')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Trophy URL Discovery (PSNProfiles, PlayStationTrophies, PowerPyx)
+|--------------------------------------------------------------------------
+|
+| Search for trophy guides published in the last 24 hours.
+| Runs at 5 AM daily - just 3 search queries, one per site.
+| Matches found URLs to games in the database.
+|
+*/
+
+Schedule::command('trophy:daily-search')
+    ->daily()
+    ->at('05:00')
+    ->name('trophy-daily-search')
+    ->withoutOverlapping()
+    ->onOneServer();
