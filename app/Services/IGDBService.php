@@ -367,6 +367,48 @@ class IGDBService
     }
 
     /**
+     * Search IGDB for games matching a query (returns multiple results for user selection)
+     */
+    public function searchGames(string $query, int $limit = 10): array
+    {
+        $accessToken = $this->getAccessToken();
+
+        if (!$accessToken) {
+            throw new \Exception('Failed to get IGDB access token.');
+        }
+
+        $platformFilter = implode(',', self::PLAYSTATION_PLATFORMS);
+        $escapedQuery = $this->escapeForIGDB($query);
+
+        // Search with full game data
+        $igdbQuery = 'search "' . $escapedQuery . '"; '
+            . 'fields name,slug,cover.url,screenshots.url,platforms,genres.name,'
+            . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
+            . 'first_release_date,aggregated_rating; '
+            . 'where platforms = (' . $platformFilter . '); '
+            . 'limit ' . $limit . ';';
+
+        $response = Http::withHeaders([
+            'Client-ID' => $this->clientId,
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->withBody($igdbQuery, 'text/plain')
+          ->post('https://api.igdb.com/v4/games');
+
+        if (!$response->successful()) {
+            throw new \Exception('IGDB API error: ' . $response->body());
+        }
+
+        $games = $response->json() ?? [];
+
+        // Parse each game into our format
+        return array_map(function ($game) {
+            $parsed = $this->parseGameData($game);
+            $parsed['igdb_id'] = $game['id'];
+            return $parsed;
+        }, $games);
+    }
+
+    /**
      * Test the IGDB connection
      */
     public function testConnection(): array

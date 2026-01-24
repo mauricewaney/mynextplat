@@ -8,159 +8,32 @@ use App\Models\Genre;
 use App\Models\Tag;
 use App\Models\Platform;
 use App\Services\IGDBService;
+use App\Services\GameFilterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class GameController extends Controller
 {
     protected $igdbService;
+    protected $filterService;
 
-    public function __construct(IGDBService $igdbService)
+    public function __construct(IGDBService $igdbService, GameFilterService $filterService)
     {
         $this->igdbService = $igdbService;
+        $this->filterService = $filterService;
     }
 
     public function index(Request $request)
     {
         $query = Game::with(['genres', 'tags', 'platforms']);
 
-        // Search
-        if ($request->filled('search')) {
-            $query->where('title', 'LIKE', '%' . $request->search . '%');
-        }
+        // Apply filters (admin mode = true for all filters)
+        $this->filterService->applyFilters($query, $request, true);
 
-        // Genre filter
-        if ($request->filled('genre_ids')) {
-            $query->whereHas('genres', function ($q) use ($request) {
-                $q->whereIn('genres.id', $request->genre_ids);
-            });
-        }
-
-        // Tag filter
-        if ($request->filled('tag_ids')) {
-            $query->whereHas('tags', function ($q) use ($request) {
-                $q->whereIn('tags.id', $request->tag_ids);
-            });
-        }
-
-        // Platform filter
-        if ($request->filled('platform_ids')) {
-            $query->whereHas('platforms', function ($q) use ($request) {
-                $q->whereIn('platforms.id', $request->platform_ids);
-            });
-        }
-
-        // Difficulty filters (only apply if not at default range, include NULL values)
-        $diffMin = $request->input('difficulty_min');
-        $diffMax = $request->input('difficulty_max');
-        if ($request->filled('difficulty_min') && $diffMin > 1) {
-            $query->where(function ($q) use ($diffMin) {
-                $q->where('difficulty', '>=', $diffMin)->orWhereNull('difficulty');
-            });
-        }
-        if ($request->filled('difficulty_max') && $diffMax < 10) {
-            $query->where(function ($q) use ($diffMax) {
-                $q->where('difficulty', '<=', $diffMax)->orWhereNull('difficulty');
-            });
-        }
-
-        // Time filters (only apply if not at default range, include NULL values)
-        $timeMin = $request->input('time_min');
-        $timeMax = $request->input('time_max');
-        if ($request->filled('time_min') && $timeMin > 0) {
-            $query->where(function ($q) use ($timeMin) {
-                $q->where('time_max', '>=', $timeMin)->orWhereNull('time_max');
-            });
-        }
-        if ($request->filled('time_max') && $timeMax < 200) {
-            $query->where(function ($q) use ($timeMax) {
-                $q->where('time_min', '<=', $timeMax)->orWhereNull('time_min');
-            });
-        }
-
-        // Max playthroughs
-        if ($request->filled('max_playthroughs')) {
-            $query->where('playthroughs_required', '<=', $request->max_playthroughs);
-        }
-
-        // Min score
-        if ($request->filled('min_score')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('critic_score', '>=', $request->min_score)
-                    ->orWhere('opencritic_score', '>=', $request->min_score);
-            });
-        }
-
-        // Boolean filters
-        if ($request->filled('has_online_trophies')) {
-            $query->where('has_online_trophies', $request->has_online_trophies === 'true' || $request->has_online_trophies === true);
-        }
-        if ($request->filled('missable_trophies')) {
-            $query->where('missable_trophies', $request->missable_trophies === 'true' || $request->missable_trophies === true);
-        }
-
-        // No genres/tags/platforms filters
-        if ($request->filled('no_genres') && $request->no_genres) {
-            $query->doesntHave('genres');
-        }
-        if ($request->filled('no_tags') && $request->no_tags) {
-            $query->doesntHave('tags');
-        }
-        if ($request->filled('no_platforms') && $request->no_platforms) {
-            $query->doesntHave('platforms');
-        }
-
-        // Has guide filter
-        if ($request->filled('has_guide') && $request->has_guide) {
-            $query->where(function ($q) {
-                $q->whereNotNull('psnprofiles_url')
-                  ->orWhereNotNull('playstationtrophies_url')
-                  ->orWhereNotNull('powerpyx_url');
-            });
-        }
-
-        // Needs data filter (has guide but no difficulty)
-        if ($request->filled('needs_data') && $request->needs_data) {
-            $query->where(function ($q) {
-                $q->whereNotNull('psnprofiles_url')
-                  ->orWhereNotNull('playstationtrophies_url')
-                  ->orWhereNotNull('powerpyx_url');
-            })->whereNull('difficulty');
-        }
-
-        // Guide source filters (PSNP, PST, PPX)
-        if ($request->filled('guide_psnp') && $request->guide_psnp) {
-            $query->whereNotNull('psnprofiles_url');
-        }
-        if ($request->filled('guide_pst') && $request->guide_pst) {
-            $query->whereNotNull('playstationtrophies_url');
-        }
-        if ($request->filled('guide_ppx') && $request->guide_ppx) {
-            $query->whereNotNull('powerpyx_url');
-        }
-
-        // Sorting
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-
-        // Handle NULL values for numeric columns - put NULLs at the end
-        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'opencritic_score', 'release_date'];
-        if (in_array($sortBy, $nullableColumns)) {
-            // Sort NULLs last regardless of sort direction
-            $query->orderByRaw("CASE WHEN {$sortBy} IS NULL THEN 1 ELSE 0 END")
-                  ->orderBy($sortBy, $sortOrder);
-        } else {
-            $query->orderBy($sortBy, $sortOrder);
-        }
-
-        $games = $query->paginate(50);
-
-        return response()->json([
-            'data' => $games->items(),
-            'total' => $games->total(),
-            'current_page' => $games->currentPage(),
-            'last_page' => $games->lastPage(),
-        ]);
+        // Paginate (admin default: 50 per page)
+        return response()->json(
+            $this->filterService->paginate($query, $request, 50, 100)
+        );
     }
 
     public function store(Request $request)
@@ -517,6 +390,183 @@ class GameController extends Controller
         }
 
         return response()->json(['message' => 'Platforms removed successfully']);
+    }
+
+    /**
+     * Get unmatched PSN titles from the log file
+     */
+    public function getUnmatchedPsnTitles()
+    {
+        $logPath = storage_path('logs/psn_unmatched.txt');
+
+        if (!file_exists($logPath)) {
+            return response()->json([
+                'unmatched' => [],
+                'message' => 'No unmatched titles found. Load a PSN library first.'
+            ]);
+        }
+
+        $lines = file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $unmatched = [];
+
+        foreach ($lines as $line) {
+            if (preg_match('/^(.+?)\s*\[([A-Z]{4}\d+_\d+)\]$/', $line, $matches)) {
+                $title = trim($matches[1]);
+                $npId = $matches[2];
+
+                // Check if already linked
+                $existingGame = Game::whereJsonContains('np_communication_ids', $npId)->first();
+
+                $unmatched[] = [
+                    'psn_title' => $title,
+                    'np_id' => $npId,
+                    'linked_to' => $existingGame ? [
+                        'id' => $existingGame->id,
+                        'title' => $existingGame->title,
+                    ] : null,
+                    'suggestions' => $existingGame ? [] : $this->findSuggestions($title),
+                ];
+            }
+        }
+
+        return response()->json([
+            'unmatched' => $unmatched,
+            'total' => count($unmatched),
+            'linked' => count(array_filter($unmatched, fn($u) => $u['linked_to'] !== null)),
+        ]);
+    }
+
+    /**
+     * Link an NP ID to a game
+     */
+    public function linkNpId(Request $request)
+    {
+        $request->validate([
+            'game_id' => 'required|exists:games,id',
+            'np_id' => 'required|string|regex:/^[A-Z]{4}\d+_\d+$/',
+        ]);
+
+        $game = Game::findOrFail($request->game_id);
+        $npId = $request->np_id;
+
+        // Check if NP ID is already linked to another game
+        $existingGame = Game::whereJsonContains('np_communication_ids', $npId)->first();
+        if ($existingGame && $existingGame->id !== $game->id) {
+            return response()->json([
+                'success' => false,
+                'message' => "NP ID is already linked to \"{$existingGame->title}\" (ID {$existingGame->id})",
+            ], 409);
+        }
+
+        // Add NP ID to game
+        $ids = $game->np_communication_ids ?? [];
+        if (!in_array($npId, $ids)) {
+            $ids[] = $npId;
+            $game->np_communication_ids = $ids;
+            $game->save();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Linked {$npId} to \"{$game->title}\"",
+            'game' => $game,
+        ]);
+    }
+
+    /**
+     * Unlink an NP ID from a game
+     */
+    public function unlinkNpId(Request $request)
+    {
+        $request->validate([
+            'game_id' => 'required|exists:games,id',
+            'np_id' => 'required|string',
+        ]);
+
+        $game = Game::findOrFail($request->game_id);
+        $npId = $request->np_id;
+
+        $ids = $game->np_communication_ids ?? [];
+        $ids = array_values(array_filter($ids, fn($id) => $id !== $npId));
+
+        $game->np_communication_ids = empty($ids) ? null : $ids;
+        $game->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Unlinked {$npId} from \"{$game->title}\"",
+            'game' => $game,
+        ]);
+    }
+
+    /**
+     * Search games for NP ID linking
+     */
+    public function searchGamesForLinking(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2',
+        ]);
+
+        $query = $request->query('query');
+
+        $games = Game::where('title', 'like', "%{$query}%")
+            ->select('id', 'title', 'np_communication_ids', 'cover_url')
+            ->orderByRaw("CASE WHEN title LIKE ? THEN 0 ELSE 1 END", ["{$query}%"])
+            ->orderBy('title')
+            ->limit(20)
+            ->get();
+
+        return response()->json($games);
+    }
+
+    /**
+     * Find game suggestions for a PSN title
+     */
+    private function findSuggestions(string $title): array
+    {
+        $normalized = $this->normalizeForSearch($title);
+        $suggestions = [];
+
+        // Get all games (memory intensive but needed for fuzzy search)
+        $games = Game::select('id', 'title')->get();
+
+        foreach ($games as $game) {
+            $normalizedDb = $this->normalizeForSearch($game->title);
+
+            similar_text($normalized, $normalizedDb, $percent);
+
+            // Bonus for containment
+            if (str_contains($normalizedDb, $normalized) || str_contains($normalized, $normalizedDb)) {
+                $percent = min(100, $percent + 15);
+            }
+
+            if ($percent >= 60) {
+                $suggestions[] = [
+                    'id' => $game->id,
+                    'title' => $game->title,
+                    'similarity' => round($percent),
+                ];
+            }
+        }
+
+        // Sort by similarity
+        usort($suggestions, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
+
+        return array_slice($suggestions, 0, 5);
+    }
+
+    /**
+     * Normalize title for search matching
+     */
+    private function normalizeForSearch(string $str): string
+    {
+        $str = preg_replace('/[\x{2122}\x{00AE}\x{00A9}]/u', '', $str);
+        $str = preg_replace('/[\x{2018}\x{2019}\x{0060}]/u', "'", $str);
+        $str = preg_replace('/[\x{201C}\x{201D}]/u', '"', $str);
+        $str = preg_replace('/\s*[:\x{2013}\x{2014}-]\s*/u', ' ', $str);
+        $str = preg_replace('/\s+/', ' ', $str);
+        return strtolower(trim($str));
     }
 
     /**

@@ -1,0 +1,262 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Game;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+
+class GameFilterService
+{
+    /**
+     * Apply filters to a game query
+     *
+     * @param Builder $query
+     * @param Request $request
+     * @param bool $isAdmin Whether to include admin-only filters
+     * @return Builder
+     */
+    public function applyFilters(Builder $query, Request $request, bool $isAdmin = false): Builder
+    {
+        // PSN library filter (restrict to specific game IDs)
+        $this->applyGameIdsFilter($query, $request);
+
+        // Common filters (available to all)
+        $this->applySearchFilter($query, $request);
+        $this->applyRelationshipFilters($query, $request);
+        $this->applyDifficultyFilters($query, $request);
+        $this->applyTimeFilters($query, $request);
+        $this->applyPlaythroughFilter($query, $request);
+        $this->applyScoreFilter($query, $request);
+        $this->applyBooleanFilters($query, $request);
+
+        // Admin-only filters
+        if ($isAdmin) {
+            $this->applyAdminFilters($query, $request);
+        }
+
+        // Apply sorting
+        $this->applySorting($query, $request);
+
+        return $query;
+    }
+
+    /**
+     * Filter by specific game IDs (for PSN library filtering)
+     */
+    protected function applyGameIdsFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('game_ids')) {
+            $gameIds = $request->game_ids;
+            // Handle both array and comma-separated string
+            if (is_string($gameIds)) {
+                $gameIds = explode(',', $gameIds);
+            }
+            $query->whereIn('id', $gameIds);
+        }
+    }
+
+    /**
+     * Search filter (title and slug)
+     */
+    protected function applySearchFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                  ->orWhereRaw('LOWER(slug) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
+            });
+        }
+    }
+
+    /**
+     * Genre, tag, and platform relationship filters
+     */
+    protected function applyRelationshipFilters(Builder $query, Request $request): void
+    {
+        if ($request->filled('genre_ids')) {
+            $query->whereHas('genres', function ($q) use ($request) {
+                $q->whereIn('genres.id', $request->genre_ids);
+            });
+        }
+
+        if ($request->filled('tag_ids')) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                $q->whereIn('tags.id', $request->tag_ids);
+            });
+        }
+
+        if ($request->filled('platform_ids')) {
+            $query->whereHas('platforms', function ($q) use ($request) {
+                $q->whereIn('platforms.id', $request->platform_ids);
+            });
+        }
+    }
+
+    /**
+     * Difficulty range filters
+     */
+    protected function applyDifficultyFilters(Builder $query, Request $request): void
+    {
+        $diffMin = $request->input('difficulty_min');
+        $diffMax = $request->input('difficulty_max');
+
+        if ($request->filled('difficulty_min') && $diffMin > 1) {
+            $query->where(function ($q) use ($diffMin) {
+                $q->where('difficulty', '>=', $diffMin)->orWhereNull('difficulty');
+            });
+        }
+
+        if ($request->filled('difficulty_max') && $diffMax < 10) {
+            $query->where(function ($q) use ($diffMax) {
+                $q->where('difficulty', '<=', $diffMax)->orWhereNull('difficulty');
+            });
+        }
+    }
+
+    /**
+     * Time range filters
+     */
+    protected function applyTimeFilters(Builder $query, Request $request): void
+    {
+        $timeMin = $request->input('time_min');
+        $timeMax = $request->input('time_max');
+
+        if ($request->filled('time_min') && $timeMin > 0) {
+            $query->where(function ($q) use ($timeMin) {
+                $q->where('time_max', '>=', $timeMin)->orWhereNull('time_max');
+            });
+        }
+
+        if ($request->filled('time_max') && $timeMax < 200) {
+            $query->where(function ($q) use ($timeMax) {
+                $q->where('time_min', '<=', $timeMax)->orWhereNull('time_min');
+            });
+        }
+    }
+
+    /**
+     * Max playthroughs filter
+     */
+    protected function applyPlaythroughFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('max_playthroughs')) {
+            $query->where('playthroughs_required', '<=', $request->max_playthroughs);
+        }
+    }
+
+    /**
+     * Minimum score filter
+     */
+    protected function applyScoreFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('min_score')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('critic_score', '>=', $request->min_score)
+                  ->orWhere('opencritic_score', '>=', $request->min_score);
+            });
+        }
+    }
+
+    /**
+     * Boolean filters (online trophies, missable trophies, has guide)
+     */
+    protected function applyBooleanFilters(Builder $query, Request $request): void
+    {
+        if ($request->filled('has_online_trophies')) {
+            $query->where('has_online_trophies', $request->has_online_trophies === 'true' || $request->has_online_trophies === true);
+        }
+
+        if ($request->filled('missable_trophies')) {
+            $query->where('missable_trophies', $request->missable_trophies === 'true' || $request->missable_trophies === true);
+        }
+
+        // Has guide filter (available to public)
+        if ($request->filled('has_guide') && ($request->has_guide === 'true' || $request->has_guide === true)) {
+            $query->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            });
+        }
+
+        // Guide source filters (available to public)
+        if ($request->filled('guide_psnp') && ($request->guide_psnp === 'true' || $request->guide_psnp === true)) {
+            $query->whereNotNull('psnprofiles_url');
+        }
+        if ($request->filled('guide_pst') && ($request->guide_pst === 'true' || $request->guide_pst === true)) {
+            $query->whereNotNull('playstationtrophies_url');
+        }
+        if ($request->filled('guide_ppx') && ($request->guide_ppx === 'true' || $request->guide_ppx === true)) {
+            $query->whereNotNull('powerpyx_url');
+        }
+    }
+
+    /**
+     * Admin-only filters
+     */
+    protected function applyAdminFilters(Builder $query, Request $request): void
+    {
+        // No genres/tags/platforms filters
+        if ($request->filled('no_genres') && $request->no_genres) {
+            $query->doesntHave('genres');
+        }
+        if ($request->filled('no_tags') && $request->no_tags) {
+            $query->doesntHave('tags');
+        }
+        if ($request->filled('no_platforms') && $request->no_platforms) {
+            $query->doesntHave('platforms');
+        }
+
+        // Needs data filter (has guide but no difficulty)
+        if ($request->filled('needs_data') && $request->needs_data) {
+            $query->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            })->whereNull('difficulty');
+        }
+    }
+
+    /**
+     * Apply sorting to query
+     */
+    protected function applySorting(Builder $query, Request $request): void
+    {
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+
+        // When searching, prioritize shorter titles (base games before DLC)
+        // unless explicit sorting is requested
+        if ($request->filled('search') && !$request->filled('sort_by')) {
+            $query->orderByRaw('LENGTH(title) ASC');
+            return;
+        }
+
+        // Handle NULL values for numeric columns - put NULLs at the end
+        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'opencritic_score', 'release_date', 'playthroughs_required', 'missable_trophies'];
+        if (in_array($sortBy, $nullableColumns)) {
+            $query->orderByRaw("CASE WHEN {$sortBy} IS NULL THEN 1 ELSE 0 END")
+                  ->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+    }
+
+    /**
+     * Get paginated results
+     */
+    public function paginate(Builder $query, Request $request, int $defaultPerPage = 24, int $maxPerPage = 100): array
+    {
+        $perPage = min($request->input('per_page', $defaultPerPage), $maxPerPage);
+        $games = $query->paginate($perPage);
+
+        return [
+            'data' => $games->items(),
+            'total' => $games->total(),
+            'current_page' => $games->currentPage(),
+            'last_page' => $games->lastPage(),
+        ];
+    }
+}

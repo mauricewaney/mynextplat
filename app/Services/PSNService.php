@@ -11,6 +11,8 @@ class PSNService
     private const AUTH_URL = 'https://ca.account.sony.com/api/authz/v3/oauth/authorize';
     private const TOKEN_URL = 'https://ca.account.sony.com/api/authz/v3/oauth/token';
     private const USER_TITLES_URL = 'https://m.np.playstation.com/api/trophy/v1/users/{accountId}/trophyTitles';
+    private const GAME_LIST_URL = 'https://m.np.playstation.com/api/gamelist/v2/users/{accountId}/titles';
+    private const PURCHASED_URL = 'https://m.np.playstation.com/api/entitlement/v1/users/{accountId}/entitlements';
     private const SEARCH_URL = 'https://m.np.playstation.com/api/search/v1/universalSearch';
     private const PROFILE_URL = 'https://m.np.playstation.com/api/userProfile/v1/internal/users/{accountId}/profiles';
 
@@ -28,6 +30,7 @@ class PSNService
     ];
 
     private ?string $accessToken = null;
+    private ?string $authenticatedAccountId = null;
 
     /**
      * Exchange NPSSO token for access token
@@ -62,15 +65,19 @@ class PSNService
         }
 
         // Check cache for valid token
-        $cached = Cache::get('psn_access_token');
-        if ($cached) {
-            $this->accessToken = $cached;
+        $cached = Cache::get('psn_auth_data');
+        if ($cached && isset($cached['access_token'])) {
+            $this->accessToken = $cached['access_token'];
+            $this->authenticatedAccountId = $cached['account_id'] ?? null;
             return true;
         }
 
         if ($this->authenticate($npsso)) {
             // Cache for 55 minutes (tokens last 60 min)
-            Cache::put('psn_access_token', $this->accessToken, now()->addMinutes(55));
+            Cache::put('psn_auth_data', [
+                'access_token' => $this->accessToken,
+                'account_id' => $this->authenticatedAccountId,
+            ], now()->addMinutes(55));
             return true;
         }
 
@@ -143,11 +150,36 @@ class PSNService
 
         if ($response->successful()) {
             $data = $response->json();
-            return $data['access_token'] ?? null;
+            $token = $data['access_token'] ?? null;
+
+            // Extract account ID from JWT token for self-lookup detection
+            if ($token) {
+                $this->authenticatedAccountId = $this->extractAccountIdFromToken($token);
+            }
+
+            return $token;
         }
 
         \Log::error('PSN Token exchange failed: ' . $response->body());
         return null;
+    }
+
+    /**
+     * Extract account ID from JWT access token
+     */
+    private function extractAccountIdFromToken(string $token): ?string
+    {
+        try {
+            $parts = explode('.', $token);
+            if (count($parts) !== 3) {
+                return null;
+            }
+
+            $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
+            return $payload['account_id'] ?? $payload['sub'] ?? null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**
@@ -209,11 +241,12 @@ class PSNService
 
     /**
      * Get user's trophy titles (games with trophies)
+     * Returns array with 'data' or 'error' key
      */
-    public function getUserTitles(string $accountId, int $limit = 800, int $offset = 0): ?array
+    public function getUserTitles(string $accountId, int $limit = 800, int $offset = 0): array
     {
         if (!$this->accessToken) {
-            return null;
+            return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
         }
 
         $url = str_replace('{accountId}', $accountId, self::USER_TITLES_URL);
@@ -226,30 +259,61 @@ class PSNService
         ]);
 
         if ($response->successful()) {
-            return $response->json();
+            return ['data' => $response->json()];
         }
 
-        \Log::error('Failed to get user titles: ' . $response->body());
-        return null;
+        $status = $response->status();
+        $body = $response->json() ?? [];
+        $errorCode = $body['error']['code'] ?? null;
+
+        \Log::error('Failed to get user titles', [
+            'accountId' => $accountId,
+            'status' => $status,
+            'body' => $response->body(),
+        ]);
+
+        // Parse specific error codes from Sony
+        if ($status === 403 || $errorCode === 2240525) {
+            return ['error' => 'private_trophies', 'message' => 'Trophy data is private. Enable "Trophies" visibility in PSN privacy settings.'];
+        }
+
+        if ($status === 404) {
+            return ['error' => 'not_found', 'message' => 'User not found'];
+        }
+
+        return ['error' => 'unknown', 'message' => 'Failed to fetch trophy data'];
     }
 
     /**
      * Get games for a username (convenience method)
+     * Returns array with 'user', 'titles' on success, or 'error', 'message' on failure
      */
-    public function getGamesForUser(string $username): ?array
+    public function getGamesForUser(string $username): array
     {
         // Search for user
         $user = $this->searchUser($username);
         if (!$user) {
-            return null;
+            return ['error' => 'user_not_found', 'message' => 'User not found. Check the username and try again.'];
+        }
+
+        // Determine account ID to use - "me" for self-lookup bypasses privacy settings
+        $accountId = $user['accountId'];
+        if ($this->authenticatedAccountId && $this->authenticatedAccountId === $user['accountId']) {
+            \Log::info('PSN: Self-lookup detected, using "me" as account ID');
+            $accountId = 'me';
         }
 
         // Get their titles
-        $titles = $this->getUserTitles($user['accountId']);
-        if (!$titles) {
-            return null;
+        $result = $this->getUserTitles($accountId);
+        if (isset($result['error'])) {
+            // If using "me" still failed, it might be a different issue
+            if ($accountId === 'me' && $result['error'] === 'private_trophies') {
+                return ['error' => 'private_trophies', 'message' => 'Could not access trophy data. Try regenerating your NPSSO token.'];
+            }
+            return $result; // Pass through the specific error
         }
 
+        $titles = $result['data'];
         return [
             'user' => $user,
             'titles' => $titles['trophyTitles'] ?? [],
@@ -258,13 +322,168 @@ class PSNService
     }
 
     /**
+     * Get the authenticated user's own games (uses "me" endpoint)
+     * This bypasses privacy settings since it's your own account
+     */
+    public function getMyGames(): array
+    {
+        if (!$this->accessToken) {
+            return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
+        }
+
+        // Get titles using "me" - this always works for own account
+        $result = $this->getUserTitles('me');
+        if (isset($result['error'])) {
+            return $result;
+        }
+
+        $titles = $result['data'];
+
+        // Get profile info for the authenticated user
+        $profile = $this->getMyProfile();
+
+        return [
+            'user' => $profile ?? [
+                'accountId' => $this->authenticatedAccountId ?? 'me',
+                'onlineId' => 'My Account',
+                'avatarUrl' => null,
+            ],
+            'titles' => $titles['trophyTitles'] ?? [],
+            'totalItemCount' => $titles['totalItemCount'] ?? 0,
+        ];
+    }
+
+    /**
+     * Get the authenticated user's profile
+     */
+    public function getMyProfile(): ?array
+    {
+        if (!$this->accessToken) {
+            return null;
+        }
+
+        $url = str_replace('{accountId}', 'me', self::PROFILE_URL);
+
+        try {
+            $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+                'Authorization' => 'Bearer ' . $this->accessToken,
+            ]))->get($url);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'accountId' => $data['accountId'] ?? $this->authenticatedAccountId,
+                    'onlineId' => $data['onlineId'] ?? 'Unknown',
+                    'avatarUrl' => $data['avatars'][0]['url'] ?? null,
+                ];
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Failed to get own profile: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Get user's game library (all owned games, not just trophy titles)
+     * This includes games the user owns but hasn't played yet
+     */
+    public function getGameLibrary(string $accountId = 'me', int $limit = 200, int $offset = 0): array
+    {
+        if (!$this->accessToken) {
+            return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
+        }
+
+        $url = str_replace('{accountId}', $accountId, self::GAME_LIST_URL);
+
+        \Log::info('PSN GameList: Fetching library', ['accountId' => $accountId, 'limit' => $limit]);
+
+        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+            'Authorization' => 'Bearer ' . $this->accessToken,
+        ]))->get($url, [
+            'limit' => $limit,
+            'offset' => $offset,
+        ]);
+
+        if ($response->successful()) {
+            return ['data' => $response->json()];
+        }
+
+        $status = $response->status();
+        \Log::error('PSN GameList: Failed', [
+            'accountId' => $accountId,
+            'status' => $status,
+            'body' => $response->body(),
+        ]);
+
+        if ($status === 403) {
+            return ['error' => 'private_library', 'message' => 'Game library is private'];
+        }
+
+        return ['error' => 'unknown', 'message' => 'Failed to fetch game library'];
+    }
+
+    /**
+     * Get the authenticated user's full game library (owned games)
+     * Handles pagination to get all games
+     */
+    public function getMyGameLibrary(): array
+    {
+        if (!$this->accessToken) {
+            return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
+        }
+
+        $allTitles = [];
+        $offset = 0;
+        $limit = 200;
+
+        // Fetch all pages
+        do {
+            $result = $this->getGameLibrary('me', $limit, $offset);
+            if (isset($result['error'])) {
+                // If we already got some results, return them
+                if (!empty($allTitles)) {
+                    break;
+                }
+                return $result;
+            }
+
+            $data = $result['data'];
+            $titles = $data['titles'] ?? [];
+            $allTitles = array_merge($allTitles, $titles);
+
+            $totalCount = $data['totalItemCount'] ?? count($titles);
+            $offset += $limit;
+
+            \Log::info('PSN GameList: Fetched page', [
+                'fetched' => count($titles),
+                'total_so_far' => count($allTitles),
+                'total_available' => $totalCount
+            ]);
+
+        } while (count($titles) === $limit && $offset < $totalCount);
+
+        $profile = $this->getMyProfile();
+
+        return [
+            'user' => $profile ?? [
+                'accountId' => $this->authenticatedAccountId ?? 'me',
+                'onlineId' => 'My Account',
+                'avatarUrl' => null,
+            ],
+            'titles' => $allTitles,
+            'totalItemCount' => count($allTitles),
+        ];
+    }
+
+    /**
      * Filter to games without platinum earned
      */
-    public function getUnplatinumedGames(string $username): ?array
+    public function getUnplatinumedGames(string $username): array
     {
         $data = $this->getGamesForUser($username);
-        if (!$data) {
-            return null;
+        if (isset($data['error'])) {
+            return $data;
         }
 
         // Filter to games where platinum exists but not earned

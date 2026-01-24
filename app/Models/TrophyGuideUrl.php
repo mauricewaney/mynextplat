@@ -13,11 +13,13 @@ class TrophyGuideUrl extends Model
         'extracted_slug',
         'extracted_title',
         'game_id',
+        'is_dlc',
         'matched_at',
     ];
 
     protected $casts = [
         'matched_at' => 'datetime',
+        'is_dlc' => 'boolean',
     ];
 
     public function game(): BelongsTo

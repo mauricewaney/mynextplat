@@ -18,6 +18,7 @@ class Game extends Model
 
     protected $fillable = [
         'igdb_id',
+        'np_communication_ids',
         'title',
         'slug',
         'developer',
@@ -56,6 +57,7 @@ class Game extends Model
         'base_price' => 'decimal:2',
         'psplus_price' => 'decimal:2',
         'current_discount_price' => 'decimal:2',
+        'np_communication_ids' => 'array',
     ];
 
     // Relationships
