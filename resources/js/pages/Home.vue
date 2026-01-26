@@ -4,17 +4,48 @@
         <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm dark:bg-slate-900/95 dark:border-slate-700/50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
-                    <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
+                    <div class="flex items-center gap-4">
+                        <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h1 class="hidden sm:block text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                                MyNextPlat
+                            </h1>
+                        </router-link>
+
+                        <!-- View Mode Tabs -->
+                        <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
+                            <button
+                                @click="switchViewMode('all')"
+                                :class="[
+                                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                                    viewMode === 'all'
+                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                ]"
+                            >
+                                All Games
+                            </button>
+                            <button
+                                @click="switchViewMode('library')"
+                                :class="[
+                                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
+                                    viewMode === 'library'
+                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                ]"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                                </svg>
+                                My Library
+                            </button>
                         </div>
-                        <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-                            MyNextPlat
-                        </h1>
-                    </router-link>
+                    </div>
 
                     <!-- Mobile actions -->
                     <div class="lg:hidden flex items-center gap-1">
@@ -29,16 +60,32 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                             </svg>
                         </button>
-                        <router-link
-                            to="/admin"
+                        <!-- Mobile Auth -->
+                        <button
+                            v-if="isAuthenticated"
+                            @click.stop="showUserMenu = !showUserMenu"
+                            class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors user-menu-container"
+                        >
+                            <img
+                                v-if="user?.avatar"
+                                :src="user.avatar"
+                                :alt="user.name"
+                                class="w-8 h-8 rounded-full"
+                            />
+                            <div v-else class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+                                {{ user?.name?.charAt(0) || '?' }}
+                            </div>
+                        </button>
+                        <button
+                            v-else
+                            @click="loginWithGoogle"
                             class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                            title="Admin"
+                            title="Sign in"
                         >
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
-                        </router-link>
+                        </button>
                         <button
                             @click="showMobileFilters = true"
                             class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -84,12 +131,6 @@
                                 </svg>
                             </button>
                         </div>
-                        <router-link
-                            to="/admin"
-                            class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
-                        >
-                            Admin
-                        </router-link>
                         <button
                             @click="toggleDarkMode"
                             class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -101,6 +142,76 @@
                             <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
                             </svg>
+                        </button>
+
+                        <!-- Auth UI -->
+                        <div v-if="isAuthenticated" class="relative user-menu-container">
+                            <button
+                                @click.stop="showUserMenu = !showUserMenu"
+                                class="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                <img
+                                    v-if="user?.avatar"
+                                    :src="user.avatar"
+                                    :alt="user.name"
+                                    class="w-8 h-8 rounded-full"
+                                />
+                                <div v-else class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+                                    {{ user?.name?.charAt(0) || '?' }}
+                                </div>
+                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <Transition name="dropdown">
+                                <div
+                                    v-if="showUserMenu"
+                                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-50"
+                                >
+                                    <div class="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user?.name }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
+                                    </div>
+                                    <router-link
+                                        to="/my-games"
+                                        @click="showUserMenu = false"
+                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+                                    >
+                                        My Games
+                                    </router-link>
+                                    <router-link
+                                        v-if="isAdmin"
+                                        to="/admin"
+                                        @click="showUserMenu = false"
+                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+                                    >
+                                        Admin
+                                    </router-link>
+                                    <button
+                                        @click="handleLogout"
+                                        class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700"
+                                    >
+                                        Sign Out
+                                    </button>
+                                </div>
+                            </Transition>
+                        </div>
+
+                        <!-- Login Button -->
+                        <button
+                            v-else
+                            @click="loginWithGoogle"
+                            class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <svg class="w-4 h-4" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Sign in
                         </button>
                     </div>
                 </div>
@@ -291,13 +402,90 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- Login Prompt Modal -->
+        <Teleport to="body">
+            <Transition name="fade">
+                <div
+                    v-if="showLoginPrompt"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                >
+                    <div class="absolute inset-0 bg-black/50" @click="showLoginPrompt = false"></div>
+                    <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
+                        <button
+                            @click="showLoginPrompt = false"
+                            class="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                        <div class="w-16 h-16 mx-auto mb-4 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Sign in required</h3>
+                        <p class="text-gray-500 dark:text-gray-400 mb-6">Sign in with Google to access your game list and save your progress.</p>
+                        <button
+                            @click="loginWithGoogle"
+                            class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors"
+                        >
+                            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Sign in with Google
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
+import { useAuth } from '../composables/useAuth'
+
+const route = useRoute()
+const { user, isAuthenticated, isAdmin, initAuth, loginWithGoogle, logout } = useAuth()
+
+const showUserMenu = ref(false)
+const showLoginPrompt = ref(false)
+const viewMode = ref('all') // 'all' or 'library'
+
+// Check for login required query param
+watch(() => route.query.login, (val) => {
+    if (val === 'required') {
+        showLoginPrompt.value = true
+        // Clear the query param
+        window.history.replaceState({}, '', '/')
+    }
+}, { immediate: true })
+
+async function handleLogout() {
+    await logout()
+    showUserMenu.value = false
+}
+
+// Close user menu when clicking outside
+function closeUserMenu(e) {
+    if (!e.target.closest('.user-menu-container')) {
+        showUserMenu.value = false
+    }
+}
+
+onMounted(() => {
+    initAuth()
+    document.addEventListener('click', closeUserMenu)
+})
+
 
 const games = ref([])
 const loading = ref(true)
@@ -359,18 +547,36 @@ function openGame(game) {
     console.log('Open game:', game.slug)
 }
 
+function switchViewMode(mode) {
+    if (mode === 'library' && !isAuthenticated.value) {
+        showLoginPrompt.value = true
+        return
+    }
+    viewMode.value = mode
+    currentPage.value = 1
+    games.value = []
+    loadGames()
+}
+
 async function loadGames() {
     loading.value = true
 
     try {
         const params = new URLSearchParams()
 
-        // Only show games with guides on the public homepage
-        params.append('has_guide', 'true')
+        // My Library filter
+        if (viewMode.value === 'library') {
+            params.append('my_library', 'true')
+        }
 
         // PSN library filter (game_ids)
         if (filters.game_ids?.length) {
             params.append('game_ids', filters.game_ids.join(','))
+            // When PSN library is loaded, respect the user's "has guide" toggle
+            // (don't force has_guide=true)
+        } else if (viewMode.value === 'all') {
+            // Only show games with guides on the public homepage (when no PSN library loaded)
+            params.append('has_guide', 'true')
         }
 
         // Add filters
@@ -441,5 +647,15 @@ onMounted(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+.dropdown-enter-active,
+.dropdown-leave-active {
+    transition: all 0.15s ease;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
 }
 </style>

@@ -18,6 +18,10 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
+            <!-- Add to List Button -->
+            <div class="absolute top-1 right-1">
+                <AddToListButton :game-id="game.id" />
+            </div>
         </div>
 
         <!-- Info Section -->
@@ -162,6 +166,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import AddToListButton from './AddToListButton.vue'
 
 const props = defineProps({
     game: {

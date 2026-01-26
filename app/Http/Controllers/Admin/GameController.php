@@ -150,6 +150,34 @@ class GameController extends Controller
     }
 
     /**
+     * Search games that have guides (for copying guide URLs)
+     */
+    public function searchGuides(Request $request)
+    {
+        $search = $request->get('search');
+
+        if (!$search || strlen($search) < 2) {
+            return response()->json([]);
+        }
+
+        $games = Game::with('platforms')
+            ->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            })
+            ->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($search) . '%']);
+            })
+            ->select('id', 'title', 'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url')
+            ->orderByRaw('LENGTH(title) ASC') // Shorter titles first (likely base games)
+            ->limit(10)
+            ->get();
+
+        return response()->json($games);
+    }
+
+    /**
      * Scrape image from IGDB for a single game
      */
     public function scrapeImage($id)
@@ -393,114 +421,7 @@ class GameController extends Controller
     }
 
     /**
-     * Get unmatched PSN titles from the log file
-     */
-    public function getUnmatchedPsnTitles()
-    {
-        $logPath = storage_path('logs/psn_unmatched.txt');
-
-        if (!file_exists($logPath)) {
-            return response()->json([
-                'unmatched' => [],
-                'message' => 'No unmatched titles found. Load a PSN library first.'
-            ]);
-        }
-
-        $lines = file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        $unmatched = [];
-
-        foreach ($lines as $line) {
-            if (preg_match('/^(.+?)\s*\[([A-Z]{4}\d+_\d+)\]$/', $line, $matches)) {
-                $title = trim($matches[1]);
-                $npId = $matches[2];
-
-                // Check if already linked
-                $existingGame = Game::whereJsonContains('np_communication_ids', $npId)->first();
-
-                $unmatched[] = [
-                    'psn_title' => $title,
-                    'np_id' => $npId,
-                    'linked_to' => $existingGame ? [
-                        'id' => $existingGame->id,
-                        'title' => $existingGame->title,
-                    ] : null,
-                    'suggestions' => $existingGame ? [] : $this->findSuggestions($title),
-                ];
-            }
-        }
-
-        return response()->json([
-            'unmatched' => $unmatched,
-            'total' => count($unmatched),
-            'linked' => count(array_filter($unmatched, fn($u) => $u['linked_to'] !== null)),
-        ]);
-    }
-
-    /**
-     * Link an NP ID to a game
-     */
-    public function linkNpId(Request $request)
-    {
-        $request->validate([
-            'game_id' => 'required|exists:games,id',
-            'np_id' => 'required|string|regex:/^[A-Z]{4}\d+_\d+$/',
-        ]);
-
-        $game = Game::findOrFail($request->game_id);
-        $npId = $request->np_id;
-
-        // Check if NP ID is already linked to another game
-        $existingGame = Game::whereJsonContains('np_communication_ids', $npId)->first();
-        if ($existingGame && $existingGame->id !== $game->id) {
-            return response()->json([
-                'success' => false,
-                'message' => "NP ID is already linked to \"{$existingGame->title}\" (ID {$existingGame->id})",
-            ], 409);
-        }
-
-        // Add NP ID to game
-        $ids = $game->np_communication_ids ?? [];
-        if (!in_array($npId, $ids)) {
-            $ids[] = $npId;
-            $game->np_communication_ids = $ids;
-            $game->save();
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => "Linked {$npId} to \"{$game->title}\"",
-            'game' => $game,
-        ]);
-    }
-
-    /**
-     * Unlink an NP ID from a game
-     */
-    public function unlinkNpId(Request $request)
-    {
-        $request->validate([
-            'game_id' => 'required|exists:games,id',
-            'np_id' => 'required|string',
-        ]);
-
-        $game = Game::findOrFail($request->game_id);
-        $npId = $request->np_id;
-
-        $ids = $game->np_communication_ids ?? [];
-        $ids = array_values(array_filter($ids, fn($id) => $id !== $npId));
-
-        $game->np_communication_ids = empty($ids) ? null : $ids;
-        $game->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => "Unlinked {$npId} from \"{$game->title}\"",
-            'game' => $game,
-        ]);
-    }
-
-    /**
-     * Search games for NP ID linking
+     * Search games for linking (used by PSN title matching UI)
      */
     public function searchGamesForLinking(Request $request)
     {
@@ -521,52 +442,145 @@ class GameController extends Controller
     }
 
     /**
-     * Find game suggestions for a PSN title
+     * Get PSN titles linked to a specific game
      */
-    private function findSuggestions(string $title): array
+    public function getLinkedPsnTitles(int $gameId)
     {
-        $normalized = $this->normalizeForSearch($title);
-        $suggestions = [];
+        $game = Game::findOrFail($gameId);
 
-        // Get all games (memory intensive but needed for fuzzy search)
-        $games = Game::select('id', 'title')->get();
+        $psnTitles = \App\Models\PsnTitle::where('game_id', $gameId)
+            ->orderBy('psn_title')
+            ->get();
 
-        foreach ($games as $game) {
-            $normalizedDb = $this->normalizeForSearch($game->title);
-
-            similar_text($normalized, $normalizedDb, $percent);
-
-            // Bonus for containment
-            if (str_contains($normalizedDb, $normalized) || str_contains($normalized, $normalizedDb)) {
-                $percent = min(100, $percent + 15);
-            }
-
-            if ($percent >= 60) {
-                $suggestions[] = [
-                    'id' => $game->id,
-                    'title' => $game->title,
-                    'similarity' => round($percent),
-                ];
-            }
-        }
-
-        // Sort by similarity
-        usort($suggestions, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
-
-        return array_slice($suggestions, 0, 5);
+        return response()->json([
+            'game' => [
+                'id' => $game->id,
+                'title' => $game->title,
+                'np_communication_ids' => $game->np_communication_ids,
+            ],
+            'psn_titles' => $psnTitles,
+        ]);
     }
 
     /**
-     * Normalize title for search matching
+     * Merge duplicate games into one
      */
-    private function normalizeForSearch(string $str): string
+    public function mergeGames(Request $request)
     {
-        $str = preg_replace('/[\x{2122}\x{00AE}\x{00A9}]/u', '', $str);
-        $str = preg_replace('/[\x{2018}\x{2019}\x{0060}]/u', "'", $str);
-        $str = preg_replace('/[\x{201C}\x{201D}]/u', '"', $str);
-        $str = preg_replace('/\s*[:\x{2013}\x{2014}-]\s*/u', ' ', $str);
-        $str = preg_replace('/\s+/', ' ', $str);
-        return strtolower(trim($str));
+        $request->validate([
+            'primary_id' => 'required|exists:games,id',
+            'duplicate_id' => 'required|exists:games,id|different:primary_id',
+        ]);
+
+        $primary = Game::with(['genres', 'tags', 'platforms'])->findOrFail($request->primary_id);
+        $duplicate = Game::with(['genres', 'tags', 'platforms'])->findOrFail($request->duplicate_id);
+
+        // Merge NP Communication IDs
+        $npIds = array_unique(array_merge(
+            $primary->np_communication_ids ?? [],
+            $duplicate->np_communication_ids ?? []
+        ));
+        $primary->np_communication_ids = !empty($npIds) ? array_values($npIds) : null;
+
+        // Merge guide URLs (only if primary doesn't have them)
+        if (!$primary->psnprofiles_url && $duplicate->psnprofiles_url) {
+            $primary->psnprofiles_url = $duplicate->psnprofiles_url;
+        }
+        if (!$primary->playstationtrophies_url && $duplicate->playstationtrophies_url) {
+            $primary->playstationtrophies_url = $duplicate->playstationtrophies_url;
+        }
+        if (!$primary->powerpyx_url && $duplicate->powerpyx_url) {
+            $primary->powerpyx_url = $duplicate->powerpyx_url;
+        }
+
+        // Merge other fields if primary is missing them
+        $fieldsToMerge = [
+            'cover_url', 'banner_url', 'description', 'developer', 'publisher',
+            'release_date', 'difficulty', 'time_min', 'time_max', 'playthroughs_required',
+            'critic_score', 'opencritic_score', 'trophy_icon_url',
+            'bronze_count', 'silver_count', 'gold_count', 'platinum_count',
+        ];
+        foreach ($fieldsToMerge as $field) {
+            if ($primary->$field === null && $duplicate->$field !== null) {
+                $primary->$field = $duplicate->$field;
+            }
+        }
+
+        // Merge boolean fields (prefer true)
+        if ($duplicate->has_platinum && !$primary->has_platinum) {
+            $primary->has_platinum = true;
+        }
+        if ($duplicate->has_online_trophies && !$primary->has_online_trophies) {
+            $primary->has_online_trophies = true;
+        }
+        if ($duplicate->missable_trophies && !$primary->missable_trophies) {
+            $primary->missable_trophies = true;
+        }
+
+        $primary->save();
+
+        // Merge relationships (add duplicate's to primary)
+        $primary->genres()->syncWithoutDetaching($duplicate->genres->pluck('id')->toArray());
+        $primary->tags()->syncWithoutDetaching($duplicate->tags->pluck('id')->toArray());
+        $primary->platforms()->syncWithoutDetaching($duplicate->platforms->pluck('id')->toArray());
+
+        // Update all PSN titles that were linked to duplicate
+        \App\Models\PsnTitle::where('game_id', $duplicate->id)
+            ->update(['game_id' => $primary->id]);
+
+        // Delete the duplicate
+        $duplicateTitle = $duplicate->title;
+        $duplicate->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Merged \"{$duplicateTitle}\" into \"{$primary->title}\"",
+            'game' => $primary->fresh()->load(['genres', 'tags', 'platforms']),
+        ]);
+    }
+
+    /**
+     * Find potential duplicate games
+     */
+    public function findDuplicates(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|min:2',
+            'exclude_id' => 'nullable|integer',
+        ]);
+
+        $search = $request->title;
+        $excludeId = $request->exclude_id;
+
+        // Normalize search term for better matching
+        $normalized = preg_replace('/[^\w\s]/u', '', strtolower($search));
+        $words = array_filter(explode(' ', $normalized));
+
+        $query = Game::with('platforms')
+            ->select('id', 'title', 'cover_url', 'np_communication_ids', 'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url');
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        // Search for similar titles
+        $query->where(function ($q) use ($search, $words) {
+            // Exact match first
+            $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($search) . '%']);
+
+            // Also match by individual words (for reordered titles)
+            foreach ($words as $word) {
+                if (strlen($word) >= 3) {
+                    $q->orWhereRaw('LOWER(title) LIKE ?', ['%' . $word . '%']);
+                }
+            }
+        });
+
+        $games = $query->orderByRaw('LENGTH(title) ASC')
+            ->limit(15)
+            ->get();
+
+        return response()->json($games);
     }
 
     /**

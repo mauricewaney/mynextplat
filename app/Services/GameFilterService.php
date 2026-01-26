@@ -18,6 +18,9 @@ class GameFilterService
      */
     public function applyFilters(Builder $query, Request $request, bool $isAdmin = false): Builder
     {
+        // My Library filter (restrict to user's game list)
+        $this->applyMyLibraryFilter($query, $request);
+
         // PSN library filter (restrict to specific game IDs)
         $this->applyGameIdsFilter($query, $request);
 
@@ -39,6 +42,23 @@ class GameFilterService
         $this->applySorting($query, $request);
 
         return $query;
+    }
+
+    /**
+     * Filter to only games in the authenticated user's library
+     */
+    protected function applyMyLibraryFilter(Builder $query, Request $request): void
+    {
+        if ($request->filled('my_library') && ($request->my_library === 'true' || $request->my_library === true)) {
+            $user = $request->user();
+            if ($user) {
+                $userGameIds = $user->games()->pluck('game_id')->toArray();
+                $query->whereIn('id', $userGameIds);
+            } else {
+                // Not authenticated - return no results
+                $query->whereRaw('1 = 0');
+            }
+        }
     }
 
     /**

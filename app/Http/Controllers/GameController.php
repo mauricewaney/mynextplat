@@ -6,6 +6,7 @@ use App\Models\Game;
 use App\Models\Genre;
 use App\Models\Tag;
 use App\Models\Platform;
+use App\Models\PsnTitle;
 use App\Services\GameFilterService;
 use App\Services\PSNService;
 use Illuminate\Http\Request;
@@ -49,7 +50,7 @@ class GameController extends Controller
 
     /**
      * Lookup authenticated user's full game library (all owned games)
-     * This includes games the user owns but hasn't played yet
+     * Combines trophy data + library for most complete list
      */
     public function psnMyOwnedGames(PSNService $psnService)
     {
@@ -61,8 +62,8 @@ class GameController extends Controller
             ], 503);
         }
 
-        // Get full game library
-        $data = $psnService->getMyGameLibrary();
+        // Get combined trophy + library data
+        $data = $psnService->getMyFullLibrary();
 
         if (isset($data['error'])) {
             return response()->json([
@@ -80,6 +81,15 @@ class GameController extends Controller
      */
     private function processOwnedGames(array $data)
     {
+        // Debug: Log ALL raw titles to file
+        $allRawTitles = array_map(function($t) {
+            $name = $t['name'] ?? $t['titleName'] ?? 'Unknown';
+            $id = $t['titleId'] ?? $t['npCommunicationId'] ?? 'no-id';
+            return "{$name} [{$id}]";
+        }, $data['titles']);
+        file_put_contents(storage_path('logs/psn_owned_all_titles.txt'),
+            "Total: " . count($data['titles']) . "\n\n" . implode("\n", $allRawTitles));
+
         $allMatchedGameIds = [];
         $hasGuideGameIds = [];
         $unmatchedTitles = [];
@@ -91,8 +101,26 @@ class GameController extends Controller
             $npTitleId = $title['titleId'] ?? null; // e.g., "PPSA01234_00" or "CUSA12345_00"
             $conceptId = $title['conceptId'] ?? null;
 
+            // Debug: Track Octopath specifically
+            $isOctopath = stripos($gameName, 'octopath') !== false;
+            if ($isOctopath) {
+                \Log::info('OCTOPATH DEBUG: Processing', [
+                    'name' => $gameName,
+                    'titleId' => $npTitleId,
+                    'raw_title' => $title,
+                ]);
+            }
+
             // Try to match by title name
             $localMatch = $this->findLocalMatch($gameName, true, $npTitleId);
+
+            if ($isOctopath) {
+                \Log::info('OCTOPATH DEBUG: Match result', [
+                    'name' => $gameName,
+                    'matched' => $localMatch ? true : false,
+                    'match_details' => $localMatch,
+                ]);
+            }
 
             if ($localMatch) {
                 $gameId = $localMatch['id'];
@@ -110,6 +138,14 @@ class GameController extends Controller
         // Remove duplicates
         $allMatchedGameIds = array_unique($allMatchedGameIds);
         $hasGuideGameIds = array_unique($hasGuideGameIds);
+
+        // Debug: Check if Octopath IDs are in the final arrays
+        \Log::info('OCTOPATH FINAL CHECK', [
+            'id_8825_in_matched' => in_array(8825, $allMatchedGameIds),
+            'id_17329_in_matched' => in_array(17329, $allMatchedGameIds),
+            'total_matched' => count($allMatchedGameIds),
+            'total_unmatched' => $unmatchedCount,
+        ]);
 
         // Log unmatched titles
         if (!empty($unmatchedTitles)) {
@@ -168,10 +204,173 @@ class GameController extends Controller
     }
 
     /**
+     * Get user's library with full game details and trophy progress
+     * This is the main endpoint for the user library feature
+     */
+    public function psnUserLibrary(string $username, PSNService $psnService)
+    {
+        if (!$psnService->authenticateFromConfig()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'PSN service temporarily unavailable.',
+            ], 503);
+        }
+
+        $data = $psnService->getGamesForUser($username);
+
+        if (isset($data['error'])) {
+            $status = match($data['error']) {
+                'user_not_found' => 404,
+                'private_trophies' => 403,
+                default => 500,
+            };
+            return response()->json([
+                'success' => false,
+                'error' => $data['error'],
+                'message' => $data['message'],
+            ], $status);
+        }
+
+        return $this->processUserLibrary($data, $username);
+    }
+
+    /**
+     * Process user library with full details
+     */
+    private function processUserLibrary(array $data, string $username)
+    {
+        // Debug: Log ALL raw PSN titles to file
+        $allRawTitles = array_map(function($t) {
+            return ($t['trophyTitleName'] ?? 'Unknown') . ' [' . ($t['npCommunicationId'] ?? 'no-id') . ']';
+        }, $data['titles']);
+        file_put_contents(storage_path('logs/psn_library_all_titles.txt'),
+            "Total: " . count($data['titles']) . " for user: {$username}\n\n" . implode("\n", $allRawTitles));
+
+        $library = [];
+        $unmatchedTitles = [];
+        $totalTrophies = ['bronze' => 0, 'silver' => 0, 'gold' => 0, 'platinum' => 0];
+        $earnedTrophies = ['bronze' => 0, 'silver' => 0, 'gold' => 0, 'platinum' => 0];
+
+        foreach ($data['titles'] as $title) {
+            $gameName = $title['trophyTitleName'] ?? 'Unknown';
+            $npId = $title['npCommunicationId'] ?? null;
+            $platform = $title['trophyTitlePlatform'] ?? null;
+
+            // Collect NP ID into database
+            if ($npId) {
+                $psnTitle = PsnTitle::where('np_communication_id', $npId)->first();
+                if ($psnTitle) {
+                    $psnTitle->incrementSeen();
+                } else {
+                    PsnTitle::upsertFromTrophy($title, $username);
+                }
+            }
+
+            // Count trophies
+            $defined = $title['definedTrophies'] ?? [];
+            $earned = $title['earnedTrophies'] ?? [];
+
+            $totalTrophies['bronze'] += $defined['bronze'] ?? 0;
+            $totalTrophies['silver'] += $defined['silver'] ?? 0;
+            $totalTrophies['gold'] += $defined['gold'] ?? 0;
+            $totalTrophies['platinum'] += $defined['platinum'] ?? 0;
+
+            $earnedTrophies['bronze'] += $earned['bronze'] ?? 0;
+            $earnedTrophies['silver'] += $earned['silver'] ?? 0;
+            $earnedTrophies['gold'] += $earned['gold'] ?? 0;
+            $earnedTrophies['platinum'] += $earned['platinum'] ?? 0;
+
+            // Try to match
+            $localMatch = $this->findLocalMatch($gameName, true, $npId);
+
+            $hasPlatinum = ($defined['platinum'] ?? 0) > 0;
+            $earnedPlatinum = ($earned['platinum'] ?? 0) > 0;
+
+            $libraryItem = [
+                'psn_title' => $gameName,
+                'np_communication_id' => $npId,
+                'platform' => $platform,
+                'icon_url' => $title['trophyTitleIconUrl'] ?? null,
+                'progress' => $title['progress'] ?? 0,
+                'has_platinum' => $hasPlatinum,
+                'earned_platinum' => $earnedPlatinum,
+                'trophies' => [
+                    'defined' => $defined,
+                    'earned' => $earned,
+                ],
+                'game' => null,
+            ];
+
+            if ($localMatch) {
+                // Load full game data
+                $game = Game::with(['genres', 'platforms'])->find($localMatch['id']);
+                if ($game) {
+                    $libraryItem['game'] = [
+                        'id' => $game->id,
+                        'title' => $game->title,
+                        'slug' => $game->slug,
+                        'cover_url' => $game->cover_url ?? $game->trophy_icon_url,
+                        'difficulty' => $game->difficulty,
+                        'time_min' => $game->time_min,
+                        'time_max' => $game->time_max,
+                        'time_range' => $game->time_range,
+                        'has_platinum' => $game->has_platinum,
+                        'has_guide' => $game->hasGuides(),
+                        'platforms' => $game->platforms->pluck('short_name'),
+                        'genres' => $game->genres->pluck('name'),
+                    ];
+                }
+            } else {
+                $unmatchedTitles[] = $gameName;
+            }
+
+            $library[] = $libraryItem;
+        }
+
+        // Sort: unplatinumed games with guides first, then by progress
+        usort($library, function ($a, $b) {
+            // Prioritize games that need platinum and have a guide
+            $aScore = (!$a['earned_platinum'] && $a['has_platinum'] && $a['game'] && $a['game']['has_guide']) ? 1000 : 0;
+            $bScore = (!$b['earned_platinum'] && $b['has_platinum'] && $b['game'] && $b['game']['has_guide']) ? 1000 : 0;
+
+            // Then by progress (lower progress = more work to do = higher priority)
+            $aScore += (100 - $a['progress']);
+            $bScore += (100 - $b['progress']);
+
+            return $bScore <=> $aScore;
+        });
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'username' => $data['user']['onlineId'] ?? $username,
+                'avatar' => $data['user']['avatarUrl'] ?? null,
+            ],
+            'library' => $library,
+            'stats' => [
+                'total_games' => count($library),
+                'matched_games' => count(array_filter($library, fn($l) => $l['game'] !== null)),
+                'unmatched_games' => count($unmatchedTitles),
+                'platinums_earned' => $earnedTrophies['platinum'],
+                'platinums_available' => $totalTrophies['platinum'],
+                'total_trophies' => $totalTrophies,
+                'earned_trophies' => $earnedTrophies,
+            ],
+        ]);
+    }
+
+    /**
      * Process PSN games data and return JSON response
      */
     private function processPsnGames(array $data)
     {
+        // Debug: Log ALL raw PSN titles to file
+        $allRawTitles = array_map(function($t) {
+            return ($t['trophyTitleName'] ?? 'Unknown') . ' [' . ($t['npCommunicationId'] ?? 'no-id') . ']';
+        }, $data['titles']);
+        file_put_contents(storage_path('logs/psn_all_titles.txt'),
+            "Total: " . count($data['titles']) . "\n\n" . implode("\n", $allRawTitles));
+
         $allMatchedGameIds = [];
         $platinumedGameIds = []; // Games where platinum IS earned (any platform)
         $needsPlatinumGameIds = []; // Games where platinum exists but not earned
@@ -325,10 +524,22 @@ class GameController extends Controller
     {
         // Replace ellipsis character with three dots
         $str = str_replace('…', '...', $str);
+        // Replace underscores with spaces (e.g., "WATCH_DOGS" -> "WATCH DOGS")
+        $str = str_replace('_', ' ', $str);
         // Replace trademark symbols with space (so "TEKKEN™7" becomes "TEKKEN 7")
         $str = preg_replace('/[\x{2122}\x{00AE}\x{00A9}]/u', ' ', $str);
         // Remove other special characters
         $str = preg_replace('/[\x{221A}\x{00B7}]/u', '', $str);
+        // Convert Roman numerals to Arabic (Ⅰ-Ⅻ unicode block)
+        $romanMap = [
+            'Ⅰ' => '1', 'Ⅱ' => '2', 'Ⅲ' => '3', 'Ⅳ' => '4', 'Ⅴ' => '5',
+            'Ⅵ' => '6', 'Ⅶ' => '7', 'Ⅷ' => '8', 'Ⅸ' => '9', 'Ⅹ' => '10',
+            'Ⅺ' => '11', 'Ⅻ' => '12',
+            'ⅰ' => '1', 'ⅱ' => '2', 'ⅲ' => '3', 'ⅳ' => '4', 'ⅴ' => '5',
+            'ⅵ' => '6', 'ⅶ' => '7', 'ⅷ' => '8', 'ⅸ' => '9', 'ⅹ' => '10',
+            'ⅺ' => '11', 'ⅻ' => '12',
+        ];
+        $str = strtr($str, $romanMap);
         // Normalize quotes and apostrophes to standard ones
         $str = preg_replace('/[\x{2018}\x{2019}\x{0060}]/u', "'", $str);
         $str = preg_replace('/[\x{201C}\x{201D}]/u', '"', $str);
@@ -373,8 +584,10 @@ class GameController extends Controller
             }
 
             // Try with common suffixes removed
+            // Handle trademark symbols (®™©) and non-breaking spaces before suffix
+            // Also handle various PSN-specific suffixes: Trophy pack., Expansion, DLC, etc.
             if (!$game) {
-                $cleanName = preg_replace('/\s*(Trophies|Trophy|PS4|PS5|\(PS4\)|\(PS5\)|Remastered|Enhanced Edition|Director\'s Cut)$/i', '', $psnName);
+                $cleanName = preg_replace('/[\s\x{2122}\x{00AE}\x{00A9}\x{00A0}]*(Trophies|Trophy|Trophy pack\.?|PS4|PS5|\(PS4\)|\(PS5\)|Remastered|Enhanced Edition|Director\'s Cut|Expansion|Game of the Year Edition|GOTY Edition|Complete Edition|Definitive Edition|Ultimate Edition|Standard Edition|Digital Edition|Deluxe Edition)$/iu', '', $psnName);
                 $normalizedClean = $this->normalizeTitle($cleanName);
 
                 if ($normalizedClean !== $normalizedPsn) {

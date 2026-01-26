@@ -403,8 +403,85 @@ Online Trophies: None"
                             </div>
                         </div>
 
-                        <!-- External Links -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <!-- Guide Search -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Search Existing Guides
+                                <span class="text-xs text-gray-400 ml-1">(find guides from other versions/regions)</span>
+                            </label>
+                            <div class="relative">
+                                <input
+                                    v-model="guideSearch"
+                                    type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Search game title to find existing guides..."
+                                    @input="searchGuides"
+                                />
+                                <svg v-if="guideSearchLoading" class="absolute right-3 top-2.5 w-5 h-5 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </div>
+                            <!-- Search Results -->
+                            <div v-if="guideSearchResults.length > 0" class="mt-2 border border-gray-200 rounded-md max-h-60 overflow-y-auto">
+                                <div
+                                    v-for="result in guideSearchResults"
+                                    :key="result.id"
+                                    class="p-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                                >
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium text-sm text-gray-900 truncate">{{ result.title }}</p>
+                                            <p class="text-xs text-gray-500">{{ result.platforms?.map(p => p.short_name).join(', ') }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                        <button
+                                            v-if="result.psnprofiles_url"
+                                            @click="applyGuide('psnprofiles_url', result.psnprofiles_url)"
+                                            type="button"
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200"
+                                            title="Use this PSNProfiles guide"
+                                        >
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            PSNP
+                                        </button>
+                                        <button
+                                            v-if="result.playstationtrophies_url"
+                                            @click="applyGuide('playstationtrophies_url', result.playstationtrophies_url)"
+                                            type="button"
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium hover:bg-purple-200"
+                                            title="Use this PS Trophies guide"
+                                        >
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            PST
+                                        </button>
+                                        <button
+                                            v-if="result.powerpyx_url"
+                                            @click="applyGuide('powerpyx_url', result.powerpyx_url)"
+                                            type="button"
+                                            class="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-medium hover:bg-orange-200"
+                                            title="Use this PowerPyx guide"
+                                        >
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            PPX
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p v-else-if="guideSearch && !guideSearchLoading && guideSearchResults.length === 0" class="text-xs text-gray-500 mt-1">
+                                No games with guides found matching "{{ guideSearch }}"
+                            </p>
+                        </div>
+
+                        <!-- Guide URLs -->
+                        <div class="space-y-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">PSNProfiles URL</label>
                                 <input
@@ -412,6 +489,24 @@ Online Trophies: None"
                                     type="url"
                                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="https://psnprofiles.com/..."
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">PlayStationTrophies URL</label>
+                                <input
+                                    v-model="form.playstationtrophies_url"
+                                    type="url"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="https://www.playstationtrophies.org/..."
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">PowerPyx URL</label>
+                                <input
+                                    v-model="form.powerpyx_url"
+                                    type="url"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="https://www.powerpyx.com/..."
                                 />
                             </div>
                             <div>
@@ -496,6 +591,12 @@ const errors = ref({});
 const guideText = ref('');
 const parsedFields = ref([]);
 
+// Guide search
+const guideSearch = ref('');
+const guideSearchLoading = ref(false);
+const guideSearchResults = ref([]);
+let guideSearchTimeout = null;
+
 // Form data
 const form = ref({
     title: '',
@@ -519,6 +620,8 @@ const form = ref({
     cover_url: '',
     banner_url: '',
     psnprofiles_url: '',
+    playstationtrophies_url: '',
+    powerpyx_url: '',
     psn_store_url: '',
     genre_ids: [],
     tag_ids: [],
@@ -560,11 +663,16 @@ watch(() => props.game, (game) => {
             cover_url: game.cover_url || '',
             banner_url: game.banner_url || '',
             psnprofiles_url: game.psnprofiles_url || '',
+            playstationtrophies_url: game.playstationtrophies_url || '',
+            powerpyx_url: game.powerpyx_url || '',
             psn_store_url: game.psn_store_url || '',
             genre_ids: game.genres?.map(g => g.id) || [],
             tag_ids: game.tags?.map(t => t.id) || [],
             platform_ids: game.platforms?.map(p => p.id) || []
         };
+        // Clear guide search when loading a game
+        guideSearch.value = '';
+        guideSearchResults.value = [];
     }
 }, { immediate: true });
 
@@ -601,11 +709,50 @@ function resetForm() {
         cover_url: '',
         banner_url: '',
         psnprofiles_url: '',
+        playstationtrophies_url: '',
+        powerpyx_url: '',
         psn_store_url: '',
         genre_ids: [],
         tag_ids: [],
         platform_ids: []
     };
+    guideSearch.value = '';
+    guideSearchResults.value = [];
+}
+
+// Guide search functions
+function searchGuides() {
+    clearTimeout(guideSearchTimeout);
+
+    if (!guideSearch.value || guideSearch.value.length < 2) {
+        guideSearchResults.value = [];
+        return;
+    }
+
+    guideSearchTimeout = setTimeout(async () => {
+        guideSearchLoading.value = true;
+        try {
+            const response = await axios.get('/api/admin/games/search-guides', {
+                params: { search: guideSearch.value }
+            });
+            guideSearchResults.value = response.data;
+        } catch (error) {
+            console.error('Error searching guides:', error);
+            guideSearchResults.value = [];
+        } finally {
+            guideSearchLoading.value = false;
+        }
+    }, 300);
+}
+
+function applyGuide(field, url) {
+    form.value[field] = url;
+    // Visual feedback
+    const el = document.querySelector(`input[placeholder*="${field.includes('psnprofiles') ? 'psnprofiles' : field.includes('playstationtrophies') ? 'playstationtrophies' : 'powerpyx'}"]`);
+    if (el) {
+        el.classList.add('ring-2', 'ring-green-500');
+        setTimeout(() => el.classList.remove('ring-2', 'ring-green-500'), 1000);
+    }
 }
 
 async function submitForm() {

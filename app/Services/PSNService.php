@@ -287,6 +287,7 @@ class PSNService
     /**
      * Get games for a username (convenience method)
      * Returns array with 'user', 'titles' on success, or 'error', 'message' on failure
+     * Handles pagination to fetch ALL trophy titles
      */
     public function getGamesForUser(string $username): array
     {
@@ -303,27 +304,64 @@ class PSNService
             $accountId = 'me';
         }
 
-        // Get their titles
-        $result = $this->getUserTitles($accountId);
-        if (isset($result['error'])) {
-            // If using "me" still failed, it might be a different issue
-            if ($accountId === 'me' && $result['error'] === 'private_trophies') {
-                return ['error' => 'private_trophies', 'message' => 'Could not access trophy data. Try regenerating your NPSSO token.'];
-            }
-            return $result; // Pass through the specific error
-        }
+        // Fetch all pages of trophy titles
+        $allTitles = [];
+        $offset = 0;
+        $limit = 800;
+        $totalCount = 0;
 
-        $titles = $result['data'];
+        do {
+            $result = $this->getUserTitles($accountId, $limit, $offset);
+            if (isset($result['error'])) {
+                // If using "me" still failed, it might be a different issue
+                if ($accountId === 'me' && $result['error'] === 'private_trophies') {
+                    return ['error' => 'private_trophies', 'message' => 'Could not access trophy data. Try regenerating your NPSSO token.'];
+                }
+                // If we already got some results, return them
+                if (!empty($allTitles)) {
+                    \Log::warning('PSN: Partial fetch for user - got some titles before error', [
+                        'username' => $username,
+                        'fetched' => count($allTitles),
+                        'error' => $result['error']
+                    ]);
+                    break;
+                }
+                return $result; // Pass through the specific error
+            }
+
+            $data = $result['data'];
+            $titles = $data['trophyTitles'] ?? [];
+            $allTitles = array_merge($allTitles, $titles);
+
+            $totalCount = $data['totalItemCount'] ?? count($titles);
+            $offset += $limit;
+
+            \Log::info('PSN GamesForUser: Fetched page', [
+                'username' => $username,
+                'fetched' => count($titles),
+                'total_so_far' => count($allTitles),
+                'total_available' => $totalCount
+            ]);
+
+        } while (count($titles) === $limit && $offset < $totalCount);
+
+        \Log::info('PSN GamesForUser: Complete', [
+            'username' => $username,
+            'total_fetched' => count($allTitles),
+            'total_reported' => $totalCount
+        ]);
+
         return [
             'user' => $user,
-            'titles' => $titles['trophyTitles'] ?? [],
-            'totalItemCount' => $titles['totalItemCount'] ?? 0,
+            'titles' => $allTitles,
+            'totalItemCount' => count($allTitles),
         ];
     }
 
     /**
      * Get the authenticated user's own games (uses "me" endpoint)
      * This bypasses privacy settings since it's your own account
+     * Handles pagination to fetch ALL trophy titles
      */
     public function getMyGames(): array
     {
@@ -331,16 +369,48 @@ class PSNService
             return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
         }
 
-        // Get titles using "me" - this always works for own account
-        $result = $this->getUserTitles('me');
-        if (isset($result['error'])) {
-            return $result;
-        }
+        // Fetch all pages of trophy titles
+        $allTitles = [];
+        $offset = 0;
+        $limit = 800;
+        $totalCount = 0;
 
-        $titles = $result['data'];
+        do {
+            $result = $this->getUserTitles('me', $limit, $offset);
+            if (isset($result['error'])) {
+                // If we already got some results, return them
+                if (!empty($allTitles)) {
+                    \Log::warning('PSN: Partial fetch - got some titles before error', [
+                        'fetched' => count($allTitles),
+                        'error' => $result['error']
+                    ]);
+                    break;
+                }
+                return $result;
+            }
+
+            $data = $result['data'];
+            $titles = $data['trophyTitles'] ?? [];
+            $allTitles = array_merge($allTitles, $titles);
+
+            $totalCount = $data['totalItemCount'] ?? count($titles);
+            $offset += $limit;
+
+            \Log::info('PSN MyGames: Fetched page', [
+                'fetched' => count($titles),
+                'total_so_far' => count($allTitles),
+                'total_available' => $totalCount
+            ]);
+
+        } while (count($titles) === $limit && $offset < $totalCount);
 
         // Get profile info for the authenticated user
         $profile = $this->getMyProfile();
+
+        \Log::info('PSN MyGames: Complete', [
+            'total_fetched' => count($allTitles),
+            'total_reported' => $totalCount
+        ]);
 
         return [
             'user' => $profile ?? [
@@ -348,8 +418,8 @@ class PSNService
                 'onlineId' => 'My Account',
                 'avatarUrl' => null,
             ],
-            'titles' => $titles['trophyTitles'] ?? [],
-            'totalItemCount' => $titles['totalItemCount'] ?? 0,
+            'titles' => $allTitles,
+            'totalItemCount' => count($allTitles),
         ];
     }
 
@@ -382,6 +452,79 @@ class PSNService
         }
 
         return null;
+    }
+
+    /**
+     * Get user's purchased/entitled games (all purchases, not just library)
+     */
+    public function getPurchasedGames(string $accountId = 'me', int $limit = 200, int $offset = 0): array
+    {
+        if (!$this->accessToken) {
+            return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
+        }
+
+        $url = str_replace('{accountId}', $accountId, self::PURCHASED_URL);
+
+        \Log::info('PSN Purchases: Fetching', ['accountId' => $accountId, 'limit' => $limit, 'offset' => $offset]);
+
+        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+            'Authorization' => 'Bearer ' . $this->accessToken,
+        ]))->get($url, [
+            'limit' => $limit,
+            'offset' => $offset,
+            'entitlement_type' => 'game', // Try to filter to games only
+        ]);
+
+        \Log::info('PSN Purchases: Response', [
+            'status' => $response->status(),
+            'body_preview' => substr($response->body(), 0, 1000),
+        ]);
+
+        if ($response->successful()) {
+            return ['data' => $response->json()];
+        }
+
+        // Try alternative endpoints if this one fails
+        if ($response->status() === 404 || $response->status() === 400) {
+            return $this->tryAlternativePurchaseEndpoints($accountId, $limit, $offset);
+        }
+
+        return ['error' => 'unknown', 'message' => 'Failed to fetch purchases: ' . $response->status()];
+    }
+
+    /**
+     * Try alternative purchase/entitlement endpoints
+     */
+    private function tryAlternativePurchaseEndpoints(string $accountId, int $limit, int $offset): array
+    {
+        $alternativeUrls = [
+            'https://m.np.playstation.com/api/entitlement/v2/users/' . $accountId . '/containers',
+            'https://m.np.playstation.com/api/catalog/v2/users/' . $accountId . '/titles',
+            'https://web.np.playstation.com/api/graphql/v1/op?operationName=getPurchasedGameList',
+        ];
+
+        foreach ($alternativeUrls as $url) {
+            \Log::info('PSN: Trying alternative endpoint', ['url' => $url]);
+
+            $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+                'Authorization' => 'Bearer ' . $this->accessToken,
+            ]))->get($url, [
+                'limit' => $limit,
+                'offset' => $offset,
+            ]);
+
+            \Log::info('PSN: Alternative response', [
+                'url' => $url,
+                'status' => $response->status(),
+                'body_preview' => substr($response->body(), 0, 500),
+            ]);
+
+            if ($response->successful()) {
+                return ['data' => $response->json(), 'source' => $url];
+            }
+        }
+
+        return ['error' => 'no_endpoint_found', 'message' => 'Could not find working purchases endpoint'];
     }
 
     /**
@@ -473,6 +616,87 @@ class PSNService
             ],
             'titles' => $allTitles,
             'totalItemCount' => count($allTitles),
+        ];
+    }
+
+    /**
+     * Get combined data: trophy titles + game library for most complete list
+     */
+    public function getMyFullLibrary(): array
+    {
+        if (!$this->accessToken) {
+            return ['error' => 'not_authenticated', 'message' => 'Not authenticated'];
+        }
+
+        // Get trophy titles (all games with trophy progress)
+        $trophyResult = $this->getUserTitles('me', 800, 0);
+        $trophyTitles = [];
+        if (!isset($trophyResult['error'])) {
+            $trophyTitles = $trophyResult['data']['trophyTitles'] ?? [];
+        }
+
+        // Get game library (owned games)
+        $libraryResult = $this->getMyGameLibrary();
+        $libraryTitles = [];
+        if (!isset($libraryResult['error'])) {
+            $libraryTitles = $libraryResult['titles'] ?? [];
+        }
+
+        // Merge and deduplicate
+        $merged = [];
+        $seenNames = [];
+
+        // Add trophy titles first (these have trophy data)
+        foreach ($trophyTitles as $title) {
+            $name = strtolower($title['trophyTitleName'] ?? 'unknown');
+            if (!isset($seenNames[$name])) {
+                $merged[] = [
+                    'name' => $title['trophyTitleName'] ?? 'Unknown',
+                    'titleId' => $title['npCommunicationId'] ?? null,
+                    'source' => 'trophy',
+                    'hasTrophyData' => true,
+                    'definedTrophies' => $title['definedTrophies'] ?? null,
+                    'earnedTrophies' => $title['earnedTrophies'] ?? null,
+                ];
+                $seenNames[$name] = true;
+            }
+        }
+
+        // Add library titles (these are owned but might not have trophies)
+        foreach ($libraryTitles as $title) {
+            $name = strtolower($title['name'] ?? $title['titleName'] ?? 'unknown');
+            if (!isset($seenNames[$name])) {
+                $merged[] = [
+                    'name' => $title['name'] ?? $title['titleName'] ?? 'Unknown',
+                    'titleId' => $title['titleId'] ?? null,
+                    'source' => 'library',
+                    'hasTrophyData' => false,
+                    'imageUrl' => $title['imageUrl'] ?? $title['image']['url'] ?? null,
+                ];
+                $seenNames[$name] = true;
+            }
+        }
+
+        $profile = $this->getMyProfile();
+
+        \Log::info('PSN Full Library: Merged', [
+            'trophy_count' => count($trophyTitles),
+            'library_count' => count($libraryTitles),
+            'merged_count' => count($merged),
+        ]);
+
+        return [
+            'user' => $profile ?? [
+                'accountId' => $this->authenticatedAccountId ?? 'me',
+                'onlineId' => 'My Account',
+                'avatarUrl' => null,
+            ],
+            'titles' => $merged,
+            'totalItemCount' => count($merged),
+            'sources' => [
+                'trophy' => count($trophyTitles),
+                'library' => count($libraryTitles),
+            ],
         ];
     }
 

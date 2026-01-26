@@ -20,8 +20,8 @@ class ExportPsnLibrary extends Command
             return 1;
         }
 
-        $this->info('Fetching PSN library...');
-        $result = $psnService->getMyGameLibrary();
+        $this->info('Fetching PSN library (trophy + owned games)...');
+        $result = $psnService->getMyFullLibrary();
 
         if (isset($result['error'])) {
             $this->error('Error: ' . $result['message']);
@@ -55,15 +55,14 @@ class ExportPsnLibrary extends Command
         $fp = fopen($path, 'w');
 
         // Header
-        fputcsv($fp, ['PSN Title', 'Title ID', 'Platform', 'Category', 'Image URL']);
+        fputcsv($fp, ['PSN Title', 'Title ID', 'Source', 'Image URL']);
 
         foreach ($titles as $title) {
             fputcsv($fp, [
-                $title['name'] ?? $title['titleName'] ?? 'Unknown',
+                $title['name'] ?? 'Unknown',
                 $title['titleId'] ?? '',
-                $title['platform'] ?? '',
-                $title['category'] ?? '',
-                $title['imageUrl'] ?? $title['image']['url'] ?? '',
+                $title['source'] ?? 'unknown',
+                $title['imageUrl'] ?? '',
             ]);
         }
 
@@ -74,11 +73,10 @@ class ExportPsnLibrary extends Command
     {
         $data = array_map(function ($title) {
             return [
-                'psn_title' => $title['name'] ?? $title['titleName'] ?? 'Unknown',
+                'psn_title' => $title['name'] ?? 'Unknown',
                 'title_id' => $title['titleId'] ?? '',
-                'platform' => $title['platform'] ?? '',
-                'category' => $title['category'] ?? '',
-                'image_url' => $title['imageUrl'] ?? $title['image']['url'] ?? '',
+                'source' => $title['source'] ?? 'unknown',
+                'image_url' => $title['imageUrl'] ?? '',
             ];
         }, $titles);
 

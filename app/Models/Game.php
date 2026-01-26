@@ -30,6 +30,11 @@ class Game extends Model
         'playthroughs_required',
         'has_online_trophies',
         'missable_trophies',
+        'bronze_count',
+        'silver_count',
+        'gold_count',
+        'platinum_count',
+        'has_platinum',
         'critic_score',
         'opencritic_score',
         'base_price',
@@ -39,6 +44,7 @@ class Game extends Model
         'is_psplus_premium',
         'cover_url',
         'banner_url',
+        'trophy_icon_url',
         'psnprofiles_url',
         'playstationtrophies_url',
         'powerpyx_url',
@@ -50,6 +56,7 @@ class Game extends Model
         'release_date' => 'date',
         'has_online_trophies' => 'boolean',
         'missable_trophies' => 'boolean',
+        'has_platinum' => 'boolean',
         'is_psplus_extra' => 'boolean',
         'is_psplus_premium' => 'boolean',
         'needs_review' => 'boolean',
@@ -58,6 +65,10 @@ class Game extends Model
         'psplus_price' => 'decimal:2',
         'current_discount_price' => 'decimal:2',
         'np_communication_ids' => 'array',
+        'bronze_count' => 'integer',
+        'silver_count' => 'integer',
+        'gold_count' => 'integer',
+        'platinum_count' => 'integer',
     ];
 
     // Relationships
@@ -74,6 +85,24 @@ class Game extends Model
     public function platforms(): BelongsToMany
     {
         return $this->belongsToMany(Platform::class);
+    }
+
+    /**
+     * Get users who have this game in their list.
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_game')
+            ->withPivot(['status', 'notes'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all PSN titles linked to this game
+     */
+    public function psnTitles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PsnTitle::class);
     }
 
     // Helper methods
@@ -106,5 +135,98 @@ class Game extends Model
         return $this->psnprofiles_url
             || $this->playstationtrophies_url
             || $this->powerpyx_url;
+    }
+
+    /**
+     * Get total trophy count
+     */
+    public function getTotalTrophiesAttribute(): int
+    {
+        return ($this->bronze_count ?? 0)
+            + ($this->silver_count ?? 0)
+            + ($this->gold_count ?? 0)
+            + ($this->platinum_count ?? 0);
+    }
+
+    /**
+     * Get the best available image (cover or trophy icon fallback)
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->cover_url ?? $this->trophy_icon_url;
+    }
+
+    /**
+     * Sync trophy data from a linked PSN title
+     * Only updates fields that are currently empty
+     */
+    public function syncFromPsnTitle(PsnTitle $psnTitle): void
+    {
+        $updated = false;
+
+        // Sync trophy counts if not set
+        if ($this->bronze_count === null && $psnTitle->bronze_count !== null) {
+            $this->bronze_count = $psnTitle->bronze_count;
+            $updated = true;
+        }
+        if ($this->silver_count === null && $psnTitle->silver_count !== null) {
+            $this->silver_count = $psnTitle->silver_count;
+            $updated = true;
+        }
+        if ($this->gold_count === null && $psnTitle->gold_count !== null) {
+            $this->gold_count = $psnTitle->gold_count;
+            $updated = true;
+        }
+
+        // Sync has_platinum
+        if (!$this->has_platinum && $psnTitle->has_platinum) {
+            $this->has_platinum = true;
+            $this->platinum_count = 1;
+            $updated = true;
+        }
+
+        // Use trophy icon as fallback if no cover
+        if (!$this->cover_url && !$this->trophy_icon_url && $psnTitle->icon_url) {
+            $this->trophy_icon_url = $psnTitle->icon_url;
+            $updated = true;
+        }
+
+        // Try to sync platform from PSN title
+        if ($psnTitle->platform) {
+            $this->syncPlatformFromPsn($psnTitle->platform);
+        }
+
+        if ($updated) {
+            $this->save();
+        }
+    }
+
+    /**
+     * Add platform based on PSN platform string
+     */
+    protected function syncPlatformFromPsn(string $psnPlatform): void
+    {
+        $platformMap = [
+            'PS5' => ['slug' => 'ps5', 'name' => 'PlayStation 5', 'short_name' => 'PS5'],
+            'PS4' => ['slug' => 'ps4', 'name' => 'PlayStation 4', 'short_name' => 'PS4'],
+            'PS3' => ['slug' => 'ps3', 'name' => 'PlayStation 3', 'short_name' => 'PS3'],
+            'PSVITA' => ['slug' => 'ps-vita', 'name' => 'PlayStation Vita', 'short_name' => 'Vita'],
+            'VITA' => ['slug' => 'ps-vita', 'name' => 'PlayStation Vita', 'short_name' => 'Vita'],
+        ];
+
+        $platformData = $platformMap[strtoupper($psnPlatform)] ?? null;
+        if (!$platformData) {
+            return;
+        }
+
+        $platform = Platform::firstOrCreate(
+            ['slug' => $platformData['slug']],
+            ['name' => $platformData['name'], 'short_name' => $platformData['short_name']]
+        );
+
+        // Attach if not already attached
+        if (!$this->platforms()->where('platform_id', $platform->id)->exists()) {
+            $this->platforms()->attach($platform->id);
+        }
     }
 }

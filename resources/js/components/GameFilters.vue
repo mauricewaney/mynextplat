@@ -7,29 +7,31 @@
                     <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
                     </svg>
-                    <span class="font-medium text-sm">My PSN Library</span>
+                    <span class="font-medium text-sm">PSN Library</span>
                 </div>
 
                 <!-- User not loaded: show input -->
                 <div v-if="!psnUser">
-                    <!-- My Library button -->
-                    <button
-                        @click="loadMyLibrary"
-                        :disabled="psnLoading"
-                        class="w-full mb-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                    >
-                        <svg v-if="psnLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                        </svg>
-                        <span>{{ psnLoading ? 'Loading...' : 'Load My Library' }}</span>
-                    </button>
+                    <!-- My Library button (Admin only) -->
+                    <template v-if="isAdmin">
+                        <button
+                            @click="loadMyLibrary"
+                            :disabled="psnLoading"
+                            class="w-full mb-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        >
+                            <svg v-if="psnLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span>{{ psnLoading ? 'Loading...' : 'Load My Library' }}</span>
+                        </button>
 
-                    <div class="relative flex items-center gap-2 my-2">
-                        <div class="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
-                        <span class="text-xs text-gray-400 dark:text-gray-500">or search user</span>
-                        <div class="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
-                    </div>
+                        <div class="relative flex items-center gap-2 my-2">
+                            <div class="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
+                            <span class="text-xs text-gray-400 dark:text-gray-500">or search user</span>
+                            <div class="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
+                        </div>
+                    </template>
 
                     <form @submit.prevent="lookupPSN" class="flex gap-2">
                         <input
@@ -101,6 +103,16 @@
                         </div>
                     </div>
 
+                    <!-- Unmatched games link -->
+                    <div v-if="psnStats.unmatched_games > 0" class="mt-2 text-center">
+                        <button
+                            @click="showUnmatchedModal = true"
+                            class="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 underline"
+                        >
+                            {{ psnStats.unmatched_games }} unmatched games
+                        </button>
+                    </div>
+
                     <!-- PSN Filter Toggles -->
                     <div class="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700 space-y-3">
                         <label class="flex items-center justify-between cursor-pointer">
@@ -118,6 +130,27 @@
                         </label>
                         <p class="text-xs text-gray-400 dark:text-gray-500">
                             {{ psnFilteredCount }} games shown
+                        </p>
+                    </div>
+
+                    <!-- Save to My List Button -->
+                    <div v-if="isAuthenticated && psnAllGameIds.length > 0" class="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
+                        <button
+                            @click="saveToMyList"
+                            :disabled="savingToList"
+                            class="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        >
+                            <svg v-if="savingToList" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            <span>{{ savingToList ? 'Saving...' : `Save ${psnStats.matched_games} games to My List` }}</span>
+                        </button>
+                        <p v-if="saveResult" :class="['text-xs mt-2 text-center', saveResult.success ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500']">
+                            {{ saveResult.message }}
                         </p>
                     </div>
                 </div>
@@ -495,11 +528,82 @@
                 </div>
             </div>
         </div>
+
+        <!-- Unmatched Games Modal -->
+        <Teleport to="body">
+            <div
+                v-if="showUnmatchedModal"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                @click.self="showUnmatchedModal = false"
+            >
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div class="relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                        <h3 class="font-semibold text-gray-900 dark:text-white">
+                            Unmatched PSN Games ({{ psnUnmatchedTitles.length }})
+                        </h3>
+                        <button
+                            @click="showUnmatchedModal = false"
+                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
+                        <input
+                            v-model="unmatchedSearch"
+                            type="text"
+                            placeholder="Search unmatched..."
+                            class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:placeholder-gray-500"
+                        />
+                    </div>
+
+                    <!-- List -->
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            These games from your PSN library couldn't be matched to games in our database. They may be apps, DLC, or games not yet added.
+                        </p>
+                        <ul class="space-y-1">
+                            <li
+                                v-for="(title, index) in filteredUnmatchedTitles"
+                                :key="index"
+                                class="text-sm text-gray-700 dark:text-gray-300 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-slate-700"
+                            >
+                                {{ title }}
+                            </li>
+                        </ul>
+                        <p v-if="filteredUnmatchedTitles.length === 0" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+                            No matches found
+                        </p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-4 py-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 rounded-b-xl">
+                        <button
+                            @click="showUnmatchedModal = false"
+                            class="w-full px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { useAuth } from '../composables/useAuth'
+import { useUserGames } from '../composables/useUserGames'
+
+const { isAdmin, isAuthenticated } = useAuth()
+const { bulkAddToList } = useUserGames()
 
 const emit = defineEmits(['update:filters'])
 
@@ -539,6 +643,21 @@ const psnStats = ref({ total_psn_games: 0, matched_games: 0, unmatched_games: 0,
 const psnAllGameIds = ref([])
 const psnHasGuideIds = ref([])
 const psnHasGuideOnly = ref(true) // Default to showing only games with guides
+const psnUnmatchedTitles = ref([])
+const showUnmatchedModal = ref(false)
+const unmatchedSearch = ref('')
+const savingToList = ref(false)
+const saveResult = ref(null)
+
+const filteredUnmatchedTitles = computed(() => {
+    if (!unmatchedSearch.value.trim()) {
+        return psnUnmatchedTitles.value
+    }
+    const search = unmatchedSearch.value.toLowerCase()
+    return psnUnmatchedTitles.value.filter(title =>
+        title.toLowerCase().includes(search)
+    )
+})
 
 const filterOptions = reactive({
     platforms: [],
@@ -611,6 +730,7 @@ async function loadMyLibrary() {
         psnUser.value = data.user
         psnAllGameIds.value = data.game_ids
         psnHasGuideIds.value = data.has_guide_ids || []
+        psnUnmatchedTitles.value = data.unmatched_titles || []
         psnStats.value = {
             total_psn_games: data.stats.total_owned_games,
             matched_games: data.stats.matched_games,
@@ -643,6 +763,7 @@ async function lookupPSN() {
         psnUser.value = data.user
         psnAllGameIds.value = data.game_ids
         psnHasGuideIds.value = data.has_guide_ids || []
+        psnUnmatchedTitles.value = data.unmatched_titles || []
         psnStats.value = {
             total_psn_games: data.stats.total_psn_games,
             matched_games: data.stats.matched_games,
@@ -688,10 +809,36 @@ function clearPSN() {
     psnStats.value = { total_psn_games: 0, matched_games: 0, unmatched_games: 0, has_guide: 0 }
     psnAllGameIds.value = []
     psnHasGuideIds.value = []
+    psnUnmatchedTitles.value = []
     psnHasGuideOnly.value = true
     psnUsername.value = ''
+    showUnmatchedModal.value = false
+    unmatchedSearch.value = ''
+    saveResult.value = null
     filters.game_ids = null
     emitFilters()
+}
+
+async function saveToMyList() {
+    if (!isAuthenticated.value || !psnAllGameIds.value.length) return
+
+    savingToList.value = true
+    saveResult.value = null
+
+    try {
+        const result = await bulkAddToList(psnAllGameIds.value, 'want_to_play')
+        saveResult.value = {
+            success: true,
+            message: `Added ${result.added} games${result.skipped > 0 ? `, ${result.skipped} already in list` : ''}`
+        }
+    } catch (e) {
+        saveResult.value = {
+            success: false,
+            message: e.message || 'Failed to save games'
+        }
+    } finally {
+        savingToList.value = false
+    }
 }
 
 function toggleFilter(key, id) {
