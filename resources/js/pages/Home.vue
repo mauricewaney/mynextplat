@@ -17,8 +17,8 @@
                             </h1>
                         </router-link>
 
-                        <!-- View Mode Tabs -->
-                        <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
+                        <!-- View Mode Tabs - Desktop -->
+                        <div class="hidden sm:flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                             <button
                                 @click="switchViewMode('all')"
                                 :class="[
@@ -45,6 +45,53 @@
                                 My Library
                             </button>
                         </div>
+
+                        <!-- View Mode Dropdown - Mobile -->
+                        <div class="sm:hidden relative view-mode-menu-container">
+                            <button
+                                @click="showViewModeMenu = !showViewModeMenu"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                <svg v-if="viewMode === 'library'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                                </svg>
+                                <span>{{ viewMode === 'all' ? 'All' : 'Library' }}</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div
+                                v-if="showViewModeMenu"
+                                class="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 min-w-[120px] z-50"
+                            >
+                                <button
+                                    @click="switchViewMode('all'); showViewModeMenu = false"
+                                    :class="[
+                                        'w-full px-3 py-2 text-left text-sm',
+                                        viewMode === 'all'
+                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+                                    ]"
+                                >
+                                    All Games
+                                </button>
+                                <button
+                                    @click="switchViewMode('library'); showViewModeMenu = false"
+                                    :class="[
+                                        'w-full px-3 py-2 text-left text-sm flex items-center gap-2',
+                                        viewMode === 'library'
+                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+                                    ]"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                                    </svg>
+                                    My Library
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Mobile actions -->
@@ -64,15 +111,15 @@
                         <button
                             v-if="isAuthenticated"
                             @click.stop="showUserMenu = !showUserMenu"
-                            class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors user-menu-container"
+                            class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors user-menu-container shrink-0"
                         >
                             <img
                                 v-if="user?.avatar"
                                 :src="user.avatar"
                                 :alt="user.name"
-                                class="w-8 h-8 rounded-full"
+                                class="w-8 h-8 rounded-full object-cover aspect-square"
                             />
-                            <div v-else class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+                            <div v-else class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium aspect-square shrink-0">
                                 {{ user?.name?.charAt(0) || '?' }}
                             </div>
                         </button>
@@ -395,8 +442,17 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="p-4">
+                        <div class="p-4 pb-24">
                             <GameFilters @update:filters="onFilterChange" />
+                        </div>
+                        <!-- Sticky footer with Show Results button -->
+                        <div class="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4">
+                            <button
+                                @click="showMobileFilters = false"
+                                class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                            >
+                                Show {{ total.toLocaleString() }} Results
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -449,15 +505,32 @@
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { useHead } from '@vueuse/head'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
 import { useAuth } from '../composables/useAuth'
+
+// SEO Meta Tags
+useHead({
+    title: 'MyNextPlat - PlayStation Trophy Guides & Tracker',
+    meta: [
+        { name: 'description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx. Filter by difficulty, time, and more.' },
+        { property: 'og:title', content: 'MyNextPlat - PlayStation Trophy Guides & Tracker' },
+        { property: 'og:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx.' },
+        { property: 'og:type', content: 'website' },
+        { name: 'twitter:card', content: 'summary' },
+        { name: 'twitter:title', content: 'MyNextPlat - PlayStation Trophy Guides & Tracker' },
+        { name: 'twitter:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.' },
+        { name: 'keywords', content: 'playstation, trophy guide, platinum trophy, ps5, ps4, psnprofiles, powerpyx, trophy hunting' },
+    ],
+})
 
 const route = useRoute()
 const { user, isAuthenticated, isAdmin, initAuth, loginWithGoogle, logout } = useAuth()
 
 const showUserMenu = ref(false)
 const showLoginPrompt = ref(false)
+const showViewModeMenu = ref(false)
 const viewMode = ref('all') // 'all' or 'library'
 
 // Check for login required query param
@@ -474,16 +547,19 @@ async function handleLogout() {
     showUserMenu.value = false
 }
 
-// Close user menu when clicking outside
-function closeUserMenu(e) {
+// Close menus when clicking outside
+function closeMenus(e) {
     if (!e.target.closest('.user-menu-container')) {
         showUserMenu.value = false
+    }
+    if (!e.target.closest('.view-mode-menu-container')) {
+        showViewModeMenu.value = false
     }
 }
 
 onMounted(() => {
     initAuth()
-    document.addEventListener('click', closeUserMenu)
+    document.addEventListener('click', closeMenus)
 })
 
 
@@ -532,7 +608,7 @@ function onFilterChange(newFilters) {
     currentPage.value = 1
     games.value = []
     loadGames()
-    showMobileFilters.value = false
+    // Don't auto-close mobile filters - let user adjust multiple filters
 }
 
 function toggleSortOrder() {
@@ -574,8 +650,9 @@ async function loadGames() {
             params.append('game_ids', filters.game_ids.join(','))
             // When PSN library is loaded, respect the user's "has guide" toggle
             // (don't force has_guide=true)
-        } else if (viewMode.value === 'all') {
-            // Only show games with guides on the public homepage (when no PSN library loaded)
+        } else if (viewMode.value === 'all' && !filters.search) {
+            // Only show games with guides on the public homepage when browsing (not searching)
+            // When searching, show all games so users can find specific titles
             params.append('has_guide', 'true')
         }
 

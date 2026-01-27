@@ -202,6 +202,72 @@ class Game extends Model
     }
 
     /**
+     * Get recommended games based on collaborative filtering (co-occurrence)
+     * "Players who have this game also have..."
+     *
+     * @param int $limit Maximum number of recommendations
+     * @param int $minOverlap Minimum number of users that must have both games
+     * @return \Illuminate\Support\Collection
+     */
+    public function getRecommendations(int $limit = 6, int $minOverlap = 2): \Illuminate\Support\Collection
+    {
+        // Get total users who have this game (for percentage calculation)
+        $totalUsersWithGame = $this->users()->count();
+
+        if ($totalUsersWithGame < $minOverlap) {
+            return collect([]);
+        }
+
+        // Find games that co-occur in user libraries
+        $recommendations = \DB::table('user_game as ug1')
+            ->join('user_game as ug2', function ($join) {
+                $join->on('ug1.user_id', '=', 'ug2.user_id')
+                     ->whereColumn('ug1.game_id', '!=', 'ug2.game_id');
+            })
+            ->join('games', 'games.id', '=', 'ug2.game_id')
+            ->where('ug1.game_id', $this->id)
+            ->whereNull('games.deleted_at')
+            ->select(
+                'ug2.game_id',
+                'games.title',
+                'games.slug',
+                'games.cover_url',
+                'games.difficulty',
+                'games.time_min',
+                'games.time_max',
+                'games.psnprofiles_url',
+                'games.playstationtrophies_url',
+                'games.powerpyx_url',
+                \DB::raw('COUNT(*) as overlap_count')
+            )
+            ->groupBy(
+                'ug2.game_id',
+                'games.title',
+                'games.slug',
+                'games.cover_url',
+                'games.difficulty',
+                'games.time_min',
+                'games.time_max',
+                'games.psnprofiles_url',
+                'games.playstationtrophies_url',
+                'games.powerpyx_url'
+            )
+            ->having('overlap_count', '>=', $minOverlap)
+            ->orderByDesc('overlap_count')
+            ->limit($limit)
+            ->get();
+
+        // Calculate percentage and add has_guide flag
+        return $recommendations->map(function ($rec) use ($totalUsersWithGame) {
+            $rec->percentage = round(($rec->overlap_count / $totalUsersWithGame) * 100);
+            $rec->has_guide = !empty($rec->psnprofiles_url)
+                || !empty($rec->playstationtrophies_url)
+                || !empty($rec->powerpyx_url);
+            return $rec;
+        });
+    }
+
+    /**
      * Add platform based on PSN platform string
      */
     protected function syncPlatformFromPsn(string $psnPlatform): void

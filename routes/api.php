@@ -18,6 +18,7 @@ Route::prefix('games')->group(function () {
     Route::get('/', [GameController::class, 'index']);
     Route::get('/filters', [GameController::class, 'filterOptions']);
     Route::get('/{idOrSlug}', [GameController::class, 'show']);
+    Route::get('/{idOrSlug}/recommendations', [GameController::class, 'recommendations']);
 });
 
 // PSN Library Lookup (public)

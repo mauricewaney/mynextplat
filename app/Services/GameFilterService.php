@@ -49,7 +49,7 @@ class GameFilterService
      */
     protected function applyMyLibraryFilter(Builder $query, Request $request): void
     {
-        if ($request->filled('my_library') && ($request->my_library === 'true' || $request->my_library === true)) {
+        if ($request->filled('my_library') && $this->isTruthy($request->my_library)) {
             $user = $request->user();
             if ($user) {
                 $userGameIds = $user->games()->pluck('game_id')->toArray();
@@ -185,15 +185,15 @@ class GameFilterService
     protected function applyBooleanFilters(Builder $query, Request $request): void
     {
         if ($request->filled('has_online_trophies')) {
-            $query->where('has_online_trophies', $request->has_online_trophies === 'true' || $request->has_online_trophies === true);
+            $query->where('has_online_trophies', $this->isTruthy($request->has_online_trophies));
         }
 
         if ($request->filled('missable_trophies')) {
-            $query->where('missable_trophies', $request->missable_trophies === 'true' || $request->missable_trophies === true);
+            $query->where('missable_trophies', $this->isTruthy($request->missable_trophies));
         }
 
         // Has guide filter (available to public)
-        if ($request->filled('has_guide') && ($request->has_guide === 'true' || $request->has_guide === true)) {
+        if ($request->filled('has_guide') && $this->isTruthy($request->has_guide)) {
             $query->where(function ($q) {
                 $q->whereNotNull('psnprofiles_url')
                   ->orWhereNotNull('playstationtrophies_url')
@@ -202,13 +202,13 @@ class GameFilterService
         }
 
         // Guide source filters (available to public)
-        if ($request->filled('guide_psnp') && ($request->guide_psnp === 'true' || $request->guide_psnp === true)) {
+        if ($request->filled('guide_psnp') && $this->isTruthy($request->guide_psnp)) {
             $query->whereNotNull('psnprofiles_url');
         }
-        if ($request->filled('guide_pst') && ($request->guide_pst === 'true' || $request->guide_pst === true)) {
+        if ($request->filled('guide_pst') && $this->isTruthy($request->guide_pst)) {
             $query->whereNotNull('playstationtrophies_url');
         }
-        if ($request->filled('guide_ppx') && ($request->guide_ppx === 'true' || $request->guide_ppx === true)) {
+        if ($request->filled('guide_ppx') && $this->isTruthy($request->guide_ppx)) {
             $query->whereNotNull('powerpyx_url');
         }
     }
@@ -219,23 +219,44 @@ class GameFilterService
     protected function applyAdminFilters(Builder $query, Request $request): void
     {
         // No genres/tags/platforms filters
-        if ($request->filled('no_genres') && $request->no_genres) {
+        if ($request->filled('no_genres') && $this->isTruthy($request->no_genres)) {
             $query->doesntHave('genres');
         }
-        if ($request->filled('no_tags') && $request->no_tags) {
+        if ($request->filled('no_tags') && $this->isTruthy($request->no_tags)) {
             $query->doesntHave('tags');
         }
-        if ($request->filled('no_platforms') && $request->no_platforms) {
+        if ($request->filled('no_platforms') && $this->isTruthy($request->no_platforms)) {
             $query->doesntHave('platforms');
         }
 
-        // Needs data filter (has guide but no difficulty)
-        if ($request->filled('needs_data') && $request->needs_data) {
+        // Needs data filter (has guide but NO key fields filled)
+        if ($request->filled('needs_data') && $this->isTruthy($request->needs_data)) {
             $query->where(function ($q) {
                 $q->whereNotNull('psnprofiles_url')
                   ->orWhereNotNull('playstationtrophies_url')
                   ->orWhereNotNull('powerpyx_url');
-            })->whereNull('difficulty');
+            })->whereNull('difficulty')
+              ->whereNull('time_min')
+              ->whereNull('playthroughs_required');
+        }
+
+        // Semi filled filter (has guide and SOME but not ALL key fields filled)
+        if ($request->filled('semi_filled') && $this->isTruthy($request->semi_filled)) {
+            $query->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            })->where(function ($q) {
+                // At least one field is filled
+                $q->whereNotNull('difficulty')
+                  ->orWhereNotNull('time_min')
+                  ->orWhereNotNull('playthroughs_required');
+            })->where(function ($q) {
+                // But at least one field is still missing
+                $q->whereNull('difficulty')
+                  ->orWhereNull('time_min')
+                  ->orWhereNull('playthroughs_required');
+            });
         }
     }
 
@@ -278,5 +299,13 @@ class GameFilterService
             'current_page' => $games->currentPage(),
             'last_page' => $games->lastPage(),
         ];
+    }
+
+    /**
+     * Check if a value is truthy (handles 'true', true, '1', 1)
+     */
+    protected function isTruthy($value): bool
+    {
+        return $value === 'true' || $value === true || $value === '1' || $value === 1;
     }
 }

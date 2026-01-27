@@ -4,6 +4,7 @@ import { useAuth } from '../composables/useAuth'
 // Public pages
 import Home from '../pages/Home.vue'
 import MyGames from '../pages/MyGames.vue'
+import GameDetail from '../pages/GameDetail.vue'
 
 // Admin pages
 import GameList from '../components/Admin/GameList.vue'
@@ -17,6 +18,11 @@ const routes = [
         path: '/',
         name: 'home',
         component: Home
+    },
+    {
+        path: '/game/:slug',
+        name: 'game-detail',
+        component: GameDetail
     },
 
     // Authenticated routes

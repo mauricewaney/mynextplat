@@ -29,9 +29,13 @@
             <!-- Top Row: Title, Platforms, Score -->
             <div class="flex items-start gap-1 sm:gap-2">
                 <!-- Title -->
-                <h3 class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                <router-link
+                    :to="'/game/' + game.slug"
+                    class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
+                    @click.stop
+                >
                     {{ game.title }}
-                </h3>
+                </router-link>
                 <!-- Platforms (hidden on mobile) -->
                 <div v-if="game.platforms?.length" class="hidden sm:flex gap-1 shrink-0">
                     <span

@@ -13,19 +13,31 @@
                             {{ isEdit ? 'Edit Game' : 'Add New Game' }}
                         </h2>
                         <!-- Guide Links -->
-                        <div v-if="isEdit && (game?.playstationtrophies_url || game?.powerpyx_url)" class="flex items-center gap-2 mt-1">
+                        <div v-if="isEdit && (game?.psnprofiles_url || game?.playstationtrophies_url || game?.powerpyx_url)" class="flex items-center gap-2 mt-1">
                             <span class="text-xs text-gray-500">Open guide:</span>
+                            <a
+                                v-if="game?.psnprofiles_url"
+                                :href="game.psnprofiles_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200"
+                            >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                </svg>
+                                PSNP
+                            </a>
                             <a
                                 v-if="game?.playstationtrophies_url"
                                 :href="game.playstationtrophies_url"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-medium hover:bg-indigo-200"
+                                class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium hover:bg-purple-200"
                             >
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                 </svg>
-                                PS Trophies
+                                PST
                             </a>
                             <a
                                 v-if="game?.powerpyx_url"
@@ -37,7 +49,7 @@
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                 </svg>
-                                PowerPyx
+                                PPX
                             </a>
                         </div>
                     </div>
@@ -143,7 +155,7 @@ Online Trophies: None"
                                 Parsed: {{ parsedFields.join(', ') }}
                             </p>
                             <p v-else class="text-xs text-gray-500 mt-1">
-                                Paste text from PlayStationTrophies or PowerPyx to auto-fill fields
+                                Paste text from PSNProfiles, PlayStationTrophies, or PowerPyx to auto-fill fields
                             </p>
                         </div>
 
@@ -817,8 +829,12 @@ function parseGuideText() {
     const textLower = text.toLowerCase();
     const parsed = [];
 
-    // Parse difficulty (e.g., "Difficulty: 7/10", "7.9/10", "Difficulty Rating: 7")
+    // Parse difficulty
+    // PowerPyx format: "Difficulty: 7/10", "Difficulty Rating: 7"
+    // PSNProfiles format: "5/10" on its own line, or "5/10 Difficulty"
     const difficultyMatch = text.match(/difficulty[:\s]*(\d+(?:\.\d+)?)\s*(?:\/\s*10)?/i)
+        || text.match(/^(\d+(?:\.\d+)?)\s*\/\s*10\s*$/m)  // PSNProfiles: "5/10" on own line
+        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10\s*difficulty/i)  // "5/10 Difficulty"
         || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10/i);
     if (difficultyMatch) {
         const diff = Math.round(parseFloat(difficultyMatch[1]));
@@ -828,10 +844,13 @@ function parseGuideText() {
         }
     }
 
-    // Parse time (e.g., "Time: 40-50 hours", "Approximate time: 15-20+ Hours", "50+ hours")
-    const timeMatch = text.match(/time[:\s]*(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)?/i)
+    // Parse time
+    // PowerPyx format: "Time: 40-50 hours", "Approximate amount of time to platinum: 40-50 hours"
+    // PSNProfiles format: "70 Hours" (number before Hours), "70-100 Hours"
+    const timeMatch = text.match(/time(?:\s+to\s+platinum)?[:\s]*(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)?/i)
         || text.match(/(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)/i)
-        || text.match(/time[:\s]*(\d+)\+?\s*(?:hours?|hrs?)/i)
+        || text.match(/^(\d+)\s*(?:hours?|hrs?)\s*$/im)  // PSNProfiles: "70 Hours" on own line
+        || text.match(/time(?:\s+to\s+platinum)?[:\s]*(\d+)\+?\s*(?:hours?|hrs?)/i)
         || text.match(/(\d+)\+?\s*(?:hours?|hrs?)/i);
     if (timeMatch) {
         if (timeMatch[2]) {
@@ -846,15 +865,19 @@ function parseGuideText() {
         parsed.push('time');
     }
 
-    // Parse playthroughs (e.g., "Playthroughs: 2", "Minimum number of playthroughs needed: 1")
-    const playthroughMatch = text.match(/(?:minimum\s+)?(?:number\s+of\s+)?playthrough[s]?\s*(?:needed|required)?[:\s]*(\d+)/i)
-        || text.match(/(\d+)\s*playthrough/i);
+    // Parse playthroughs
+    // PSNProfiles format: "1 Playthrough" (number BEFORE word)
+    // PowerPyx format: "Playthroughs: 2", "Minimum Playthroughs: 1" (number AFTER word, REQUIRES colon)
+    const playthroughMatch = text.match(/(\d+)\s+playthrough[s]?(?!\s*:)/i)  // PSNProfiles: "1 Playthrough" (number before, no colon after)
+        || text.match(/playthrough[s]?\s*:\s*(\d+)/i);  // PowerPyx: "Playthroughs: 2" (requires colon)
     if (playthroughMatch) {
         form.value.playthroughs_required = parseInt(playthroughMatch[1]);
         parsed.push('playthroughs');
     }
 
-    // Parse missable trophies (e.g., "Missable Trophies: 12", "Missable: None", "No Missable")
+    // Parse missable trophies
+    // PowerPyx format: "Missable Trophies: 12", "Missable: None"
+    // PSNProfiles format: Has a "Missable" section header (not "Unmissable") with trophies listed after
     const missableMatch = text.match(/missable\s*(?:trophies?)?[:\s]*(\d+|yes|no|none)/i)
         || text.match(/(\d+)\s*missable/i);
     if (missableMatch) {
@@ -868,9 +891,15 @@ function parseGuideText() {
     } else if (textLower.includes('no missable')) {
         form.value.missable_trophies = false;
         parsed.push('missables');
+    } else if (/^missable\s*$/im.test(text)) {
+        // PSNProfiles: "Missable" as a section header (on its own line) means there ARE missables
+        form.value.missable_trophies = true;
+        parsed.push('missables');
     }
 
-    // Parse online trophies (e.g., "Online Trophies: 5", "Online: 0", "No Online")
+    // Parse online trophies
+    // PowerPyx format: "Online Trophies: 5", "Online: 0"
+    // PSNProfiles format: Has an "Online" section header with trophies listed after
     const onlineMatch = text.match(/online\s*(?:trophies?)?[:\s]*(\d+|yes|no|none)/i)
         || text.match(/(\d+)\s*online\s*troph/i);
     if (onlineMatch) {
@@ -883,6 +912,10 @@ function parseGuideText() {
         parsed.push('online');
     } else if (textLower.includes('no online')) {
         form.value.has_online_trophies = false;
+        parsed.push('online');
+    } else if (/^online\s*$/im.test(text)) {
+        // PSNProfiles: "Online" as a section header means there ARE online trophies
+        form.value.has_online_trophies = true;
         parsed.push('online');
     }
 

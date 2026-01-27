@@ -676,12 +676,39 @@ class GameController extends Controller
      */
     public function show($idOrSlug)
     {
-        $game = Game::with(['genres', 'tags', 'platforms'])
-            ->where('id', $idOrSlug)
-            ->orWhere('slug', $idOrSlug)
-            ->firstOrFail();
+        $query = Game::with(['genres', 'tags', 'platforms']);
 
-        return response()->json($game);
+        // Only search by ID if the input is purely numeric
+        if (ctype_digit((string) $idOrSlug)) {
+            $query->where('id', $idOrSlug);
+        } else {
+            $query->where('slug', $idOrSlug);
+        }
+
+        return response()->json($query->firstOrFail());
+    }
+
+    /**
+     * Get recommended games based on collaborative filtering
+     * "Players who have this game also have..."
+     */
+    public function recommendations($idOrSlug)
+    {
+        // Only search by ID if the input is purely numeric
+        if (ctype_digit((string) $idOrSlug)) {
+            $game = Game::where('id', $idOrSlug)->firstOrFail();
+        } else {
+            $game = Game::where('slug', $idOrSlug)->firstOrFail();
+        }
+
+        $recommendations = $game->getRecommendations(6, 2);
+
+        return response()->json([
+            'game_id' => $game->id,
+            'game_title' => $game->title,
+            'recommendations' => $recommendations,
+            'total_users' => $game->users()->count(),
+        ]);
     }
 
     /**

@@ -184,7 +184,16 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useHead } from '@vueuse/head'
 import { useUserGames } from '../composables/useUserGames'
+
+// SEO - noindex for private page
+useHead({
+    title: 'My Games | MyNextPlat',
+    meta: [
+        { name: 'robots', content: 'noindex, nofollow' },
+    ],
+})
 
 const { games, loading, getMyGames, updateStatus, removeFromList } = useUserGames()
 
