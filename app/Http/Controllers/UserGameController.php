@@ -70,9 +70,15 @@ class UserGameController extends Controller
             return response()->json(['message' => 'Game already in list'], 409);
         }
 
+        // Check if game already has a guide - if so, mark as notified
+        // (only notify about NEW guides, not games added that already have guides)
+        $game = Game::find($gameId);
+        $hasGuide = $game && ($game->psnprofiles_url || $game->playstationtrophies_url || $game->powerpyx_url);
+
         $user->games()->attach($gameId, [
             'status' => $validated['status'] ?? 'want_to_play',
             'notes' => $validated['notes'] ?? null,
+            'guide_notified_at' => $hasGuide ? now() : null,
         ]);
 
         return response()->json(['message' => 'Game added to list'], 201);
@@ -95,6 +101,7 @@ class UserGameController extends Controller
             'in_list' => true,
             'status' => $userGame->pivot->status,
             'notes' => $userGame->pivot->notes,
+            'preferred_guide' => $userGame->pivot->preferred_guide,
         ]);
     }
 
@@ -106,6 +113,7 @@ class UserGameController extends Controller
         $validated = $request->validate([
             'status' => ['sometimes', Rule::in(['want_to_play', 'playing', 'completed', 'platinum', 'abandoned'])],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'preferred_guide' => ['sometimes', 'nullable', Rule::in(['psnprofiles', 'playstationtrophies', 'powerpyx'])],
         ]);
 
         $user = $request->user();
@@ -120,6 +128,9 @@ class UserGameController extends Controller
         }
         if (array_key_exists('notes', $validated)) {
             $updateData['notes'] = $validated['notes'];
+        }
+        if (array_key_exists('preferred_guide', $validated)) {
+            $updateData['preferred_guide'] = $validated['preferred_guide'];
         }
 
         $user->games()->updateExistingPivot($gameId, $updateData);
@@ -164,6 +175,16 @@ class UserGameController extends Controller
         // Filter to only new games
         $newGameIds = array_diff($gameIds, $existingIds);
 
+        // Get games that already have guides (to mark as notified)
+        $gamesWithGuides = Game::whereIn('id', $newGameIds)
+            ->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            })
+            ->pluck('id')
+            ->toArray();
+
         // Prepare pivot data
         $attachData = [];
         foreach ($newGameIds as $gameId) {
@@ -171,6 +192,8 @@ class UserGameController extends Controller
                 'status' => $status,
                 'created_at' => now(),
                 'updated_at' => now(),
+                // Mark as notified if game already has a guide
+                'guide_notified_at' => in_array($gameId, $gamesWithGuides) ? now() : null,
             ];
         }
 

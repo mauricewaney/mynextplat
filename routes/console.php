@@ -73,3 +73,20 @@ Schedule::command('trophy:daily-search')
     ->name('trophy-daily-search')
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| New Guide Email Notifications
+|--------------------------------------------------------------------------
+|
+| Send email notifications to users about new guides for games in their list.
+| Runs at 6 AM daily - after trophy URL discovery completes.
+|
+*/
+
+Schedule::command('notifications:new-guides')
+    ->daily()
+    ->at('06:00')
+    ->name('new-guide-notifications')
+    ->withoutOverlapping()
+    ->onOneServer();

@@ -19,6 +19,7 @@ Route::prefix('games')->group(function () {
     Route::get('/filters', [GameController::class, 'filterOptions']);
     Route::get('/{idOrSlug}', [GameController::class, 'show']);
     Route::get('/{idOrSlug}/recommendations', [GameController::class, 'recommendations']);
+    Route::get('/{idOrSlug}/guide-votes', [GameController::class, 'guideVotes']);
 });
 
 // PSN Library Lookup (public)
@@ -39,6 +40,9 @@ Route::get('/user', [AuthController::class, 'user']);
 Route::middleware('auth:sanctum')->group(function () {
     // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // User preferences
+    Route::put('/user/preferences', [AuthController::class, 'updatePreferences']);
 
     // User's game list
     Route::prefix('my-games')->group(function () {

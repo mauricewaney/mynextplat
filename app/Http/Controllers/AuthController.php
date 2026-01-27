@@ -71,6 +71,26 @@ class AuthController extends Controller
             'email' => $user->email,
             'avatar' => $user->avatar,
             'is_admin' => $user->is_admin,
+            'notify_new_guides' => $user->notify_new_guides,
+        ]);
+    }
+
+    /**
+     * Update user preferences.
+     */
+    public function updatePreferences(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'notify_new_guides' => 'sometimes|boolean',
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Preferences updated',
+            'notify_new_guides' => $user->notify_new_guides,
         ]);
     }
 

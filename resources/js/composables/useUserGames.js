@@ -106,6 +106,18 @@ export function useUserGames() {
     }
 
     /**
+     * Update preferred guide for a game
+     */
+    async function updatePreferredGuide(gameId, guide) {
+        try {
+            return await apiPut(`/my-games/${gameId}`, { preferred_guide: guide })
+        } catch (e) {
+            console.error('Failed to update preferred guide:', e)
+            throw e
+        }
+    }
+
+    /**
      * Bulk add games to the user's list (merges with existing)
      */
     async function bulkAddToList(gameIds, status = 'want_to_play') {
@@ -132,5 +144,6 @@ export function useUserGames() {
         updateStatus,
         checkInList,
         bulkAddToList,
+        updatePreferredGuide,
     }
 }

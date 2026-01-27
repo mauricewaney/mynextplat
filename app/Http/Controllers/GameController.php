@@ -722,4 +722,71 @@ class GameController extends Controller
             'platforms' => Platform::orderBy('name')->get(['id', 'name', 'slug', 'short_name']),
         ]);
     }
+
+    /**
+     * Get guide vote statistics for a game
+     */
+    public function guideVotes($idOrSlug)
+    {
+        // Find game
+        if (ctype_digit((string) $idOrSlug)) {
+            $game = Game::where('id', $idOrSlug)->firstOrFail();
+        } else {
+            $game = Game::where('slug', $idOrSlug)->firstOrFail();
+        }
+
+        // Count available guides
+        $availableGuides = [];
+        if ($game->psnprofiles_url) $availableGuides[] = 'psnprofiles';
+        if ($game->playstationtrophies_url) $availableGuides[] = 'playstationtrophies';
+        if ($game->powerpyx_url) $availableGuides[] = 'powerpyx';
+
+        // Only show voting if 2+ guides
+        if (count($availableGuides) < 2) {
+            return response()->json([
+                'voting_enabled' => false,
+                'available_guides' => $availableGuides,
+            ]);
+        }
+
+        // Get vote counts
+        $votes = \DB::table('user_game')
+            ->where('game_id', $game->id)
+            ->whereNotNull('preferred_guide')
+            ->select('preferred_guide', \DB::raw('COUNT(*) as count'))
+            ->groupBy('preferred_guide')
+            ->pluck('count', 'preferred_guide')
+            ->toArray();
+
+        $totalVotes = array_sum($votes);
+
+        // Calculate percentages
+        $results = [];
+        foreach ($availableGuides as $guide) {
+            $count = $votes[$guide] ?? 0;
+            $results[$guide] = [
+                'count' => $count,
+                'percentage' => $totalVotes > 0 ? round(($count / $totalVotes) * 100) : 0,
+            ];
+        }
+
+        // Find winner
+        $winner = null;
+        $winnerCount = 0;
+        foreach ($results as $guide => $data) {
+            if ($data['count'] > $winnerCount) {
+                $winnerCount = $data['count'];
+                $winner = $guide;
+            }
+        }
+
+        return response()->json([
+            'voting_enabled' => true,
+            'available_guides' => $availableGuides,
+            'total_votes' => $totalVotes,
+            'results' => $results,
+            'winner' => $totalVotes >= 3 ? $winner : null, // Only show winner with 3+ votes
+            'winner_percentage' => $totalVotes >= 3 && $winner ? $results[$winner]['percentage'] : null,
+        ]);
+    }
 }

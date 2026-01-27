@@ -24,6 +24,8 @@ class User extends Authenticatable
         'google_id',
         'avatar',
         'is_admin',
+        'notify_new_guides',
+        'last_notified_at',
     ];
 
     /**
@@ -47,6 +49,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'notify_new_guides' => 'boolean',
+            'last_notified_at' => 'datetime',
         ];
     }
 
@@ -56,7 +60,7 @@ class User extends Authenticatable
     public function games(): BelongsToMany
     {
         return $this->belongsToMany(Game::class, 'user_game')
-            ->withPivot(['status', 'notes'])
+            ->withPivot(['status', 'notes', 'guide_notified_at', 'preferred_guide'])
             ->withTimestamps();
     }
 

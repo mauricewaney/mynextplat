@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue'
-import { apiGet, apiPost } from '../utils/api'
+import { apiGet, apiPost, apiPut } from '../utils/api'
 
 // Shared auth state (singleton)
 const user = ref(null)
@@ -9,6 +9,7 @@ const initialized = ref(false)
 export function useAuth() {
     const isAuthenticated = computed(() => !!user.value)
     const isAdmin = computed(() => user.value?.is_admin === true)
+    const notifyNewGuides = computed(() => user.value?.notify_new_guides ?? true)
 
     /**
      * Fetch the current user from the API
@@ -57,15 +58,36 @@ export function useAuth() {
         }
     }
 
+    /**
+     * Update user preferences
+     */
+    async function updatePreferences(prefs) {
+        try {
+            const data = await apiPut('/user/preferences', prefs)
+            // Update local state
+            if (user.value) {
+                if (data.notify_new_guides !== undefined) {
+                    user.value.notify_new_guides = data.notify_new_guides
+                }
+            }
+            return data
+        } catch (error) {
+            console.error('Failed to update preferences:', error)
+            throw error
+        }
+    }
+
     return {
         user,
         loading,
         initialized,
         isAuthenticated,
         isAdmin,
+        notifyNewGuides,
         fetchUser,
         initAuth,
         loginWithGoogle,
         logout,
+        updatePreferences,
     }
 }

@@ -115,7 +115,10 @@ export async function apiPut(endpoint, data = {}) {
         method: 'PUT',
         body: JSON.stringify(data),
     })
-    return response
+    if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+    }
+    return response.json()
 }
 
 /**

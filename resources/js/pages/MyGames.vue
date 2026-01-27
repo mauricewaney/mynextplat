@@ -27,31 +27,58 @@
         </header>
 
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Status Tabs -->
-            <div class="flex flex-wrap gap-2 mb-6">
-                <button
-                    v-for="tab in statusTabs"
-                    :key="tab.value"
-                    @click="currentStatus = tab.value"
-                    :class="[
-                        'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                        currentStatus === tab.value
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
-                    ]"
-                >
-                    {{ tab.label }}
-                    <span
-                        v-if="statusCounts[tab.value] !== undefined"
+            <!-- Status Tabs & Settings -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div class="flex flex-wrap gap-2">
+                    <button
+                        v-for="tab in statusTabs"
+                        :key="tab.value"
+                        @click="currentStatus = tab.value"
                         :class="[
-                            'ml-1.5 px-1.5 py-0.5 text-xs rounded',
+                            'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
                             currentStatus === tab.value
-                                ? 'bg-indigo-500 text-white'
-                                : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-400'
+                                ? 'bg-indigo-600 text-white'
+                                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
                         ]"
                     >
-                        {{ statusCounts[tab.value] }}
-                    </span>
+                        {{ tab.label }}
+                        <span
+                            v-if="statusCounts[tab.value] !== undefined"
+                            :class="[
+                                'ml-1.5 px-1.5 py-0.5 text-xs rounded',
+                                currentStatus === tab.value
+                                    ? 'bg-indigo-500 text-white'
+                                    : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-400'
+                            ]"
+                        >
+                            {{ statusCounts[tab.value] }}
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Email Notifications Toggle -->
+                <button
+                    @click="toggleNotifications"
+                    :disabled="updatingNotifications"
+                    class="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors"
+                    :class="[
+                        notifyNewGuides
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                            : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+                    ]"
+                    :title="notifyNewGuides ? 'Email notifications enabled' : 'Email notifications disabled'"
+                >
+                    <svg v-if="updatingNotifications" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <svg v-else-if="notifyNewGuides" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                    <span class="hidden sm:inline">{{ notifyNewGuides ? 'Notifications On' : 'Notifications Off' }}</span>
                 </button>
             </div>
 
@@ -184,7 +211,9 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
+import { useAuth } from '../composables/useAuth'
 import { useUserGames } from '../composables/useUserGames'
 
 // SEO - noindex for private page
@@ -195,9 +224,12 @@ useHead({
     ],
 })
 
+const route = useRoute()
+const { notifyNewGuides, updatePreferences } = useAuth()
 const { games, loading, getMyGames, updateStatus, removeFromList } = useUserGames()
 
 const currentStatus = ref('all')
+const updatingNotifications = ref(false)
 
 const statusTabs = [
     { value: 'all', label: 'All' },
@@ -250,7 +282,25 @@ async function removeGame(gameId) {
     }
 }
 
+async function toggleNotifications() {
+    if (updatingNotifications.value) return
+
+    updatingNotifications.value = true
+    try {
+        await updatePreferences({ notify_new_guides: !notifyNewGuides.value })
+    } catch (e) {
+        console.error('Failed to update notifications:', e)
+    } finally {
+        updatingNotifications.value = false
+    }
+}
+
 onMounted(() => {
     getMyGames()
+
+    // Handle unsubscribe from email link
+    if (route.query.notifications === 'off') {
+        updatePreferences({ notify_new_guides: false })
+    }
 })
 </script>

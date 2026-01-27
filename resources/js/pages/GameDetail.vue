@@ -201,6 +201,64 @@
                 <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
                     <p>No trophy guides available yet for this game.</p>
                 </div>
+
+                <!-- Guide Voting (only when 2+ guides available) -->
+                <div v-if="guideVotes?.voting_enabled" class="mt-6 pt-6 border-t border-gray-200 dark:border-slate-700">
+                    <!-- Vote Result Banner (when enough votes) -->
+                    <div v-if="guideVotes.winner && guideVotes.total_votes >= 3" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <p class="text-sm text-green-700 dark:text-green-400 font-medium">
+                            {{ guideVotes.winner_percentage }}% of users preferred the {{ guideLabels[guideVotes.winner] }} guide
+                        </p>
+                    </div>
+
+                    <!-- Voting UI -->
+                    <div class="flex flex-wrap items-center gap-4">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Which guide did you use?</span>
+                        <div class="flex flex-wrap gap-3">
+                            <label
+                                v-for="guide in guideVotes.available_guides"
+                                :key="guide"
+                                :class="[
+                                    'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors text-sm',
+                                    userVote === guide
+                                        ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 ring-2 ring-indigo-500'
+                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600',
+                                    (!inList || votingLoading) ? 'opacity-50 cursor-not-allowed' : ''
+                                ]"
+                            >
+                                <input
+                                    type="radio"
+                                    name="preferred_guide"
+                                    :value="guide"
+                                    :checked="userVote === guide"
+                                    :disabled="!inList || votingLoading"
+                                    @change="voteForGuide(guide)"
+                                    class="sr-only"
+                                />
+                                <span :class="[
+                                    'w-4 h-4 rounded-full border-2 flex items-center justify-center',
+                                    userVote === guide
+                                        ? 'border-indigo-500 bg-indigo-500'
+                                        : 'border-gray-400 dark:border-gray-500'
+                                ]">
+                                    <span v-if="userVote === guide" class="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                </span>
+                                {{ guideLabels[guide] }}
+                                <span v-if="guideVotes.total_votes > 0" class="text-xs text-gray-500 dark:text-gray-400">
+                                    ({{ guideVotes.results[guide]?.percentage || 0 }}%)
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Not in list hint -->
+                    <p v-if="!inList && isAuthenticated" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        Add this game to your list to vote
+                    </p>
+                    <p v-else-if="!isAuthenticated" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        <button @click="loginWithGoogle" class="text-indigo-600 dark:text-indigo-400 hover:underline">Sign in</button> to vote
+                    </p>
+                </div>
             </div>
 
             <!-- Recommendations Section -->
@@ -295,7 +353,7 @@ import { useUserGames } from '../composables/useUserGames'
 
 const route = useRoute()
 const { isAuthenticated, loginWithGoogle } = useAuth()
-const { addToList, removeFromList, checkInList } = useUserGames()
+const { addToList, removeFromList, checkInList, updatePreferredGuide } = useUserGames()
 
 const game = ref(null)
 const loading = ref(true)
@@ -304,6 +362,17 @@ const recommendations = ref([])
 const loadingRecommendations = ref(false)
 const inList = ref(false)
 const listLoading = ref(false)
+
+// Guide voting
+const guideVotes = ref(null)
+const userVote = ref(null)
+const votingLoading = ref(false)
+
+const guideLabels = {
+    psnprofiles: 'PSNProfiles',
+    playstationtrophies: 'PlayStationTrophies',
+    powerpyx: 'PowerPyx',
+}
 
 const hasGuides = computed(() => {
     return game.value?.psnprofiles_url || game.value?.playstationtrophies_url || game.value?.powerpyx_url
@@ -393,8 +462,9 @@ async function fetchGame() {
             throw new Error('Game not found')
         }
         game.value = await response.json()
-        // Fetch recommendations and check list status after game loads
+        // Fetch recommendations, guide votes, and check list status after game loads
         fetchRecommendations()
+        fetchGuideVotes()
         checkListStatus()
     } catch (e) {
         error.value = e.message
@@ -409,8 +479,43 @@ async function checkListStatus() {
     try {
         const result = await checkInList(game.value.id)
         inList.value = result.in_list
+        userVote.value = result.preferred_guide || null
     } catch (e) {
         console.error('Failed to check list status:', e)
+    }
+}
+
+async function fetchGuideVotes() {
+    if (!game.value) return
+
+    try {
+        const response = await fetch(`/api/games/${game.value.slug}/guide-votes`)
+        if (response.ok) {
+            guideVotes.value = await response.json()
+        }
+    } catch (e) {
+        console.error('Failed to fetch guide votes:', e)
+    }
+}
+
+async function voteForGuide(guide) {
+    if (!isAuthenticated.value) {
+        loginWithGoogle()
+        return
+    }
+
+    if (!inList.value || votingLoading.value) return
+
+    votingLoading.value = true
+    try {
+        await updatePreferredGuide(game.value.id, guide)
+        userVote.value = guide
+        // Refresh vote counts
+        await fetchGuideVotes()
+    } catch (e) {
+        console.error('Failed to vote:', e)
+    } finally {
+        votingLoading.value = false
     }
 }
 
@@ -462,6 +567,8 @@ onMounted(fetchGame)
 watch(() => route.params.slug, () => {
     recommendations.value = []
     inList.value = false
+    guideVotes.value = null
+    userVote.value = null
     fetchGame()
 })
 
