@@ -1,18 +1,18 @@
 <template>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
+    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
         <!-- Header -->
         <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm dark:bg-slate-900/95 dark:border-slate-700/50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center gap-4">
                         <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
                                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <h1 class="hidden sm:block text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                            <h1 class="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
                                 MyNextPlat
                             </h1>
                         </router-link>
@@ -70,7 +70,7 @@
                                     :class="[
                                         'w-full px-3 py-2 text-left text-sm',
                                         viewMode === 'all'
-                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
                                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
                                     ]"
                                 >
@@ -81,7 +81,7 @@
                                     :class="[
                                         'w-full px-3 py-2 text-left text-sm flex items-center gap-2',
                                         viewMode === 'library'
-                                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
                                             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
                                     ]"
                                 >
@@ -92,10 +92,82 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- PSN Library - Desktop (inline) -->
+                        <div class="hidden lg:flex items-center gap-2 border-l border-gray-200 dark:border-slate-700 pl-4 ml-2">
+                            <svg class="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
+                            </svg>
+                            <!-- Not loaded: show search form -->
+                            <template v-if="!isPsnLoaded">
+                                <form @submit.prevent="handlePsnLookup" class="flex items-center gap-2">
+                                    <input
+                                        v-model="psnUsernameInput"
+                                        type="text"
+                                        placeholder="PSN username..."
+                                        class="w-32 px-2 py-1 bg-gray-100 dark:bg-slate-700 border-0 rounded-md text-sm dark:text-gray-200 focus:ring-2 focus:ring-primary-500 placeholder-gray-400 dark:placeholder-gray-500"
+                                        :disabled="psnLoading"
+                                    />
+                                    <button
+                                        type="submit"
+                                        :disabled="psnLoading || !psnUsernameInput.trim()"
+                                        class="px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded-md text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {{ psnLoading ? '...' : 'Load' }}
+                                    </button>
+                                </form>
+                                <button
+                                    v-if="isAdmin"
+                                    @click="loadMyPsnLibrary"
+                                    :disabled="psnLoading"
+                                    class="px-2 py-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium disabled:opacity-50"
+                                >
+                                    My Library
+                                </button>
+                            </template>
+                            <!-- Loaded: show user info -->
+                            <template v-else>
+                                <div class="flex items-center gap-2">
+                                    <img
+                                        v-if="psnUser?.avatar"
+                                        :src="psnUser.avatar"
+                                        :alt="psnUser.username"
+                                        class="w-6 h-6 rounded-full"
+                                    />
+                                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ psnUser?.username }}</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">({{ psnStats.has_guide }} with guide)</span>
+                                    <button
+                                        @click="clearPsnLibrary"
+                                        class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded transition-colors"
+                                        title="Clear"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </template>
+                            <p v-if="psnError" class="text-xs text-red-500">{{ psnError }}</p>
+                        </div>
                     </div>
 
                     <!-- Mobile actions -->
                     <div class="lg:hidden flex items-center gap-1">
+                        <!-- Mobile PSN Library Button -->
+                        <button
+                            @click="showMobilePsnPanel = true"
+                            :class="[
+                                'p-2 rounded-lg transition-colors',
+                                isPsnLoaded
+                                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30'
+                                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800'
+                            ]"
+                            title="PSN Library"
+                        >
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
+                            </svg>
+                        </button>
                         <button
                             @click="toggleDarkMode"
                             class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -119,7 +191,7 @@
                                 :alt="user.name"
                                 class="w-8 h-8 rounded-full object-cover aspect-square"
                             />
-                            <div v-else class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium aspect-square shrink-0">
+                            <div v-else class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium aspect-square shrink-0">
                                 {{ user?.name?.charAt(0) || '?' }}
                             </div>
                         </button>
@@ -143,41 +215,8 @@
                         </button>
                     </div>
 
-                    <!-- Desktop stats -->
-                    <div class="hidden lg:flex items-center gap-6 text-sm">
-                        <div class="text-gray-500 dark:text-gray-400">
-                            <span class="font-semibold text-gray-900 dark:text-white">{{ total.toLocaleString() }}</span> games
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <label class="text-gray-500 dark:text-gray-400">Sort:</label>
-                            <select
-                                v-model="sortBy"
-                                @change="loadGames"
-                                class="border-0 bg-gray-100 dark:bg-slate-800 dark:text-gray-200 rounded-lg text-sm py-1.5 pl-3 pr-8 focus:ring-2 focus:ring-indigo-500"
-                            >
-                                <option value="title">Title</option>
-                                <option value="release_date">Release Date</option>
-                                <option value="difficulty">Difficulty</option>
-                                <option value="time_min">Completion Time</option>
-                                <option value="critic_score">Critic Score</option>
-                                <option value="playthroughs_required">Playthroughs</option>
-                                <option value="missable_trophies">Missables</option>
-                            </select>
-                            <button
-                                @click="toggleSortOrder"
-                                class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                :title="sortOrder === 'asc' ? 'Ascending' : 'Descending'"
-                            >
-                                <svg
-                                    :class="['w-5 h-5 transition-transform', sortOrder === 'desc' ? 'rotate-180' : '']"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
-                                </svg>
-                            </button>
-                        </div>
+                    <!-- Desktop actions -->
+                    <div class="hidden lg:flex items-center gap-4 text-sm">
                         <button
                             @click="toggleDarkMode"
                             class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -203,7 +242,7 @@
                                     :alt="user.name"
                                     class="w-8 h-8 rounded-full"
                                 />
-                                <div v-else class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium">
+                                <div v-else class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
                                     {{ user?.name?.charAt(0) || '?' }}
                                 </div>
                                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,28 +315,73 @@
 
                 <!-- Main Content -->
                 <main class="flex-1 min-w-0">
-                    <!-- Mobile Sort -->
-                    <div class="lg:hidden flex items-center justify-between mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3">
+                    <!-- PSN Library Banner (Mobile/Tablet - when loaded) -->
+                    <div v-if="isPsnLoaded" class="lg:hidden mb-4 bg-primary-50 dark:bg-primary-900/30 rounded-xl p-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <img
+                                    v-if="psnUser?.avatar"
+                                    :src="psnUser.avatar"
+                                    :alt="psnUser.username"
+                                    class="w-8 h-8 rounded-full"
+                                />
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ psnUser?.username }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ psnStats.matched_games }} matched &middot; {{ psnStats.has_guide }} with guide
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer">
+                                    <span class="text-xs text-gray-600 dark:text-gray-400">Guide only</span>
+                                    <div class="relative" @click="toggleHasGuideOnly">
+                                        <div :class="[
+                                            'w-8 h-4 rounded-full transition-colors',
+                                            psnHasGuideOnly ? 'bg-primary-600' : 'bg-gray-300 dark:bg-slate-600'
+                                        ]"></div>
+                                        <div :class="[
+                                            'absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm',
+                                            psnHasGuideOnly ? 'left-4' : 'left-0.5'
+                                        ]"></div>
+                                    </div>
+                                </label>
+                                <button
+                                    @click="clearPsnLibrary"
+                                    class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded transition-colors"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sort Bar (All screen sizes) -->
+                    <div class="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3">
                         <span class="text-sm text-gray-500 dark:text-gray-400">
                             <span class="font-semibold text-gray-900 dark:text-white">{{ total.toLocaleString() }}</span> games
                         </span>
                         <div class="flex items-center gap-2">
+                            <label class="hidden sm:block text-sm text-gray-500 dark:text-gray-400">Sort:</label>
                             <select
                                 v-model="sortBy"
                                 @change="loadGames"
-                                class="border-0 bg-gray-100 dark:bg-slate-700 dark:text-gray-200 rounded-lg text-sm py-1.5 pl-3 pr-8 focus:ring-2 focus:ring-indigo-500"
+                                class="border-0 bg-gray-100 dark:bg-slate-700 dark:text-gray-200 rounded-lg text-sm py-1.5 pl-3 pr-8 focus:ring-2 focus:ring-primary-500"
                             >
                                 <option value="title">Title</option>
                                 <option value="release_date">Release Date</option>
                                 <option value="difficulty">Difficulty</option>
-                                <option value="time_min">Time</option>
-                                <option value="critic_score">Score</option>
+                                <option value="time_min">Completion Time</option>
+                                <option value="critic_score">Critic Score</option>
                                 <option value="playthroughs_required">Playthroughs</option>
                                 <option value="missable_trophies">Missables</option>
                             </select>
                             <button
                                 @click="toggleSortOrder"
                                 class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                :title="sortOrder === 'asc' ? 'Ascending' : 'Descending'"
                             >
                                 <svg
                                     :class="['w-5 h-5 transition-transform', sortOrder === 'desc' ? 'rotate-180' : '']"
@@ -354,7 +438,6 @@
                             v-for="game in games"
                             :key="game.id"
                             :game="game"
-                            @click="openGame(game)"
                         />
                     </div>
 
@@ -363,7 +446,7 @@
                         <button
                             @click="loadMore"
                             :disabled="loading"
-                            class="px-8 py-3 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-medium rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all disabled:opacity-50"
+                            class="px-8 py-3 bg-white dark:bg-slate-800 text-primary-600 dark:text-primary-400 font-medium rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all disabled:opacity-50"
                         >
                             <span v-if="loading" class="flex items-center gap-2">
                                 <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
@@ -390,7 +473,7 @@
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <!-- Brand -->
                     <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <div class="w-6 h-6 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-md flex items-center justify-center">
+                        <div class="w-6 h-6 bg-gradient-to-br from-primary-500 to-purple-600 rounded-md flex items-center justify-center">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -414,9 +497,13 @@
                         <a href="https://www.powerpyx.com" target="_blank" class="text-orange-500 hover:text-orange-400 font-medium">PowerPyx</a>
                     </div>
 
-                    <!-- Links -->
+                    <!-- Contact & Links -->
                     <div class="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
-                        <span>Made for trophy hunters</span>
+                        <a href="mailto:contact@mynextplat.com" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            contact@mynextplat.com
+                        </a>
+                        <span class="hidden sm:inline">&middot;</span>
+                        <span class="hidden sm:inline">Made for trophy hunters</span>
                     </div>
                 </div>
             </div>
@@ -449,7 +536,7 @@
                         <div class="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4">
                             <button
                                 @click="showMobileFilters = false"
-                                class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+                                class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
                             >
                                 Show {{ total.toLocaleString() }} Results
                             </button>
@@ -476,8 +563,8 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>
-                        <div class="w-16 h-16 mx-auto mb-4 bg-indigo-100 dark:bg-indigo-900/50 rounded-full flex items-center justify-center">
-                            <svg class="w-8 h-8 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-16 h-16 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center">
+                            <svg class="w-8 h-8 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                             </svg>
                         </div>
@@ -499,6 +586,126 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <!-- Mobile PSN Search Modal -->
+        <Teleport to="body">
+            <Transition name="fade">
+                <div
+                    v-if="showMobilePsnPanel && !isPsnLoaded"
+                    class="fixed inset-0 z-50 lg:hidden flex items-start justify-center pt-16"
+                >
+                    <div class="absolute inset-0 bg-black/50" @click="showMobilePsnPanel = false"></div>
+                    <div class="relative bg-white dark:bg-slate-800 rounded-xl shadow-xl w-[calc(100%-2rem)] max-w-sm p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
+                            </svg>
+                            <h2 class="font-semibold text-gray-900 dark:text-white">Load PSN Library</h2>
+                        </div>
+                        <form @submit.prevent="handlePsnLookup(); showMobilePsnPanel = false" class="space-y-3">
+                            <input
+                                v-model="psnUsernameInput"
+                                type="text"
+                                placeholder="Enter PSN username..."
+                                class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500"
+                                :disabled="psnLoading"
+                            />
+                            <div class="flex gap-2">
+                                <button
+                                    type="submit"
+                                    :disabled="psnLoading || !psnUsernameInput.trim()"
+                                    class="flex-1 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {{ psnLoading ? 'Loading...' : 'Load' }}
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="showMobilePsnPanel = false"
+                                    class="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                        <button
+                            v-if="isAdmin"
+                            @click="loadMyPsnLibrary(); showMobilePsnPanel = false"
+                            :disabled="psnLoading"
+                            class="w-full mt-2 px-4 py-2 text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium disabled:opacity-50"
+                        >
+                            Load My Library
+                        </button>
+                        <p v-if="psnError" class="mt-2 text-xs text-red-500 dark:text-red-400">{{ psnError }}</p>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Unmatched Games Modal -->
+        <Teleport to="body">
+            <div
+                v-if="showUnmatchedModal"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                @click.self="showUnmatchedModal = false"
+            >
+                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                <div class="relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                        <h3 class="font-semibold text-gray-900 dark:text-white">
+                            Unmatched PSN Games ({{ psnUnmatchedTitles.length }})
+                        </h3>
+                        <button
+                            @click="showUnmatchedModal = false"
+                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
+                        <input
+                            v-model="unmatchedSearch"
+                            type="text"
+                            placeholder="Search unmatched..."
+                            class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 placeholder-gray-400 dark:placeholder-gray-500"
+                        />
+                    </div>
+
+                    <!-- List -->
+                    <div class="flex-1 overflow-y-auto p-4">
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                            These games from your PSN library couldn't be matched to games in our database. They may be apps, DLC, or games not yet added.
+                        </p>
+                        <ul class="space-y-1">
+                            <li
+                                v-for="(title, index) in filteredUnmatchedTitles"
+                                :key="index"
+                                class="text-sm text-gray-700 dark:text-gray-300 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-slate-700"
+                            >
+                                {{ title }}
+                            </li>
+                        </ul>
+                        <p v-if="filteredUnmatchedTitles.length === 0" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
+                            No matches found
+                        </p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-4 py-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 rounded-b-xl">
+                        <button
+                            @click="showUnmatchedModal = false"
+                            class="w-full px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>
 
@@ -509,6 +716,7 @@ import { useHead } from '@vueuse/head'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
 import { useAuth } from '../composables/useAuth'
+import { usePSNLibrary } from '../composables/usePSNLibrary'
 
 // SEO Meta Tags
 useHead({
@@ -527,11 +735,47 @@ useHead({
 
 const route = useRoute()
 const { user, isAuthenticated, isAdmin, initAuth, loginWithGoogle, logout } = useAuth()
+const {
+    psnGameIds,
+    isPsnLoaded,
+    psnUnmatchedTitles,
+    psnUser,
+    psnStats,
+    psnLoading,
+    psnError,
+    lookupPSN,
+    loadMyLibrary,
+    clearPSN,
+    toggleHasGuideOnly,
+    psnHasGuideOnly,
+    psnFilteredCount,
+} = usePSNLibrary()
+
+const psnUsernameInput = ref('')
+
+function handlePsnLookup() {
+    if (psnUsernameInput.value.trim()) {
+        lookupPSN(psnUsernameInput.value.trim())
+    }
+}
+
+function loadMyPsnLibrary() {
+    loadMyLibrary()
+}
+
+function clearPsnLibrary() {
+    clearPSN()
+    psnUsernameInput.value = ''
+}
 
 const showUserMenu = ref(false)
+const showPsnPanel = ref(false)
+const showMobilePsnPanel = ref(false)
+const showUnmatchedModal = ref(false)
+const unmatchedSearch = ref('')
 const showLoginPrompt = ref(false)
 const showViewModeMenu = ref(false)
-const viewMode = ref('all') // 'all' or 'library'
+const viewMode = ref(sessionStorage.getItem('viewMode') || 'all') // 'all' or 'library'
 
 // Check for login required query param
 watch(() => route.query.login, (val) => {
@@ -541,6 +785,31 @@ watch(() => route.query.login, (val) => {
         window.history.replaceState({}, '', '/')
     }
 }, { immediate: true })
+
+// Watch PSN game IDs and reload games when they change
+watch(psnGameIds, () => {
+    currentPage.value = 1
+    games.value = []
+    loadGames()
+})
+
+// Close mobile PSN panel when PSN loads
+watch(isPsnLoaded, (loaded) => {
+    if (loaded) {
+        showMobilePsnPanel.value = false
+    }
+})
+
+// Filtered unmatched titles for the modal
+const filteredUnmatchedTitles = computed(() => {
+    if (!unmatchedSearch.value.trim()) {
+        return psnUnmatchedTitles.value
+    }
+    const search = unmatchedSearch.value.toLowerCase()
+    return psnUnmatchedTitles.value.filter(title =>
+        title.toLowerCase().includes(search)
+    )
+})
 
 async function handleLogout() {
     await logout()
@@ -555,6 +824,9 @@ function closeMenus(e) {
     if (!e.target.closest('.view-mode-menu-container')) {
         showViewModeMenu.value = false
     }
+    if (!e.target.closest('.psn-panel-container')) {
+        showPsnPanel.value = false
+    }
 }
 
 onMounted(() => {
@@ -568,8 +840,9 @@ const loading = ref(true)
 const total = ref(0)
 const currentPage = ref(1)
 const lastPage = ref(1)
-const sortBy = ref('title')
-const sortOrder = ref('asc')
+// Load saved state from sessionStorage or use defaults
+const sortBy = ref(sessionStorage.getItem('sortBy') || 'critic_score')
+const sortOrder = ref(sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
 
 const filters = reactive({})
@@ -605,6 +878,10 @@ const hasMore = computed(() => currentPage.value < lastPage.value)
 
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
+    // Save filters to sessionStorage (exclude game_ids as they're from PSN lookup)
+    const filtersToSave = { ...newFilters }
+    delete filtersToSave.game_ids
+    sessionStorage.setItem('homeFilters', JSON.stringify(filtersToSave))
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -613,15 +890,16 @@ function onFilterChange(newFilters) {
 
 function toggleSortOrder() {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    sessionStorage.setItem('sortOrder', sortOrder.value)
     currentPage.value = 1
     games.value = []
     loadGames()
 }
 
-function openGame(game) {
-    // TODO: Navigate to game detail page
-    console.log('Open game:', game.slug)
-}
+// Watch sortBy changes to save to sessionStorage
+watch(sortBy, (newVal) => {
+    sessionStorage.setItem('sortBy', newVal)
+})
 
 function switchViewMode(mode) {
     if (mode === 'library' && !isAuthenticated.value) {
@@ -629,6 +907,7 @@ function switchViewMode(mode) {
         return
     }
     viewMode.value = mode
+    sessionStorage.setItem('viewMode', mode)
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -645,14 +924,18 @@ async function loadGames() {
             params.append('my_library', 'true')
         }
 
-        // PSN library filter (game_ids)
-        if (filters.game_ids?.length) {
-            params.append('game_ids', filters.game_ids.join(','))
-            // When PSN library is loaded, respect the user's "has guide" toggle
-            // (don't force has_guide=true)
-        } else if (viewMode.value === 'all' && !filters.search) {
-            // Only show games with guides on the public homepage when browsing (not searching)
-            // When searching, show all games so users can find specific titles
+        // PSN library filter (game_ids from composable)
+        if (psnGameIds.value?.length) {
+            params.append('game_ids', psnGameIds.value.join(','))
+        }
+
+        // Has guide filter - use explicit filter if set, otherwise default to showing guides only for 'all' mode
+        if (filters.has_guide === true) {
+            params.append('has_guide', 'true')
+        } else if (filters.has_guide === false) {
+            params.append('has_guide', 'false')
+        } else if (viewMode.value === 'all' && !filters.search && !psnGameIds.value?.length) {
+            // Default: show games with guides on homepage when browsing (not searching or PSN library)
             params.append('has_guide', 'true')
         }
 

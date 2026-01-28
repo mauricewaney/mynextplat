@@ -8,13 +8,13 @@
                 <span class="font-medium text-gray-900">{{ title }}</span>
                 <span
                     v-if="count"
-                    class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full"
+                    class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded-full"
                 >
                     {{ count }}
                 </span>
                 <span
                     v-else-if="badge"
-                    class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full"
+                    class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded-full"
                 >
                     {{ badge }}
                 </span>

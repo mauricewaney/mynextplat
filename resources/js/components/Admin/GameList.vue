@@ -62,7 +62,7 @@
                     </button>
                     <button
                         @click="openAddModal"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center space-x-2"
+                        class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center space-x-2"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -84,7 +84,7 @@
                             v-model="filters.search"
                             type="text"
                             placeholder="Search games..."
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
                             @input="debouncedFetch"
                         />
                     </div>
@@ -149,7 +149,7 @@
                             type="number"
                             min="1"
                             placeholder="e.g., 1"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                     </div>
@@ -163,7 +163,7 @@
                             min="0"
                             max="100"
                             placeholder="e.g., 80"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                     </div>
@@ -174,7 +174,7 @@
                         <button
                             type="button"
                             @click="showGenreDropdown = !showGenreDropdown"
-                            class="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
                             <span v-if="filters.genre_ids.length === 0" class="text-gray-500">Select genres...</span>
                             <span v-else class="text-gray-900">{{ filters.genre_ids.length }} selected</span>
@@ -196,7 +196,7 @@
                                     :value="genre.id"
                                     v-model="filters.genre_ids"
                                     @change="onFilterChange"
-                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
                                 <span class="ml-2 text-sm text-gray-700">{{ genre.name }}</span>
                             </label>
@@ -209,7 +209,7 @@
                         <button
                             type="button"
                             @click="showPlatformDropdown = !showPlatformDropdown"
-                            class="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
                             <span v-if="filters.platform_ids.length === 0" class="text-gray-500">Select platforms...</span>
                             <span v-else class="text-gray-900">{{ filters.platform_ids.length }} selected</span>
@@ -231,7 +231,7 @@
                                     :value="platform.id"
                                     v-model="filters.platform_ids"
                                     @change="onFilterChange"
-                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
                                 <span class="ml-2 text-sm text-gray-700">{{ platform.name }}</span>
                             </label>
@@ -304,7 +304,7 @@
                         <input
                             v-model="filters.has_online_trophies"
                             type="checkbox"
-                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                         <span class="text-sm">Has Online Trophies</span>
@@ -313,7 +313,7 @@
                         <input
                             v-model="filters.missable_trophies"
                             type="checkbox"
-                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                         <span class="text-sm">Has Missable Trophies</span>
@@ -322,7 +322,7 @@
                         <input
                             v-model="filters.no_genres"
                             type="checkbox"
-                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                         <span class="text-sm">No Genres</span>
@@ -331,7 +331,7 @@
                         <input
                             v-model="filters.no_platforms"
                             type="checkbox"
-                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                         <span class="text-sm">No Platforms</span>
@@ -358,15 +358,15 @@
             </div>
 
             <!-- Bulk Actions Toolbar -->
-            <div v-if="selectedGames.length > 0" class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+            <div v-if="selectedGames.length > 0" class="bg-primary-50 border border-primary-200 rounded-lg p-4">
                 <div class="flex items-center justify-between flex-wrap gap-2">
                     <div class="flex items-center gap-4">
-            <span class="text-sm font-medium text-indigo-900">
+            <span class="text-sm font-medium text-primary-900">
               {{ selectedGames.length }} game(s) selected
             </span>
                         <button
                             @click="selectedGames = []"
-                            class="text-sm text-indigo-600 hover:text-indigo-800"
+                            class="text-sm text-primary-600 hover:text-primary-800"
                         >
                             Clear selection
                         </button>
@@ -427,7 +427,7 @@
 
             <!-- Loading State -->
             <div v-if="loading" class="text-center py-12">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 <p class="mt-2 text-gray-600">Loading games...</p>
             </div>
 
@@ -441,7 +441,7 @@
                                 type="checkbox"
                                 :checked="allSelected"
                                 @change="toggleSelectAll"
-                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             />
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -493,7 +493,7 @@
                     <tr
                         v-for="(game, index) in games"
                         :key="game.id"
-                        :class="{ 'bg-indigo-50': selectedGames.includes(game.id) }"
+                        :class="{ 'bg-primary-50': selectedGames.includes(game.id) }"
                         class="hover:bg-gray-50"
                     >
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -501,7 +501,7 @@
                                 type="checkbox"
                                 :checked="selectedGames.includes(game.id)"
                                 @change="toggleGameSelection(game.id)"
-                                class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             />
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -589,7 +589,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                                 @click="openEditModal(game, index)"
-                                class="text-indigo-600 hover:text-indigo-900 mr-3"
+                                class="text-primary-600 hover:text-primary-900 mr-3"
                             >
                                 Edit
                             </button>
@@ -688,7 +688,7 @@
                         type="checkbox"
                         :value="genre.id"
                         v-model="selectedModalItems"
-                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span class="ml-2 text-sm text-gray-700">{{ genre.name }}</span>
                 </label>
@@ -711,7 +711,7 @@
                         type="checkbox"
                         :value="tag.id"
                         v-model="selectedModalItems"
-                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span class="ml-2 text-sm text-gray-700">{{ tag.name }}</span>
                 </label>
@@ -734,7 +734,7 @@
                         type="checkbox"
                         :value="platform.id"
                         v-model="selectedModalItems"
-                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span class="ml-2 text-sm text-gray-700">{{ platform.name }}</span>
                 </label>
@@ -756,9 +756,9 @@
             <div class="absolute inset-y-0 right-0 max-w-lg w-full">
                 <div class="h-full bg-white shadow-xl overflow-y-auto">
                     <!-- Header -->
-                    <div class="sticky top-0 bg-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+                    <div class="sticky top-0 bg-primary-600 text-white px-6 py-4 flex justify-between items-center">
                         <h2 class="text-xl font-bold">Admin Instructions</h2>
-                        <button @click="showInstructions = false" class="text-white hover:text-indigo-200">
+                        <button @click="showInstructions = false" class="text-white hover:text-primary-200">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -795,36 +795,36 @@
                         <!-- INITIAL SETUP -->
                         <section>
                             <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                                <span class="bg-indigo-600 text-white px-2 py-1 rounded text-sm mr-2">2</span>
+                                <span class="bg-primary-600 text-white px-2 py-1 rounded text-sm mr-2">2</span>
                                 Initial Setup (One Time)
                             </h3>
-                            <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+                            <div class="bg-primary-50 rounded-lg p-4 border border-primary-200">
                                 <ol class="space-y-3 text-sm">
                                     <li class="flex items-start gap-3">
-                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
+                                        <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
                                         <div>
                                             <code class="bg-gray-800 text-green-400 px-2 py-1 rounded text-xs">php artisan import:all --full</code>
                                             <p class="text-gray-600 text-xs mt-1">Import all PlayStation games from IGDB + PPX URLs</p>
                                         </div>
                                     </li>
                                     <li class="flex items-start gap-3">
-                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
+                                        <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
                                         <div>
-                                            <span class="text-gray-700">Use <a href="/admin/trophy-import" class="text-indigo-600 underline">Trophy URL Importer</a> for PSNP</span>
+                                            <span class="text-gray-700">Use <a href="/admin/trophy-import" class="text-primary-600 underline">Trophy URL Importer</a> for PSNP</span>
                                             <p class="text-gray-600 text-xs mt-1">Manually paste HTML from 304 PSNProfiles guide pages</p>
                                         </div>
                                     </li>
                                     <li class="flex items-start gap-3">
-                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
+                                        <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
                                         <div>
-                                            <span class="text-gray-700">Import PST from <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-indigo-600 underline">their guide pages</a></span>
+                                            <span class="text-gray-700">Import PST from <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-primary-600 underline">their guide pages</a></span>
                                             <p class="text-gray-600 text-xs mt-1">Cloudflare protected - use Trophy URL Importer manually</p>
                                         </div>
                                     </li>
                                     <li class="flex items-start gap-3">
-                                        <span class="bg-indigo-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">4</span>
+                                        <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">4</span>
                                         <div>
-                                            <span class="text-gray-700">Match <a href="/admin/trophy-urls/unmatched" class="text-indigo-600 underline">Unmatched URLs</a> to games</span>
+                                            <span class="text-gray-700">Match <a href="/admin/trophy-urls/unmatched" class="text-primary-600 underline">Unmatched URLs</a> to games</span>
                                             <p class="text-gray-600 text-xs mt-1">Manual matching for URLs that didn't auto-match</p>
                                         </div>
                                     </li>

@@ -136,7 +136,7 @@
                             v-model="search"
                             type="text"
                             placeholder="Filter unmatched URLs..."
-                            class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-primary-500 focus:border-primary-500"
                         />
                     </div>
 
@@ -151,7 +151,7 @@
                                 v-for="item in paginated"
                                 :key="item.id"
                                 class="p-3 hover:bg-gray-50"
-                                :class="{ 'bg-indigo-50': activeItem?.id === item.id }"
+                                :class="{ 'bg-primary-50': activeItem?.id === item.id }"
                             >
                                 <!-- URL Info Row -->
                                 <div class="flex items-center gap-2 mb-2">
@@ -184,7 +184,7 @@
                                 <a
                                     :href="item.url"
                                     target="_blank"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 truncate block mb-2"
+                                    class="text-xs text-primary-600 hover:text-primary-800 truncate block mb-2"
                                 >
                                     {{ item.url }}
                                 </a>
@@ -197,7 +197,7 @@
                                             v-model="item.gameSearch"
                                             type="text"
                                             placeholder="Search DB..."
-                                            class="w-full border-gray-300 rounded text-sm py-1.5 px-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            class="w-full border-gray-300 rounded text-sm py-1.5 px-2 focus:ring-primary-500 focus:border-primary-500"
                                             @focus="setActiveItem(item); item.searchMode = 'db'"
                                             @input="searchGames(item)"
                                         />
@@ -211,7 +211,7 @@
                                                 :key="game.id"
                                                 @mouseenter="previewGame = game"
                                                 @click="matchToGame(item, game)"
-                                                class="w-full px-3 py-2 text-left text-sm hover:bg-indigo-50 flex items-center gap-2 border-b border-gray-50 last:border-0"
+                                                class="w-full px-3 py-2 text-left text-sm hover:bg-primary-50 flex items-center gap-2 border-b border-gray-50 last:border-0"
                                             >
                                                 <img
                                                     v-if="game.cover_url"
@@ -321,8 +321,8 @@
 
             <!-- Navigation -->
             <div class="flex gap-4 text-sm">
-                <router-link to="/admin/games" class="text-indigo-600 hover:text-indigo-800">← Games</router-link>
-                <router-link to="/admin/trophy-import" class="text-indigo-600 hover:text-indigo-800">Import URLs →</router-link>
+                <router-link to="/admin/games" class="text-primary-600 hover:text-primary-800">← Games</router-link>
+                <router-link to="/admin/trophy-import" class="text-primary-600 hover:text-primary-800">Import URLs →</router-link>
             </div>
         </div>
     </AdminLayout>

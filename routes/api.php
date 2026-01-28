@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\UserGameController;
+use App\Http\Controllers\GameCorrectionController;
 use App\Http\Controllers\Admin\GameController as AdminGameController;
+use App\Http\Controllers\Admin\GameCorrectionController as AdminGameCorrectionController;
 use App\Http\Controllers\Admin\PSNController;
 use App\Http\Controllers\Admin\TrophyUrlImportController;
 
@@ -30,6 +32,13 @@ Route::get('/psn/library/{username}', [GameController::class, 'psnUserLibrary'])
 
 // Auth - Get current user (public, returns null if not authenticated)
 Route::get('/user', [AuthController::class, 'user']);
+
+// Game Corrections (public - submit corrections for review)
+Route::prefix('corrections')->group(function () {
+    Route::get('/categories', [GameCorrectionController::class, 'categories']);
+    Route::get('/search-games', [GameCorrectionController::class, 'searchGames']);
+    Route::post('/', [GameCorrectionController::class, 'store']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -102,6 +111,16 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/{id}/import-igdb', [TrophyUrlImportController::class, 'importFromIgdb']);
         Route::post('/{id}/toggle-dlc', [TrophyUrlImportController::class, 'toggleDlc']);
         Route::delete('/{id}', [TrophyUrlImportController::class, 'destroy']);
+    });
+
+    // Game Corrections Management
+    Route::prefix('admin/corrections')->group(function () {
+        Route::get('/', [AdminGameCorrectionController::class, 'index']);
+        Route::get('/stats', [AdminGameCorrectionController::class, 'stats']);
+        Route::get('/{id}', [AdminGameCorrectionController::class, 'show']);
+        Route::put('/{id}', [AdminGameCorrectionController::class, 'update']);
+        Route::delete('/{id}', [AdminGameCorrectionController::class, 'destroy']);
+        Route::post('/bulk-update', [AdminGameCorrectionController::class, 'bulkUpdate']);
     });
 
     Route::prefix('admin/games')->group(function () {

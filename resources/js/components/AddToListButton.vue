@@ -6,8 +6,8 @@
         :class="[
             'p-1.5 rounded-lg transition-all',
             inList
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                : 'bg-white/90 dark:bg-slate-800/90 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 shadow-sm',
+                ? 'bg-primary-600 text-white hover:bg-primary-700'
+                : 'bg-white/90 dark:bg-slate-800/90 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:text-primary-600 dark:hover:text-primary-400 shadow-sm',
             loading ? 'opacity-50 cursor-wait' : ''
         ]"
         :title="inList ? 'Remove from list' : 'Add to list'"

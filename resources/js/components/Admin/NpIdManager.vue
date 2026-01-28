@@ -12,7 +12,7 @@
                 <button
                     @click="loadData"
                     :disabled="loading"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
                 >
                     <span v-if="loading">Loading...</span>
                     <span v-else>Refresh</span>
@@ -28,7 +28,7 @@
                         @keyup.enter="collectFromUser"
                         type="text"
                         placeholder="Enter PSN username..."
-                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         :disabled="collecting"
                     />
                     <button
@@ -68,7 +68,7 @@
                     <div class="text-sm text-gray-500">Unmatched</div>
                 </div>
                 <div class="bg-white rounded-lg shadow p-4">
-                    <div class="text-2xl font-bold text-indigo-600">
+                    <div class="text-2xl font-bold text-primary-600">
                         {{ stats.total_titles > 0 ? Math.round((stats.matched_titles / stats.total_titles) * 100) : 0 }}%
                     </div>
                     <div class="text-sm text-gray-500">Match rate</div>
@@ -82,7 +82,7 @@
                 </span>
                 <button
                     @click="clearSkipped()"
-                    class="text-sm text-indigo-600 hover:text-indigo-700 underline"
+                    class="text-sm text-primary-600 hover:text-primary-700 underline"
                 >
                     Clear all skips
                 </button>
@@ -97,13 +97,13 @@
                             @input="debouncedLoad"
                             type="text"
                             placeholder="Search PSN titles..."
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                     </div>
                     <select
                         v-model="selectedPlatform"
                         @change="loadUnmatched"
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
                         <option value="">All Platforms</option>
                         <option value="PS5">PS5</option>
@@ -114,7 +114,7 @@
                     <select
                         v-model="sortBy"
                         @change="loadUnmatched"
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
                         <option value="times_seen">Most Popular</option>
                         <option value="title">Title A-Z</option>
@@ -147,7 +147,7 @@
                         <button
                             v-if="item.is_skipped"
                             @click="unskipItem(item)"
-                            class="text-xs text-indigo-500 hover:text-indigo-700 px-2 py-1 hover:bg-indigo-50 rounded transition-colors shrink-0"
+                            class="text-xs text-primary-500 hover:text-primary-700 px-2 py-1 hover:bg-primary-50 rounded transition-colors shrink-0"
                             title="Move back to top"
                         >
                             Unskip
@@ -240,7 +240,7 @@
                                             @input="searchGame(item)"
                                             type="text"
                                             placeholder="Search your games..."
-                                            class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                            class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                         />
                                     </div>
 

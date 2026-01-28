@@ -1,3 +1,5 @@
+import colors from 'tailwindcss/colors'
+
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: 'class',
@@ -7,7 +9,12 @@ export default {
         "./resources/**/*.vue",
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                // Primary color - change this to update the entire site's accent color
+                primary: colors.teal,
+            },
+        },
     },
     plugins: [],
 }

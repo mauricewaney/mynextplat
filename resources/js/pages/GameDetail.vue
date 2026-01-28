@@ -13,13 +13,39 @@
         </div>
 
         <!-- Game Content -->
-        <div v-else-if="game" class="max-w-6xl mx-auto px-4 py-8">
-            <!-- Breadcrumb -->
-            <nav class="mb-6 text-sm">
-                <router-link to="/" class="text-blue-600 hover:underline">Home</router-link>
-                <span class="mx-2 text-gray-400">/</span>
-                <span class="text-gray-600 dark:text-gray-400">{{ game.title }}</span>
-            </nav>
+        <div v-else-if="game">
+            <!-- Hero Banner -->
+            <div
+                v-if="game.banner_url"
+                class="relative h-64 md:h-80 lg:h-96 bg-cover bg-center"
+                :style="{ backgroundImage: `url(${game.banner_url})` }"
+            >
+                <!-- Gradient Overlay -->
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
+
+                <!-- Content -->
+                <div class="absolute inset-0 flex items-end">
+                    <div class="max-w-6xl mx-auto px-4 pb-6 w-full">
+                        <!-- Breadcrumb -->
+                        <nav class="mb-3 text-sm">
+                            <router-link to="/" class="text-gray-300 hover:text-white">Home</router-link>
+                            <span class="mx-2 text-gray-500">/</span>
+                            <span class="text-gray-400">{{ game.title }}</span>
+                        </nav>
+                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg">
+                            {{ game.title }}
+                        </h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 py-8">
+                <!-- Breadcrumb (only if no banner) -->
+                <nav v-if="!game.banner_url" class="mb-6 text-sm">
+                    <router-link to="/" class="text-blue-600 hover:underline">Home</router-link>
+                    <span class="mx-2 text-gray-400">/</span>
+                    <span class="text-gray-600 dark:text-gray-400">{{ game.title }}</span>
+                </nav>
 
             <!-- Header Section -->
             <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden mb-8">
@@ -39,7 +65,7 @@
 
                     <!-- Game Info -->
                     <div class="p-6 md:flex-1">
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                        <h1 v-if="!game.banner_url" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                             {{ game.title }}
                         </h1>
 
@@ -71,7 +97,7 @@
                             </div>
                             <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 text-center">
                                 <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ game.time_min || '?' }}<span v-if="game.time_max && game.time_max !== game.time_min">-{{ game.time_max }}</span><span class="text-sm font-normal">h</span>
+                                    {{ game.time_min || '?' }}<span v-if="game.time_max && game.time_max !== game.time_min">-{{ game.time_max }}</span>
                                 </div>
                                 <div class="text-xs text-gray-500 dark:text-gray-400">Hours</div>
                             </div>
@@ -108,35 +134,50 @@
                             </span>
                         </div>
 
-                        <!-- Add to List Button -->
-                        <button
-                            @click="toggleList"
-                            :disabled="listLoading"
-                            :class="[
-                                'inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all',
-                                inList
-                                    ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:text-indigo-600 dark:hover:text-indigo-400',
-                                listLoading ? 'opacity-50 cursor-wait' : ''
-                            ]"
-                        >
-                            <!-- Loading -->
-                            <svg v-if="listLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <!-- Check icon (in list) -->
-                            <svg v-else-if="inList" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <!-- Plus icon (not in list) -->
-                            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            <span v-if="!isAuthenticated">Sign in to add to list</span>
-                            <span v-else-if="inList">In My List</span>
-                            <span v-else>Add to My List</span>
-                        </button>
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-3">
+                            <!-- Add to List Button -->
+                            <button
+                                @click="toggleList"
+                                :disabled="listLoading"
+                                :class="[
+                                    'inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all',
+                                    inList
+                                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600 dark:hover:text-primary-400',
+                                    listLoading ? 'opacity-50 cursor-wait' : ''
+                                ]"
+                            >
+                                <!-- Loading -->
+                                <svg v-if="listLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <!-- Check icon (in list) -->
+                                <svg v-else-if="inList" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <!-- Plus icon (not in list) -->
+                                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                </svg>
+                                <span v-if="!isAuthenticated">Sign in to add to list</span>
+                                <span v-else-if="inList">In My List</span>
+                                <span v-else>Add to My List</span>
+                            </button>
+
+                            <!-- Report Issue Button -->
+                            <router-link
+                                :to="`/report-issue?game=${game.slug}`"
+                                class="inline-flex items-center gap-2 px-4 py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm"
+                                title="Report incorrect information"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <span class="hidden sm:inline">Report Issue</span>
+                            </router-link>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -221,7 +262,7 @@
                                 :class="[
                                     'inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-colors text-sm',
                                     userVote === guide
-                                        ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 ring-2 ring-indigo-500'
+                                        ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500'
                                         : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600',
                                     (!inList || votingLoading) ? 'opacity-50 cursor-not-allowed' : ''
                                 ]"
@@ -238,7 +279,7 @@
                                 <span :class="[
                                     'w-4 h-4 rounded-full border-2 flex items-center justify-center',
                                     userVote === guide
-                                        ? 'border-indigo-500 bg-indigo-500'
+                                        ? 'border-primary-500 bg-primary-500'
                                         : 'border-gray-400 dark:border-gray-500'
                                 ]">
                                     <span v-if="userVote === guide" class="w-1.5 h-1.5 rounded-full bg-white"></span>
@@ -256,7 +297,7 @@
                         Add this game to your list to vote
                     </p>
                     <p v-else-if="!isAuthenticated" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        <button @click="loginWithGoogle" class="text-indigo-600 dark:text-indigo-400 hover:underline">Sign in</button> to vote
+                        <button @click="loginWithGoogle" class="text-primary-600 dark:text-primary-400 hover:underline">Sign in</button> to vote
                     </p>
                 </div>
             </div>
@@ -320,7 +361,7 @@
                         v-if="!inList"
                         @click="toggleList"
                         :disabled="listLoading"
-                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                        class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors disabled:opacity-50"
                     >
                         <svg v-if="listLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -339,6 +380,7 @@
             <div v-if="game.description" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">About</h2>
                 <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ game.description }}</p>
+            </div>
             </div>
         </div>
     </div>

@@ -5,9 +5,11 @@ import { useAuth } from '../composables/useAuth'
 import Home from '../pages/Home.vue'
 import MyGames from '../pages/MyGames.vue'
 import GameDetail from '../pages/GameDetail.vue'
+import ReportIssue from '../pages/ReportIssue.vue'
 
 // Admin pages
 import GameList from '../components/Admin/GameList.vue'
+import Corrections from '../components/Admin/Corrections.vue'
 import TrophyUrlImporter from '../components/Admin/TrophyUrlImporter.vue'
 import UnmatchedUrls from '../components/Admin/UnmatchedUrls.vue'
 import NpIdManager from '../components/Admin/NpIdManager.vue'
@@ -23,6 +25,11 @@ const routes = [
         path: '/game/:slug',
         name: 'game-detail',
         component: GameDetail
+    },
+    {
+        path: '/report-issue',
+        name: 'report-issue',
+        component: ReportIssue
     },
 
     // Authenticated routes
@@ -61,6 +68,12 @@ const routes = [
         path: '/admin/np-ids',
         name: 'admin.np-ids',
         component: NpIdManager,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+        path: '/admin/corrections',
+        name: 'admin.corrections',
+        component: Corrections,
         meta: { requiresAuth: true, requiresAdmin: true }
     }
 ]

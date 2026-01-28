@@ -1,162 +1,5 @@
 <template>
     <div class="space-y-1">
-        <!-- PSN Library Lookup -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden mb-3">
-            <div class="px-4 py-3">
-                <div class="flex items-center gap-2 text-gray-700 dark:text-gray-300 mb-3">
-                    <svg class="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                    </svg>
-                    <span class="font-medium text-sm">PSN Library</span>
-                </div>
-
-                <!-- User not loaded: show input -->
-                <div v-if="!psnUser">
-                    <!-- My Library button (Admin only) -->
-                    <template v-if="isAdmin">
-                        <button
-                            @click="loadMyLibrary"
-                            :disabled="psnLoading"
-                            class="w-full mb-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                        >
-                            <svg v-if="psnLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <span>{{ psnLoading ? 'Loading...' : 'Load My Library' }}</span>
-                        </button>
-
-                        <div class="relative flex items-center gap-2 my-2">
-                            <div class="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
-                            <span class="text-xs text-gray-400 dark:text-gray-500">or search user</span>
-                            <div class="flex-1 border-t border-gray-200 dark:border-slate-600"></div>
-                        </div>
-                    </template>
-
-                    <form @submit.prevent="lookupPSN" class="flex gap-2">
-                        <input
-                            v-model="psnUsername"
-                            type="text"
-                            placeholder="Enter PSN username..."
-                            class="flex-1 px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:placeholder-gray-500"
-                            :disabled="psnLoading"
-                        />
-                        <button
-                            type="submit"
-                            :disabled="psnLoading || !psnUsername.trim()"
-                            class="px-4 py-2 bg-gray-100 dark:bg-slate-600 hover:bg-gray-200 dark:hover:bg-slate-500 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                        >
-                            <svg v-if="psnLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <span>{{ psnLoading ? 'Loading...' : 'Load' }}</span>
-                        </button>
-                    </form>
-                    <p v-if="psnError" class="mt-2 text-xs text-red-500 dark:text-red-400">{{ psnError }}</p>
-                </div>
-
-                <!-- User loaded: show info -->
-                <div v-else>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <img
-                                v-if="psnUser.avatar"
-                                :src="psnUser.avatar"
-                                :alt="psnUser.username"
-                                class="w-10 h-10 rounded-full border-2 border-gray-200 dark:border-slate-600"
-                            />
-                            <div v-else class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="font-medium text-sm text-gray-900 dark:text-white">{{ psnUser.username }}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ psnStats.matched_games }} games with guides</div>
-                            </div>
-                        </div>
-                        <button
-                            @click="clearPSN"
-                            class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                            title="Clear PSN filter"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Stats -->
-                    <div class="flex gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-slate-700 text-center">
-                        <div class="flex-1">
-                            <div class="text-lg font-bold text-gray-900 dark:text-white">{{ psnStats.total_psn_games }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Owned</div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="text-lg font-bold text-gray-900 dark:text-white">{{ psnStats.matched_games }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">Matched</div>
-                        </div>
-                        <div class="flex-1">
-                            <div class="text-lg font-bold text-green-500">{{ psnStats.has_guide }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">With Guide</div>
-                        </div>
-                    </div>
-
-                    <!-- Unmatched games link -->
-                    <div v-if="psnStats.unmatched_games > 0" class="mt-2 text-center">
-                        <button
-                            @click="showUnmatchedModal = true"
-                            class="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 underline"
-                        >
-                            {{ psnStats.unmatched_games }} unmatched games
-                        </button>
-                    </div>
-
-                    <!-- PSN Filter Toggles -->
-                    <div class="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700 space-y-3">
-                        <label class="flex items-center justify-between cursor-pointer">
-                            <span class="text-sm text-gray-700 dark:text-gray-300">Has guide</span>
-                            <div class="relative" @click="togglePsnFilter('hasGuide')">
-                                <div :class="[
-                                    'w-9 h-5 rounded-full transition-colors',
-                                    psnHasGuideOnly ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-slate-600'
-                                ]"></div>
-                                <div :class="[
-                                    'absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm',
-                                    psnHasGuideOnly ? 'left-4' : 'left-0.5'
-                                ]"></div>
-                            </div>
-                        </label>
-                        <p class="text-xs text-gray-400 dark:text-gray-500">
-                            {{ psnFilteredCount }} games shown
-                        </p>
-                    </div>
-
-                    <!-- Save to My List Button -->
-                    <div v-if="isAuthenticated && psnAllGameIds.length > 0" class="mt-3 pt-3 border-t border-gray-100 dark:border-slate-700">
-                        <button
-                            @click="saveToMyList"
-                            :disabled="savingToList"
-                            class="w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                        >
-                            <svg v-if="savingToList" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                            <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            <span>{{ savingToList ? 'Saving...' : `Save ${psnStats.matched_games} games to My List` }}</span>
-                        </button>
-                        <p v-if="saveResult" :class="['text-xs mt-2 text-center', saveResult.success ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500']">
-                            {{ saveResult.message }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Search -->
         <div class="relative">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +9,7 @@
                 v-model="filters.search"
                 type="text"
                 placeholder="Search games..."
-                class="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 dark:text-gray-200 border-0 rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-500 text-sm placeholder-gray-400 dark:placeholder-gray-500"
+                class="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 dark:text-gray-200 border-0 rounded-xl shadow-sm focus:ring-2 focus:ring-primary-500 text-sm placeholder-gray-400 dark:placeholder-gray-500"
                 @input="debouncedEmit"
             />
             <button
@@ -180,15 +23,17 @@
             </button>
         </div>
 
-        <!-- Active Filters Summary -->
-        <div v-if="activeFilterCount > 0" class="flex items-center gap-2 flex-wrap py-2">
-            <span class="text-sm text-gray-500 dark:text-gray-400">{{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }} active</span>
-            <button
-                @click="clearAllFilters"
-                class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium"
-            >
-                Clear all
-            </button>
+        <!-- Active Filters Summary (always reserve space to prevent layout jump) -->
+        <div class="h-8 flex items-center gap-2 flex-wrap">
+            <template v-if="activeFilterCount > 0">
+                <span class="text-sm text-gray-500 dark:text-gray-400">{{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }} active</span>
+                <button
+                    @click="clearAllFilters"
+                    class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-medium"
+                >
+                    Clear all
+                </button>
+            </template>
         </div>
 
         <!-- All Filters -->
@@ -204,7 +49,7 @@
                         :class="[
                             'px-2.5 py-1 rounded-md text-sm font-medium transition-all',
                             isSelected('platform_ids', platform.id)
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
@@ -217,7 +62,7 @@
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-sm mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">Minimum Score</span>
-                    <span v-if="filters.min_score > 0" class="text-indigo-600 dark:text-indigo-400 font-medium">{{ filters.min_score }}+</span>
+                    <span v-if="filters.min_score > 0" class="text-primary-600 dark:text-primary-400 font-medium">{{ filters.min_score }}+</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
                 </div>
                 <input
@@ -226,7 +71,7 @@
                     min="0"
                     max="100"
                     step="5"
-                    class="w-full accent-indigo-600"
+                    class="w-full accent-primary-600"
                     @input="emitFilters"
                 />
             </div>
@@ -240,7 +85,7 @@
                 <div class="relative h-2">
                     <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
                     <div
-                        class="absolute h-full bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-500 rounded-full"
+                        class="absolute h-full bg-primary-500 rounded-full"
                         :style="{
                             left: `${((filters.difficulty_min - 1) / 9) * 100}%`,
                             right: `${((10 - filters.difficulty_max) / 9) * 100}%`
@@ -251,7 +96,7 @@
                         v-model.number="filters.difficulty_min"
                         min="1"
                         max="10"
-                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @input="onDifficultyMinChange"
                     />
                     <input
@@ -259,9 +104,49 @@
                         v-model.number="filters.difficulty_max"
                         min="1"
                         max="10"
-                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @input="onDifficultyMaxChange"
                     />
+                </div>
+            </div>
+
+            <!-- Has Guide Filter -->
+            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Availability</label>
+                <div class="flex gap-1.5">
+                    <button
+                        @click="filters.has_guide = null; emitFilters()"
+                        :class="[
+                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            filters.has_guide === null
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                        ]"
+                    >
+                        Any
+                    </button>
+                    <button
+                        @click="filters.has_guide = true; emitFilters()"
+                        :class="[
+                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            filters.has_guide === true
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                        ]"
+                    >
+                        Has Guide
+                    </button>
+                    <button
+                        @click="filters.has_guide = false; emitFilters()"
+                        :class="[
+                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            filters.has_guide === false
+                                ? 'bg-amber-600 text-white'
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                        ]"
+                    >
+                        No Guide
+                    </button>
                 </div>
             </div>
 
@@ -278,7 +163,7 @@
                                 class="sr-only peer"
                                 @change="emitFilters"
                             />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
+                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
                             <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
                         </div>
                         <span class="text-sm text-gray-700 dark:text-gray-300">No online</span>
@@ -294,7 +179,7 @@
                                 class="sr-only peer"
                                 @change="emitFilters"
                             />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-indigo-600 transition-colors"></div>
+                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
                             <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
                         </div>
                         <span class="text-sm text-gray-700 dark:text-gray-300">No missables</span>
@@ -313,7 +198,7 @@
                         :class="[
                             'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
                             filters.max_playthroughs === n
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
@@ -324,7 +209,7 @@
                         :class="[
                             'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
                             !filters.max_playthroughs
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
@@ -342,7 +227,7 @@
                 <div class="relative h-2">
                     <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
                     <div
-                        class="absolute h-full bg-gradient-to-r from-emerald-400 to-orange-500 rounded-full"
+                        class="absolute h-full bg-primary-500 rounded-full"
                         :style="{
                             left: `${(filters.time_min / 200) * 100}%`,
                             right: `${((200 - filters.time_max) / 200) * 100}%`
@@ -354,7 +239,7 @@
                         min="0"
                         max="200"
                         step="5"
-                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @input="onTimeMinChange"
                     />
                     <input
@@ -363,7 +248,7 @@
                         min="0"
                         max="200"
                         step="5"
-                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-indigo-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @input="onTimeMaxChange"
                     />
                 </div>
@@ -375,7 +260,7 @@
                         :class="[
                             'px-2 py-1 rounded-md text-xs transition-all',
                             isTimePresetActive(preset)
-                                ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-medium'
+                                ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 font-medium'
                                 : 'bg-gray-50 dark:bg-slate-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-600'
                         ]"
                     >
@@ -413,7 +298,7 @@
                                 type="checkbox"
                                 :checked="isSelected('genre_ids', genre.id)"
                                 @change="toggleFilter('genre_ids', genre.id)"
-                                class="w-4 h-4 text-indigo-600 border-gray-300 dark:border-slate-500 rounded focus:ring-indigo-500 dark:bg-slate-600"
+                                class="w-4 h-4 text-primary-600 border-gray-300 dark:border-slate-500 rounded focus:ring-primary-500 dark:bg-slate-600"
                             />
                             <span class="text-sm text-gray-700 dark:text-gray-300">{{ genre.name }}</span>
                         </label>
@@ -424,10 +309,10 @@
                     <span
                         v-for="genreId in filters.genre_ids"
                         :key="genreId"
-                        class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs rounded-full"
+                        class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-xs rounded-full"
                     >
                         {{ getGenreName(genreId) }}
-                        <button @click="toggleFilter('genre_ids', genreId)" class="hover:text-indigo-900 dark:hover:text-indigo-100">
+                        <button @click="toggleFilter('genre_ids', genreId)" class="hover:text-primary-900 dark:hover:text-primary-100">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -505,7 +390,7 @@
                                 type="checkbox"
                                 :checked="isSelected('tag_ids', tag.id)"
                                 @change="toggleFilter('tag_ids', tag.id)"
-                                class="w-4 h-4 text-indigo-600 border-gray-300 dark:border-slate-500 rounded focus:ring-indigo-500 dark:bg-slate-600"
+                                class="w-4 h-4 text-primary-600 border-gray-300 dark:border-slate-500 rounded focus:ring-primary-500 dark:bg-slate-600"
                             />
                             <span class="text-sm text-gray-700 dark:text-gray-300">{{ tag.name }}</span>
                         </label>
@@ -516,10 +401,10 @@
                     <span
                         v-for="tagId in filters.tag_ids"
                         :key="tagId"
-                        class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs rounded-full"
+                        class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 text-xs rounded-full"
                     >
                         {{ getTagName(tagId) }}
-                        <button @click="toggleFilter('tag_ids', tagId)" class="hover:text-indigo-900 dark:hover:text-indigo-100">
+                        <button @click="toggleFilter('tag_ids', tagId)" class="hover:text-primary-900 dark:hover:text-primary-100">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -528,82 +413,11 @@
                 </div>
             </div>
         </div>
-
-        <!-- Unmatched Games Modal -->
-        <Teleport to="body">
-            <div
-                v-if="showUnmatchedModal"
-                class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                @click.self="showUnmatchedModal = false"
-            >
-                <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-                <div class="relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                        <h3 class="font-semibold text-gray-900 dark:text-white">
-                            Unmatched PSN Games ({{ psnUnmatchedTitles.length }})
-                        </h3>
-                        <button
-                            @click="showUnmatchedModal = false"
-                            class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Search -->
-                    <div class="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
-                        <input
-                            v-model="unmatchedSearch"
-                            type="text"
-                            placeholder="Search unmatched..."
-                            class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 dark:placeholder-gray-500"
-                        />
-                    </div>
-
-                    <!-- List -->
-                    <div class="flex-1 overflow-y-auto p-4">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                            These games from your PSN library couldn't be matched to games in our database. They may be apps, DLC, or games not yet added.
-                        </p>
-                        <ul class="space-y-1">
-                            <li
-                                v-for="(title, index) in filteredUnmatchedTitles"
-                                :key="index"
-                                class="text-sm text-gray-700 dark:text-gray-300 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-slate-700"
-                            >
-                                {{ title }}
-                            </li>
-                        </ul>
-                        <p v-if="filteredUnmatchedTitles.length === 0" class="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
-                            No matches found
-                        </p>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="px-4 py-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 rounded-b-xl">
-                        <button
-                            @click="showUnmatchedModal = false"
-                            class="w-full px-4 py-2 bg-gray-200 dark:bg-slate-700 hover:bg-gray-300 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium transition-colors"
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </Teleport>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useAuth } from '../composables/useAuth'
-import { useUserGames } from '../composables/useUserGames'
-
-const { isAdmin, isAuthenticated } = useAuth()
-const { bulkAddToList } = useUserGames()
 
 const emit = defineEmits(['update:filters'])
 
@@ -613,6 +427,16 @@ const props = defineProps({
         default: () => ({})
     }
 })
+
+// Load saved filters from sessionStorage
+const savedFilters = (() => {
+    try {
+        const saved = sessionStorage.getItem('homeFilters')
+        return saved ? JSON.parse(saved) : {}
+    } catch {
+        return {}
+    }
+})()
 
 const filters = reactive({
     search: '',
@@ -627,36 +451,12 @@ const filters = reactive({
     min_score: 0,
     has_online_trophies: null,
     missable_trophies: null,
+    has_guide: null, // null = any, true = only with guides, false = only without guides
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
-    game_ids: null, // PSN library filter
+    ...savedFilters,
     ...props.modelValue
-})
-
-// PSN Lookup state
-const psnUsername = ref('')
-const psnLoading = ref(false)
-const psnError = ref('')
-const psnUser = ref(null)
-const psnStats = ref({ total_psn_games: 0, matched_games: 0, unmatched_games: 0, has_guide: 0 })
-const psnAllGameIds = ref([])
-const psnHasGuideIds = ref([])
-const psnHasGuideOnly = ref(true) // Default to showing only games with guides
-const psnUnmatchedTitles = ref([])
-const showUnmatchedModal = ref(false)
-const unmatchedSearch = ref('')
-const savingToList = ref(false)
-const saveResult = ref(null)
-
-const filteredUnmatchedTitles = computed(() => {
-    if (!unmatchedSearch.value.trim()) {
-        return psnUnmatchedTitles.value
-    }
-    const search = unmatchedSearch.value.toLowerCase()
-    return psnUnmatchedTitles.value.filter(title =>
-        title.toLowerCase().includes(search)
-    )
 })
 
 const filterOptions = reactive({
@@ -679,7 +479,6 @@ const timePresets = [
 
 const activeFilterCount = computed(() => {
     let count = 0
-    if (filters.game_ids?.length) count++ // PSN library filter
     if (filters.search) count++
     if (filters.platform_ids?.length) count++
     if (filters.genre_ids?.length) count++
@@ -690,6 +489,7 @@ const activeFilterCount = computed(() => {
     if (filters.min_score > 0) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
+    if (filters.has_guide !== null) count++
     if (filters.guide_psnp || filters.guide_pst || filters.guide_ppx) count++
     return count
 })
@@ -713,132 +513,6 @@ function getTagName(id) {
 function clearSearch() {
     filters.search = ''
     emitFilters()
-}
-
-async function loadMyLibrary() {
-    psnLoading.value = true
-    psnError.value = ''
-
-    try {
-        const response = await fetch('/api/psn/my-owned-games')
-        const data = await response.json()
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to load library')
-        }
-
-        psnUser.value = data.user
-        psnAllGameIds.value = data.game_ids
-        psnHasGuideIds.value = data.has_guide_ids || []
-        psnUnmatchedTitles.value = data.unmatched_titles || []
-        psnStats.value = {
-            total_psn_games: data.stats.total_owned_games,
-            matched_games: data.stats.matched_games,
-            unmatched_games: data.stats.unmatched_games,
-            has_guide: data.stats.has_guide,
-        }
-        psnHasGuideOnly.value = true
-        applyPsnFilters()
-    } catch (e) {
-        psnError.value = e.message
-    } finally {
-        psnLoading.value = false
-    }
-}
-
-async function lookupPSN() {
-    if (!psnUsername.value.trim()) return
-
-    psnLoading.value = true
-    psnError.value = ''
-
-    try {
-        const response = await fetch(`/api/psn/lookup/${encodeURIComponent(psnUsername.value.trim())}`)
-        const data = await response.json()
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Failed to lookup user')
-        }
-
-        psnUser.value = data.user
-        psnAllGameIds.value = data.game_ids
-        psnHasGuideIds.value = data.has_guide_ids || []
-        psnUnmatchedTitles.value = data.unmatched_titles || []
-        psnStats.value = {
-            total_psn_games: data.stats.total_psn_games,
-            matched_games: data.stats.matched_games,
-            unmatched_games: data.stats.unmatched_games,
-            has_guide: data.stats.has_guide,
-        }
-        psnHasGuideOnly.value = true
-        applyPsnFilters()
-    } catch (e) {
-        psnError.value = e.message
-    } finally {
-        psnLoading.value = false
-    }
-}
-
-function togglePsnFilter(filterType) {
-    if (filterType === 'hasGuide') {
-        psnHasGuideOnly.value = !psnHasGuideOnly.value
-    }
-    applyPsnFilters()
-}
-
-function applyPsnFilters() {
-    let gameIds = psnAllGameIds.value
-
-    if (psnHasGuideOnly.value) {
-        gameIds = psnHasGuideIds.value
-    }
-
-    filters.game_ids = gameIds
-    emitFilters()
-}
-
-const psnFilteredCount = computed(() => {
-    if (psnHasGuideOnly.value) {
-        return psnStats.value.has_guide
-    }
-    return psnStats.value.matched_games
-})
-
-function clearPSN() {
-    psnUser.value = null
-    psnStats.value = { total_psn_games: 0, matched_games: 0, unmatched_games: 0, has_guide: 0 }
-    psnAllGameIds.value = []
-    psnHasGuideIds.value = []
-    psnUnmatchedTitles.value = []
-    psnHasGuideOnly.value = true
-    psnUsername.value = ''
-    showUnmatchedModal.value = false
-    unmatchedSearch.value = ''
-    saveResult.value = null
-    filters.game_ids = null
-    emitFilters()
-}
-
-async function saveToMyList() {
-    if (!isAuthenticated.value || !psnAllGameIds.value.length) return
-
-    savingToList.value = true
-    saveResult.value = null
-
-    try {
-        const result = await bulkAddToList(psnAllGameIds.value, 'want_to_play')
-        saveResult.value = {
-            success: true,
-            message: `Added ${result.added} games${result.skipped > 0 ? `, ${result.skipped} already in list` : ''}`
-        }
-    } catch (e) {
-        saveResult.value = {
-            success: false,
-            message: e.message || 'Failed to save games'
-        }
-    } finally {
-        savingToList.value = false
-    }
 }
 
 function toggleFilter(key, id) {
@@ -895,7 +569,6 @@ function isTimePresetActive(preset) {
 }
 
 function clearAllFilters() {
-    // Clear all filters except PSN library
     filters.search = ''
     filters.platform_ids = []
     filters.genre_ids = []
@@ -908,17 +581,13 @@ function clearAllFilters() {
     filters.min_score = 0
     filters.has_online_trophies = null
     filters.missable_trophies = null
+    filters.has_guide = null
     filters.guide_psnp = false
     filters.guide_pst = false
     filters.guide_ppx = false
 
-    // Keep PSN library filter if loaded, reset to default view
-    if (psnUser.value) {
-        psnHasGuideOnly.value = true
-        filters.game_ids = psnHasGuideIds.value
-    } else {
-        filters.game_ids = null
-    }
+    // Clear saved filters from sessionStorage
+    sessionStorage.removeItem('homeFilters')
 
     emitFilters()
 }
@@ -958,6 +627,8 @@ async function loadFilterOptions() {
 onMounted(() => {
     loadFilterOptions()
     document.addEventListener('click', handleClickOutside)
+    // Emit initial filters to apply any saved state
+    emitFilters()
 })
 
 onUnmounted(() => {

@@ -1,7 +1,6 @@
 <template>
     <div
-        class="group bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-lg dark:shadow-slate-900/50 transition-all duration-300 cursor-pointer flex gap-2 sm:gap-4 p-2 sm:p-4"
-        @click="$emit('click', game)"
+        class="group bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-2 sm:gap-4 p-2 sm:p-4"
     >
         <!-- Cover Image -->
         <div class="relative w-20 sm:w-28 h-28 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
@@ -31,8 +30,7 @@
                 <!-- Title -->
                 <router-link
                     :to="'/game/' + game.slug"
-                    class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors"
-                    @click.stop
+                    class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 hover:text-primary-600 dark:hover:text-primary-400 hover:underline transition-colors"
                 >
                     {{ game.title }}
                 </router-link>
@@ -94,7 +92,10 @@
                     <!-- Time -->
                     <div class="flex items-center gap-1 sm:gap-2">
                         <span class="text-gray-400 dark:text-gray-500 w-14 sm:w-20 shrink-0">Time</span>
-                        <span v-if="timeDisplay" class="font-medium text-gray-700 dark:text-gray-300">{{ timeDisplay }}</span>
+                        <template v-if="timeValues">
+                            <span class="font-medium text-gray-700 dark:text-gray-300 sm:hidden">{{ timeValues.mobile }}</span>
+                            <span class="font-medium text-gray-700 dark:text-gray-300 hidden sm:inline">{{ timeValues.desktop }}</span>
+                        </template>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
                     </div>
 
@@ -179,8 +180,6 @@ const props = defineProps({
     }
 })
 
-defineEmits(['click'])
-
 const scoreClass = computed(() => {
     const s = props.game.critic_score
     if (s >= 75) return 'bg-emerald-500'
@@ -206,14 +205,15 @@ const difficultyTextClass = computed(() => {
     return 'text-red-600'
 })
 
-const timeDisplay = computed(() => {
+// Time display - returns object with mobile and desktop versions
+const timeValues = computed(() => {
     const min = props.game.time_min
     const max = props.game.time_max
     if (!min && !max) return null
-    if (min === max) return `${min}h`
-    if (!min) return `~${max}h`
-    if (!max) return `${min}h+`
-    return `${min}-${max}h`
+    if (min === max) return { mobile: `${min}h`, desktop: `${min} hours` }
+    if (!min) return { mobile: `~${max}h`, desktop: `~${max} hours` }
+    if (!max) return { mobile: `${min}h+`, desktop: `${min}+ hours` }
+    return { mobile: `${min}-${max}h`, desktop: `${min}-${max} hours` }
 })
 
 const hasGuide = computed(() => {
