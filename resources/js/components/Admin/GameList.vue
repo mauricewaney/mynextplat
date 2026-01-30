@@ -976,7 +976,7 @@ const filters = reactive({
     no_genres: false,
     no_platforms: false,
     has_guide: true,
-    needs_data: false,
+    needs_data: true,
     semi_filled: false,
     guide_psnp: false,
     guide_pst: false,
@@ -1103,7 +1103,7 @@ const resetFilters = () => {
     filters.no_genres = false
     filters.no_platforms = false
     filters.has_guide = true
-    filters.needs_data = false
+    filters.needs_data = true
     filters.semi_filled = false
     filters.guide_psnp = false
     filters.guide_pst = false

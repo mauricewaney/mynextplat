@@ -1,15 +1,15 @@
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <AppLayout>
         <!-- Loading -->
         <div v-if="loading" class="flex justify-center items-center h-96">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
         </div>
 
         <!-- Error -->
         <div v-else-if="error" class="max-w-4xl mx-auto px-4 py-16 text-center">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Game Not Found</h1>
             <p class="text-gray-600 dark:text-gray-400 mb-8">{{ error }}</p>
-            <router-link to="/" class="text-blue-600 hover:underline">Back to Home</router-link>
+            <router-link to="/" class="text-primary-600 hover:underline">Back to Home</router-link>
         </div>
 
         <!-- Game Content -->
@@ -42,7 +42,7 @@
             <div class="max-w-6xl mx-auto px-4 py-8">
                 <!-- Breadcrumb (only if no banner) -->
                 <nav v-if="!game.banner_url" class="mb-6 text-sm">
-                    <router-link to="/" class="text-blue-600 hover:underline">Home</router-link>
+                    <router-link to="/" class="text-primary-600 hover:underline">Home</router-link>
                     <span class="mx-2 text-gray-400">/</span>
                     <span class="text-gray-600 dark:text-gray-400">{{ game.title }}</span>
                 </nav>
@@ -74,7 +74,7 @@
                             <span
                                 v-for="platform in game.platforms"
                                 :key="platform.id"
-                                class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded"
+                                class="px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs font-medium rounded"
                             >
                                 {{ platform.short_name }}
                             </span>
@@ -344,7 +344,7 @@
                                 </span>
                             </div>
                         </div>
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        <h3 class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                             {{ rec.title }}
                         </h3>
                         <div class="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -383,7 +383,7 @@
             </div>
             </div>
         </div>
-    </div>
+    </AppLayout>
 </template>
 
 <script setup>
@@ -392,6 +392,7 @@ import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
 import { useUserGames } from '../composables/useUserGames'
+import AppLayout from '../components/AppLayout.vue'
 
 const route = useRoute()
 const { isAuthenticated, loginWithGoogle } = useAuth()

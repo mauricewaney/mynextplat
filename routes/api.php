@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\GameController as AdminGameController;
 use App\Http\Controllers\Admin\GameCorrectionController as AdminGameCorrectionController;
 use App\Http\Controllers\Admin\PSNController;
 use App\Http\Controllers\Admin\TrophyUrlImportController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,9 @@ Route::get('/psn/library/{username}', [GameController::class, 'psnUserLibrary'])
 // Auth - Get current user (public, returns null if not authenticated)
 Route::get('/user', [AuthController::class, 'user']);
 
+// Public profiles
+Route::get('/profile/{identifier}', [ProfileController::class, 'show']);
+
 // Game Corrections (public - submit corrections for review)
 Route::prefix('corrections')->group(function () {
     Route::get('/categories', [GameCorrectionController::class, 'categories']);
@@ -52,6 +56,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User preferences
     Route::put('/user/preferences', [AuthController::class, 'updatePreferences']);
+
+    // User settings
+    Route::get('/settings', [ProfileController::class, 'getSettings']);
+    Route::put('/settings', [ProfileController::class, 'updateSettings']);
+    Route::get('/settings/check-slug', [ProfileController::class, 'checkSlug']);
 
     // User's game list
     Route::prefix('my-games')->group(function () {

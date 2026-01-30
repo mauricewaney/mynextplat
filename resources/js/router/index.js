@@ -6,6 +6,8 @@ import Home from '../pages/Home.vue'
 import MyGames from '../pages/MyGames.vue'
 import GameDetail from '../pages/GameDetail.vue'
 import ReportIssue from '../pages/ReportIssue.vue'
+import Settings from '../pages/Settings.vue'
+import Profile from '../pages/Profile.vue'
 
 // Admin pages
 import GameList from '../components/Admin/GameList.vue'
@@ -32,11 +34,24 @@ const routes = [
         component: ReportIssue
     },
 
+    // Public profile
+    {
+        path: '/u/:identifier',
+        name: 'profile',
+        component: Profile
+    },
+
     // Authenticated routes
     {
         path: '/my-games',
         name: 'my-games',
         component: MyGames,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/settings',
+        name: 'settings',
+        component: Settings,
         meta: { requiresAuth: true }
     },
 

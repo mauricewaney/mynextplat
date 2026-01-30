@@ -129,14 +129,22 @@ class GameController extends Controller
     {
         $totalGames = Game::count();
         $gamesWithGuide = Game::where(function ($q) {
-            $q->whereNotNull('playstationtrophies_url')
+            $q->whereNotNull('psnprofiles_url')
+              ->orWhereNotNull('playstationtrophies_url')
               ->orWhereNotNull('powerpyx_url');
         })->count();
         $gamesWithDifficulty = Game::whereNotNull('difficulty')->count();
+
+        // needs_data: has a guide URL but missing ALL of: difficulty, time_min, playthroughs_required
         $gamesNeedingData = Game::where(function ($q) {
-            $q->whereNotNull('playstationtrophies_url')
+            $q->whereNotNull('psnprofiles_url')
+              ->orWhereNotNull('playstationtrophies_url')
               ->orWhereNotNull('powerpyx_url');
-        })->whereNull('difficulty')->count();
+        })
+        ->whereNull('difficulty')
+        ->whereNull('time_min')
+        ->whereNull('playthroughs_required')
+        ->count();
 
         return response()->json([
             'total_games' => $totalGames,

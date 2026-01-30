@@ -176,31 +176,43 @@ class GameController extends Controller
      */
     public function psnLookup(string $username, PSNService $psnService)
     {
-        // Authenticate with PSN
-        if (!$psnService->authenticateFromConfig()) {
+        try {
+            // Authenticate with PSN
+            if (!$psnService->authenticateFromConfig()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'PSN service temporarily unavailable.',
+                ], 503);
+            }
+
+            // Get user's games
+            $data = $psnService->getGamesForUser($username);
+
+            if (isset($data['error'])) {
+                $status = match($data['error']) {
+                    'user_not_found' => 404,
+                    'private_trophies' => 403,
+                    default => 500,
+                };
+                return response()->json([
+                    'success' => false,
+                    'error' => $data['error'],
+                    'message' => $data['message'],
+                ], $status);
+            }
+
+            return $this->processPsnGames($data);
+        } catch (\Exception $e) {
+            \Log::error('PSN lookup failed: ' . $e->getMessage(), [
+                'username' => $username,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'PSN service temporarily unavailable.',
-            ], 503);
+                'message' => 'Failed to lookup PSN profile. Please try again.',
+            ], 500);
         }
-
-        // Get user's games
-        $data = $psnService->getGamesForUser($username);
-
-        if (isset($data['error'])) {
-            $status = match($data['error']) {
-                'user_not_found' => 404,
-                'private_trophies' => 403,
-                default => 500,
-            };
-            return response()->json([
-                'success' => false,
-                'error' => $data['error'],
-                'message' => $data['message'],
-            ], $status);
-        }
-
-        return $this->processPsnGames($data);
     }
 
     /**

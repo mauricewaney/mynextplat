@@ -1,31 +1,5 @@
 <template>
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-300">
-        <!-- Header -->
-        <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-sm dark:bg-slate-900/95 dark:border-slate-700/50">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between h-16">
-                    <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <h1 class="text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
-                            My Games
-                        </h1>
-                    </router-link>
-
-                    <router-link
-                        to="/"
-                        class="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    >
-                        Browse Games
-                    </router-link>
-                </div>
-            </div>
-        </header>
-
+    <AppLayout title="My Games">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Status Tabs & Settings -->
             <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -129,7 +103,7 @@
                     class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-4 flex gap-4"
                 >
                     <!-- Cover -->
-                    <div class="w-20 h-28 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
+                    <router-link :to="`/game/${game.slug}`" class="w-20 h-28 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
                         <img
                             v-if="game.cover_url"
                             :src="game.cover_url"
@@ -137,13 +111,15 @@
                             class="w-full h-full object-cover"
                             loading="lazy"
                         />
-                    </div>
+                    </router-link>
 
                     <!-- Info -->
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-semibold text-gray-900 dark:text-white text-base mb-1 line-clamp-1">
-                            {{ game.title }}
-                        </h3>
+                        <router-link :to="`/game/${game.slug}`">
+                            <h3 class="font-semibold text-gray-900 dark:text-white text-base mb-1 line-clamp-1 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                                {{ game.title }}
+                            </h3>
+                        </router-link>
 
                         <!-- Stats -->
                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 dark:text-gray-400 mb-3">
@@ -206,15 +182,16 @@
                 </div>
             </div>
         </div>
-    </div>
+    </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
 import { useUserGames } from '../composables/useUserGames'
+import AppLayout from '../components/AppLayout.vue'
 
 // SEO - noindex for private page
 useHead({

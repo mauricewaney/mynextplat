@@ -30,7 +30,11 @@ export function usePSNLibrary() {
         psnError.value = ''
 
         try {
-            const response = await fetch('/api/psn/my-owned-games')
+            const response = await fetch('/api/psn/my-owned-games', {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            })
             const data = await response.json()
 
             if (!response.ok) {
@@ -64,7 +68,11 @@ export function usePSNLibrary() {
         psnError.value = ''
 
         try {
-            const response = await fetch(`/api/psn/lookup/${encodeURIComponent(name.trim())}`)
+            const response = await fetch(`/api/psn/lookup/${encodeURIComponent(name.trim())}`, {
+                headers: {
+                    'Accept': 'application/json',
+                },
+            })
             const data = await response.json()
 
             if (!response.ok) {

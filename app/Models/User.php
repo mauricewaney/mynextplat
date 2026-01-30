@@ -26,6 +26,8 @@ class User extends Authenticatable
         'is_admin',
         'notify_new_guides',
         'last_notified_at',
+        'profile_public',
+        'profile_slug',
     ];
 
     /**
@@ -51,7 +53,37 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'notify_new_guides' => 'boolean',
             'last_notified_at' => 'datetime',
+            'profile_public' => 'boolean',
         ];
+    }
+
+    /**
+     * Get the profile URL identifier (slug or ID).
+     */
+    public function getProfileIdentifier(): string
+    {
+        return $this->profile_slug ?? (string) $this->id;
+    }
+
+    /**
+     * Generate a unique profile slug from the user's name.
+     */
+    public function generateProfileSlug(): string
+    {
+        $base = \Illuminate\Support\Str::slug($this->name);
+        if (empty($base)) {
+            $base = 'user';
+        }
+
+        $slug = $base;
+        $counter = 1;
+
+        while (static::where('profile_slug', $slug)->where('id', '!=', $this->id)->exists()) {
+            $slug = $base . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     /**
