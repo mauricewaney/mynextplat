@@ -632,6 +632,8 @@ class GameController extends Controller
             'cover_url' => 'nullable|url|max:500',
             'banner_url' => 'nullable|url|max:500',
             'psnprofiles_url' => 'nullable|url|max:500',
+            'playstationtrophies_url' => 'nullable|url|max:500',
+            'powerpyx_url' => 'nullable|url|max:500',
             'psn_store_url' => 'nullable|url|max:500',
 
             // Relationships

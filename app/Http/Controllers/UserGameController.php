@@ -10,45 +10,212 @@ use Illuminate\Validation\Rule;
 class UserGameController extends Controller
 {
     /**
-     * Get the current user's game list.
+     * Get the current user's game list with full filtering support.
      */
     public function index(Request $request): JsonResponse
     {
-        $query = $request->user()->games();
+        $user = $request->user();
+        $userGameIds = $user->games()->pluck('games.id')->toArray();
 
-        // Filter by status if provided
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->wherePivot('status', $request->status);
+        if (empty($userGameIds)) {
+            return response()->json([
+                'data' => [],
+                'total' => 0,
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $request->input('per_page', 24),
+                'status_counts' => $this->getStatusCounts($user),
+            ]);
         }
 
-        // Include game relationships
-        $query->with(['platforms', 'genres']);
+        $query = Game::with(['platforms', 'genres', 'tags'])
+            ->whereIn('id', $userGameIds);
 
-        // Order by when added to list
-        $query->orderByPivot('created_at', 'desc');
+        // Filter by user's game status
+        if ($request->filled('status') && $request->status !== 'all') {
+            $statusGameIds = $user->games()
+                ->wherePivot('status', $request->status)
+                ->pluck('games.id')
+                ->toArray();
+            $query->whereIn('id', $statusGameIds);
+        }
 
-        $games = $query->get()->map(function ($game) {
-            return [
-                'id' => $game->id,
-                'title' => $game->title,
-                'slug' => $game->slug,
-                'cover_url' => $game->cover_url,
-                'difficulty' => $game->difficulty,
-                'time_min' => $game->time_min,
-                'time_max' => $game->time_max,
-                'critic_score' => $game->critic_score,
-                'platforms' => $game->platforms,
-                'genres' => $game->genres,
-                'psnprofiles_url' => $game->psnprofiles_url,
-                'playstationtrophies_url' => $game->playstationtrophies_url,
-                'powerpyx_url' => $game->powerpyx_url,
-                'status' => $game->pivot->status,
-                'notes' => $game->pivot->notes,
-                'added_at' => $game->pivot->created_at,
-            ];
+        // Apply game filters (search, difficulty, time, platforms, etc.)
+        $this->applyGameFilters($query, $request);
+
+        // Sorting
+        $sortBy = $request->input('sort_by', 'added_at');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        if ($sortBy === 'added_at') {
+            // Sort by when user added the game
+            $query->orderByRaw("FIELD(id, " . implode(',', $userGameIds) . ")");
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        // Pagination
+        $perPage = min((int) $request->input('per_page', 24), 100);
+        $paginated = $query->paginate($perPage);
+
+        // Add user-specific data (status, notes) to each game
+        $userGames = $user->games()->whereIn('games.id', $paginated->pluck('id'))
+            ->get()
+            ->keyBy('id');
+
+        $games = $paginated->getCollection()->map(function ($game) use ($userGames) {
+            $userGame = $userGames->get($game->id);
+            return array_merge($game->toArray(), [
+                'user_status' => $userGame?->pivot->status,
+                'user_notes' => $userGame?->pivot->notes,
+                'added_at' => $userGame?->pivot->created_at,
+            ]);
         });
 
-        return response()->json($games);
+        return response()->json([
+            'data' => $games,
+            'total' => $paginated->total(),
+            'current_page' => $paginated->currentPage(),
+            'last_page' => $paginated->lastPage(),
+            'per_page' => $paginated->perPage(),
+            'status_counts' => $this->getStatusCounts($user),
+        ]);
+    }
+
+    /**
+     * Get status counts for the user's games.
+     */
+    private function getStatusCounts($user): array
+    {
+        $counts = ['all' => 0];
+        $statuses = ['backlog', 'in_progress', 'platinumed', 'abandoned'];
+
+        foreach ($statuses as $status) {
+            $counts[$status] = 0;
+        }
+
+        $games = $user->games()->get();
+        $counts['all'] = $games->count();
+
+        foreach ($games as $game) {
+            $status = $game->pivot->status;
+            if (isset($counts[$status])) {
+                $counts[$status]++;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Apply game filters (similar to GameFilterService but simplified).
+     */
+    private function applyGameFilters($query, Request $request): void
+    {
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('title', 'LIKE', "%{$search}%");
+        }
+
+        // Has guide filter
+        if ($request->filled('has_guide')) {
+            if ($this->isTruthy($request->has_guide)) {
+                $query->where(function ($q) {
+                    $q->whereNotNull('psnprofiles_url')
+                      ->orWhereNotNull('playstationtrophies_url')
+                      ->orWhereNotNull('powerpyx_url');
+                });
+            } else {
+                $query->whereNull('psnprofiles_url')
+                      ->whereNull('playstationtrophies_url')
+                      ->whereNull('powerpyx_url');
+            }
+        }
+
+        // Difficulty range
+        if ($request->filled('difficulty_min')) {
+            $query->where('difficulty', '>=', (int) $request->difficulty_min);
+        }
+        if ($request->filled('difficulty_max')) {
+            $query->where('difficulty', '<=', (int) $request->difficulty_max);
+        }
+
+        // Time range
+        if ($request->filled('time_min')) {
+            $query->where('time_max', '>=', (int) $request->time_min);
+        }
+        if ($request->filled('time_max')) {
+            $query->where('time_min', '<=', (int) $request->time_max);
+        }
+
+        // Platforms
+        if ($request->filled('platform_ids')) {
+            $platformIds = is_array($request->platform_ids)
+                ? $request->platform_ids
+                : explode(',', $request->platform_ids);
+            $query->whereHas('platforms', fn($q) => $q->whereIn('platforms.id', $platformIds));
+        }
+
+        // Genres
+        if ($request->filled('genre_ids')) {
+            $genreIds = is_array($request->genre_ids)
+                ? $request->genre_ids
+                : explode(',', $request->genre_ids);
+            $query->whereHas('genres', fn($q) => $q->whereIn('genres.id', $genreIds));
+        }
+
+        // Tags
+        if ($request->filled('tag_ids')) {
+            $tagIds = is_array($request->tag_ids)
+                ? $request->tag_ids
+                : explode(',', $request->tag_ids);
+            $query->whereHas('tags', fn($q) => $q->whereIn('tags.id', $tagIds));
+        }
+
+        // Max playthroughs
+        if ($request->filled('max_playthroughs')) {
+            $query->where('playthroughs_required', '<=', (int) $request->max_playthroughs);
+        }
+
+        // Min score
+        if ($request->filled('min_score')) {
+            $minScore = (int) $request->min_score;
+            $query->where(function ($q) use ($minScore) {
+                $q->where('critic_score', '>=', $minScore)
+                  ->orWhere('opencritic_score', '>=', $minScore);
+            });
+        }
+
+        // No online trophies
+        if ($request->filled('has_online_trophies') && !$this->isTruthy($request->has_online_trophies)) {
+            $query->where(function ($q) {
+                $q->where('has_online_trophies', false)->orWhereNull('has_online_trophies');
+            });
+        }
+
+        // No missable trophies
+        if ($request->filled('missable_trophies') && !$this->isTruthy($request->missable_trophies)) {
+            $query->where(function ($q) {
+                $q->where('missable_trophies', false)->orWhereNull('missable_trophies');
+            });
+        }
+
+        // Guide source filters
+        if ($request->filled('guide_psnp') && $this->isTruthy($request->guide_psnp)) {
+            $query->whereNotNull('psnprofiles_url');
+        }
+        if ($request->filled('guide_pst') && $this->isTruthy($request->guide_pst)) {
+            $query->whereNotNull('playstationtrophies_url');
+        }
+        if ($request->filled('guide_ppx') && $this->isTruthy($request->guide_ppx)) {
+            $query->whereNotNull('powerpyx_url');
+        }
+    }
+
+    private function isTruthy($value): bool
+    {
+        return in_array($value, [true, 'true', '1', 1], true);
     }
 
     /**
@@ -58,7 +225,7 @@ class UserGameController extends Controller
     {
         $validated = $request->validate([
             'game_id' => ['required', 'exists:games,id'],
-            'status' => ['sometimes', Rule::in(['want_to_play', 'playing', 'completed', 'platinum', 'abandoned'])],
+            'status' => ['sometimes', Rule::in(['backlog', 'in_progress', 'platinumed', 'abandoned'])],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
@@ -76,7 +243,7 @@ class UserGameController extends Controller
         $hasGuide = $game && ($game->psnprofiles_url || $game->playstationtrophies_url || $game->powerpyx_url);
 
         $user->games()->attach($gameId, [
-            'status' => $validated['status'] ?? 'want_to_play',
+            'status' => $validated['status'] ?? 'backlog',
             'notes' => $validated['notes'] ?? null,
             'guide_notified_at' => $hasGuide ? now() : null,
         ]);
@@ -111,7 +278,7 @@ class UserGameController extends Controller
     public function update(Request $request, int $gameId): JsonResponse
     {
         $validated = $request->validate([
-            'status' => ['sometimes', Rule::in(['want_to_play', 'playing', 'completed', 'platinum', 'abandoned'])],
+            'status' => ['sometimes', Rule::in(['backlog', 'in_progress', 'platinumed', 'abandoned'])],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'preferred_guide' => ['sometimes', 'nullable', Rule::in(['psnprofiles', 'playstationtrophies', 'powerpyx'])],
         ]);
@@ -162,12 +329,12 @@ class UserGameController extends Controller
         $validated = $request->validate([
             'game_ids' => ['required', 'array', 'min:1'],
             'game_ids.*' => ['integer', 'exists:games,id'],
-            'status' => ['sometimes', 'in:want_to_play,playing,completed,platinum,abandoned'],
+            'status' => ['sometimes', 'in:backlog,in_progress,platinumed,abandoned'],
         ]);
 
         $user = $request->user();
         $gameIds = $validated['game_ids'];
-        $status = $validated['status'] ?? 'want_to_play';
+        $status = $validated['status'] ?? 'backlog';
 
         // Get existing game IDs in user's list
         $existingIds = $user->games()->whereIn('game_id', $gameIds)->pluck('game_id')->toArray();

@@ -19,7 +19,7 @@
             </div>
             <!-- Add to List Button -->
             <div class="absolute top-1 right-1">
-                <AddToListButton :game-id="game.id" />
+                <AddToListButton :game-id="game.id" @removed="$emit('removed', game.id)" />
             </div>
         </div>
 
@@ -46,6 +46,22 @@
                 </div>
                 <!-- Spacer -->
                 <div class="flex-1"></div>
+                <!-- Status Dropdown (when in user's library) -->
+                <select
+                    v-if="game.user_status"
+                    :value="game.user_status"
+                    @change="$emit('update-status', game.id, $event.target.value)"
+                    @click.stop
+                    :class="[
+                        'px-1.5 py-0.5 text-[10px] sm:text-xs border-0 rounded-md focus:ring-2 focus:ring-primary-500 shrink-0',
+                        statusColors[game.user_status] || 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'
+                    ]"
+                >
+                    <option value="backlog">Backlog</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="platinumed">Platinumed</option>
+                    <option value="abandoned">Abandoned</option>
+                </select>
                 <!-- Critic Score -->
                 <div
                     v-if="game.critic_score"
@@ -179,6 +195,15 @@ const props = defineProps({
         required: true
     }
 })
+
+defineEmits(['update-status', 'removed'])
+
+const statusColors = {
+    backlog: 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300',
+    in_progress: 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300',
+    platinumed: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300',
+    abandoned: 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300',
+}
 
 const scoreClass = computed(() => {
     const s = props.game.critic_score

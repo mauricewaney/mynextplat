@@ -31,7 +31,7 @@ export function useUserGames() {
     /**
      * Add a game to the user's list
      */
-    async function addToList(gameId, status = 'want_to_play') {
+    async function addToList(gameId, status = 'backlog') {
         try {
             const response = await apiPost('/my-games', { game_id: gameId, status })
             if (!response.ok) {
@@ -120,7 +120,7 @@ export function useUserGames() {
     /**
      * Bulk add games to the user's list (merges with existing)
      */
-    async function bulkAddToList(gameIds, status = 'want_to_play') {
+    async function bulkAddToList(gameIds, status = 'backlog') {
         try {
             const response = await apiPost('/my-games/bulk', { game_ids: gameIds, status })
             if (!response.ok) {

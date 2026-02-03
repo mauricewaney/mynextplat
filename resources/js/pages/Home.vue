@@ -31,20 +31,6 @@
                                 All Games
                             </button>
                             <button
-                                @click="switchViewMode('library')"
-                                :class="[
-                                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
-                                    viewMode === 'library'
-                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                ]"
-                            >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                                </svg>
-                                My Library
-                            </button>
-                            <button
                                 @click="switchViewMode('psn')"
                                 :class="[
                                     'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
@@ -61,6 +47,13 @@
                                 <span v-if="isPsnLoaded">PSN: {{ psnUser?.username }}</span>
                                 <span v-else>Load PSN...</span>
                             </button>
+                            <router-link
+                                v-if="isAuthenticated"
+                                to="/my-games"
+                                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                            >
+                                My Games
+                            </router-link>
                         </div>
 
                         <!-- View Mode Dropdown - Mobile -->
@@ -69,13 +62,10 @@
                                 @click="showViewModeMenu = !showViewModeMenu"
                                 class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                <svg v-if="viewMode === 'library'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                                </svg>
-                                <svg v-else-if="viewMode === 'psn'" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <svg v-if="viewMode === 'psn'" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
                                 </svg>
-                                <span>{{ viewMode === 'all' ? 'All' : viewMode === 'library' ? 'Library' : 'PSN' }}</span>
+                                <span>{{ viewMode === 'all' ? 'All Games' : 'PSN' }}</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -97,20 +87,6 @@
                                     All Games
                                 </button>
                                 <button
-                                    @click="switchViewMode('library'); showViewModeMenu = false"
-                                    :class="[
-                                        'w-full px-3 py-2 text-left text-sm flex items-center gap-2',
-                                        viewMode === 'library'
-                                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                    ]"
-                                >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                                    </svg>
-                                    My Library
-                                </button>
-                                <button
                                     @click="switchViewMode('psn'); showViewModeMenu = false"
                                     :class="[
                                         'w-full px-3 py-2 text-left text-sm flex items-center gap-2',
@@ -127,6 +103,14 @@
                                     <span v-if="isPsnLoaded">PSN: {{ psnUser?.username }}</span>
                                     <span v-else>Load PSN...</span>
                                 </button>
+                                <router-link
+                                    v-if="isAuthenticated"
+                                    to="/my-games"
+                                    @click="showViewModeMenu = false"
+                                    class="block w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
+                                >
+                                    My Games
+                                </router-link>
                             </div>
                         </div>
 
@@ -480,29 +464,6 @@
                             >
                                 Enter PSN Username
                             </button>
-                        </template>
-
-                        <!-- My Library - Empty -->
-                        <template v-else-if="viewMode === 'library'">
-                            <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
-                            </svg>
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">Your library is empty</h3>
-                            <p class="text-gray-500 dark:text-gray-400 mb-4">Add games from All Games or load your PSN Library</p>
-                            <div class="flex flex-wrap justify-center gap-2">
-                                <button
-                                    @click="switchViewMode('all')"
-                                    class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
-                                >
-                                    Browse All Games
-                                </button>
-                                <button
-                                    @click="showPsnSearchModal = true"
-                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                                >
-                                    Load PSN Library
-                                </button>
-                            </div>
                         </template>
 
                         <!-- Default Empty State -->
@@ -996,7 +957,7 @@ const showUnmatchedModal = ref(false)
 const unmatchedSearch = ref('')
 const showLoginPrompt = ref(false)
 const showViewModeMenu = ref(false)
-const viewMode = ref(sessionStorage.getItem('viewMode') || 'all') // 'all' | 'library' | 'psn'
+const viewMode = ref(sessionStorage.getItem('viewMode') || 'all') // 'all' | 'psn'
 const bulkAddLoading = ref(false)
 const showBulkAddConfirm = ref(false)
 
@@ -1133,10 +1094,6 @@ watch(sortBy, (newVal) => {
 })
 
 function switchViewMode(mode) {
-    if (mode === 'library' && !isAuthenticated.value) {
-        showLoginPrompt.value = true
-        return
-    }
     if (mode === 'psn' && !isPsnLoaded.value) {
         // Show PSN lookup modal if PSN not loaded
         showPsnSearchModal.value = true
@@ -1155,11 +1112,8 @@ async function loadGames() {
     try {
         const params = new URLSearchParams()
 
-        // Clear separation of views
-        if (viewMode.value === 'library') {
-            params.append('my_library', 'true')
-        } else if (viewMode.value === 'psn') {
-            // PSN view - show games from PSN library
+        // PSN view - show games from PSN library
+        if (viewMode.value === 'psn') {
             if (psnGameIds.value?.length) {
                 params.append('game_ids', psnGameIds.value.join(','))
             } else {
@@ -1238,11 +1192,26 @@ function loadMore() {
 
 onMounted(() => {
     initDarkMode()
-    // Reset to 'all' view if PSN view was saved but PSN not loaded (e.g., after page refresh)
-    if (viewMode.value === 'psn' && !isPsnLoaded.value) {
-        viewMode.value = 'all'
-        sessionStorage.setItem('viewMode', 'all')
+
+    // Handle view query parameter (e.g., from My Games navigation tabs)
+    if (route.query.view === 'psn') {
+        if (isPsnLoaded.value) {
+            viewMode.value = 'psn'
+            sessionStorage.setItem('viewMode', 'psn')
+        } else {
+            // PSN not loaded, show the search modal
+            showPsnSearchModal.value = true
+            viewMode.value = 'all'
+            sessionStorage.setItem('viewMode', 'all')
+        }
+    } else {
+        // Reset to 'all' view if invalid view mode or PSN view was saved but PSN not loaded
+        if (viewMode.value === 'library' || (viewMode.value === 'psn' && !isPsnLoaded.value)) {
+            viewMode.value = 'all'
+            sessionStorage.setItem('viewMode', 'all')
+        }
     }
+
     loadGames()
 })
 </script>
