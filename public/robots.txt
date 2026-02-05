@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+Disallow: /sanctum/
+Disallow: /login
+Disallow: /auth/
+Disallow: /admin/

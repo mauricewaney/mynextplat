@@ -68,6 +68,12 @@
 
                     <!-- Desktop actions -->
                     <div class="hidden lg:flex items-center gap-4 text-sm">
+                        <router-link
+                            to="/contact"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium transition-colors"
+                        >
+                            Contact
+                        </router-link>
                         <button
                             @click="toggleDarkMode"
                             class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -212,9 +218,9 @@
                             </svg>
                             <span class="font-medium">Support</span>
                         </a>
-                        <a href="mailto:contact@mynextplat.com" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                            contact@mynextplat.com
-                        </a>
+                        <router-link to="/contact" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            Contact
+                        </router-link>
                         <span class="hidden sm:inline">&middot;</span>
                         <span class="hidden sm:inline">Made for trophy hunters</span>
                     </div>

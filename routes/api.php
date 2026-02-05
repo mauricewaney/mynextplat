@@ -10,6 +10,9 @@ use App\Http\Controllers\Admin\GameCorrectionController as AdminGameCorrectionCo
 use App\Http\Controllers\Admin\PSNController;
 use App\Http\Controllers\Admin\TrophyUrlImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\GuideClickController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\ContactController as AdminContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,12 +40,18 @@ Route::get('/user', [AuthController::class, 'user']);
 // Public profiles
 Route::get('/profile/{identifier}', [ProfileController::class, 'show']);
 
+// Guide Click Tracking (public)
+Route::post('/guide-clicks', [GuideClickController::class, 'store']);
+
 // Game Corrections (public - submit corrections for review)
 Route::prefix('corrections')->group(function () {
     Route::get('/categories', [GameCorrectionController::class, 'categories']);
     Route::get('/search-games', [GameCorrectionController::class, 'searchGames']);
     Route::post('/', [GameCorrectionController::class, 'store']);
 });
+
+// Contact Form (public)
+Route::post('/contact', [ContactController::class, 'store']);
 
 /*
 |--------------------------------------------------------------------------
@@ -120,6 +129,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/{id}/import-igdb', [TrophyUrlImportController::class, 'importFromIgdb']);
         Route::post('/{id}/toggle-dlc', [TrophyUrlImportController::class, 'toggleDlc']);
         Route::delete('/{id}', [TrophyUrlImportController::class, 'destroy']);
+    });
+
+    // Contact Messages Management
+    Route::prefix('admin/contact')->group(function () {
+        Route::get('/', [AdminContactController::class, 'index']);
+        Route::get('/{id}', [AdminContactController::class, 'show']);
+        Route::put('/{id}', [AdminContactController::class, 'update']);
+        Route::delete('/{id}', [AdminContactController::class, 'destroy']);
     });
 
     // Game Corrections Management

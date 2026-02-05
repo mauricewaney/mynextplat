@@ -1,6 +1,6 @@
 <template>
     <div
-        class="group bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-2 sm:gap-4 p-2 sm:p-4"
+        class="group bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-2 sm:gap-4 p-2 sm:p-4 select-none"
     >
         <!-- Cover Image -->
         <div class="relative w-20 sm:w-28 h-28 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
@@ -62,15 +62,32 @@
                     <option value="platinumed">Platinumed</option>
                     <option value="abandoned">Abandoned</option>
                 </select>
-                <!-- Critic Score -->
-                <div
-                    v-if="game.critic_score"
-                    :class="[
-                        'shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold text-white',
-                        scoreClass
-                    ]"
-                >
-                    {{ game.critic_score }}
+                <!-- Scores -->
+                <div class="flex items-center gap-1 shrink-0">
+                    <!-- User Score -->
+                    <div
+                        v-if="displayUserScore !== null"
+                        :class="[
+                            'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold text-white',
+                            userScoreClass,
+                            displayUserScore === 'N/A' ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
+                        ]"
+                        :title="displayUserScore === 'N/A' ? 'Not enough user ratings' : `User score: ${displayUserScore} (${game.user_score_count} ratings)`"
+                    >
+                        {{ displayUserScore }}
+                    </div>
+                    <!-- Critic Score -->
+                    <div
+                        v-if="displayCriticScore !== null"
+                        :class="[
+                            'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
+                            criticScoreClass,
+                            displayCriticScore === 'N/A' ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
+                        ]"
+                        :title="displayCriticScore === 'N/A' ? 'Not enough critic reviews' : `Critic score: ${displayCriticScore} (${game.critic_score_count} sources)`"
+                    >
+                        {{ displayCriticScore }}
+                    </div>
                 </div>
             </div>
 
@@ -158,7 +175,7 @@
                             v-if="game.psnprofiles_url"
                             :href="game.psnprofiles_url"
                             target="_blank"
-                            @click.stop
+                            @click.stop="trackGuideClick('psnprofiles')"
                             class="px-1.5 sm:px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors"
                             title="PSNProfiles Guide"
                         >PSNP</a>
@@ -166,7 +183,7 @@
                             v-if="game.playstationtrophies_url"
                             :href="game.playstationtrophies_url"
                             target="_blank"
-                            @click.stop
+                            @click.stop="trackGuideClick('playstationtrophies')"
                             class="px-1.5 sm:px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-[10px] sm:text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors"
                             title="PlayStationTrophies Guide"
                         >PST</a>
@@ -174,7 +191,7 @@
                             v-if="game.powerpyx_url"
                             :href="game.powerpyx_url"
                             target="_blank"
-                            @click.stop
+                            @click.stop="trackGuideClick('powerpyx')"
                             class="px-1.5 sm:px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-[10px] sm:text-xs font-bold hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors"
                             title="PowerPyx Guide"
                         >PPX</a>
@@ -187,6 +204,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { apiPost } from '../utils/api'
 import AddToListButton from './AddToListButton.vue'
 
 const props = defineProps({
@@ -205,11 +223,40 @@ const statusColors = {
     abandoned: 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300',
 }
 
-const scoreClass = computed(() => {
-    const s = props.game.critic_score
+// Minimum rating counts to display (filter out unreliable scores)
+const MIN_USER_RATINGS = 3
+const MIN_CRITIC_SOURCES = 3
+
+const displayUserScore = computed(() => {
+    if (!props.game.user_score) return null
+    const count = props.game.user_score_count
+    // Count known and below threshold → unreliable
+    if (count != null && count < MIN_USER_RATINGS) return 'N/A'
+    return props.game.user_score
+})
+
+const displayCriticScore = computed(() => {
+    if (!props.game.critic_score) return null
+    const count = props.game.critic_score_count
+    // Count known and below threshold → unreliable
+    if (count != null && count < MIN_CRITIC_SOURCES) return 'N/A'
+    return props.game.critic_score
+})
+
+const userScoreClass = computed(() => {
+    const s = displayUserScore.value
+    if (s === 'N/A') return 'bg-gray-400 dark:bg-gray-600'
     if (s >= 75) return 'bg-emerald-500'
     if (s >= 50) return 'bg-yellow-500'
     return 'bg-red-500'
+})
+
+const criticScoreClass = computed(() => {
+    const s = displayCriticScore.value
+    if (s === 'N/A') return 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
+    if (s >= 75) return 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+    if (s >= 50) return 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
+    return 'border-red-500 text-red-600 dark:text-red-400'
 })
 
 const difficultyBarClass = computed(() => {
@@ -244,4 +291,8 @@ const timeValues = computed(() => {
 const hasGuide = computed(() => {
     return props.game.psnprofiles_url || props.game.playstationtrophies_url || props.game.powerpyx_url
 })
+
+function trackGuideClick(source) {
+    apiPost('/guide-clicks', { game_id: props.game.id, guide_source: source })
+}
 </script>

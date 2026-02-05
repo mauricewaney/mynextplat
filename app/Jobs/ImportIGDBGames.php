@@ -90,6 +90,9 @@ class ImportIGDBGames implements ShouldQueue
                     'cover_url' => $gameData['cover_url'],
                     'banner_url' => $gameData['banner_url'],
                     'critic_score' => $gameData['critic_score'],
+                    'critic_score_count' => $gameData['critic_score_count'],
+                    'user_score' => $gameData['user_score'],
+                    'user_score_count' => $gameData['user_score_count'],
                 ]);
 
                 // Create/attach platforms dynamically

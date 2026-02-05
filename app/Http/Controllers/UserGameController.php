@@ -47,9 +47,17 @@ class UserGameController extends Controller
         $sortBy = $request->input('sort_by', 'added_at');
         $sortOrder = $request->input('sort_order', 'desc');
 
+        $minRatings = 3;
+
         if ($sortBy === 'added_at') {
             // Sort by when user added the game
             $query->orderByRaw("FIELD(id, " . implode(',', $userGameIds) . ")");
+        } elseif ($sortBy === 'user_score') {
+            $query->orderByRaw("CASE WHEN user_score IS NULL OR (user_score_count IS NOT NULL AND user_score_count < ?) THEN 1 ELSE 0 END", [$minRatings])
+                  ->orderBy($sortBy, $sortOrder);
+        } elseif ($sortBy === 'critic_score') {
+            $query->orderByRaw("CASE WHEN critic_score IS NULL OR (critic_score_count IS NOT NULL AND critic_score_count < ?) THEN 1 ELSE 0 END", [$minRatings])
+                  ->orderBy($sortBy, $sortOrder);
         } else {
             $query->orderBy($sortBy, $sortOrder);
         }
@@ -183,6 +191,7 @@ class UserGameController extends Controller
             $minScore = (int) $request->min_score;
             $query->where(function ($q) use ($minScore) {
                 $q->where('critic_score', '>=', $minScore)
+                  ->orWhere('user_score', '>=', $minScore)
                   ->orWhere('opencritic_score', '>=', $minScore);
             });
         }

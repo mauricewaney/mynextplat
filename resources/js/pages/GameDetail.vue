@@ -193,6 +193,7 @@
                         :href="game.psnprofiles_url"
                         target="_blank"
                         rel="noopener"
+                        @click="trackGuideClick('psnprofiles')"
                         class="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
                     >
                         <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
@@ -210,6 +211,7 @@
                         :href="game.playstationtrophies_url"
                         target="_blank"
                         rel="noopener"
+                        @click="trackGuideClick('playstationtrophies')"
                         class="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
                     >
                         <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold">
@@ -227,6 +229,7 @@
                         :href="game.powerpyx_url"
                         target="_blank"
                         rel="noopener"
+                        @click="trackGuideClick('powerpyx')"
                         class="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
                     >
                         <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold">
@@ -392,6 +395,7 @@ import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
 import { useUserGames } from '../composables/useUserGames'
+import { apiPost } from '../utils/api'
 import AppLayout from '../components/AppLayout.vue'
 
 const route = useRoute()
@@ -420,6 +424,12 @@ const guideLabels = {
 const hasGuides = computed(() => {
     return game.value?.psnprofiles_url || game.value?.playstationtrophies_url || game.value?.powerpyx_url
 })
+
+function trackGuideClick(source) {
+    if (game.value) {
+        apiPost('/guide-clicks', { game_id: game.value.id, guide_source: source })
+    }
+}
 
 // Dynamic SEO meta tags
 useHead(() => {

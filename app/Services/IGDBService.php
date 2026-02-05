@@ -250,7 +250,7 @@ class IGDBService
         // Base fields
         $fields = 'fields name,slug,summary,cover.url,screenshots.url,platforms,genres.name,'
             . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
-            . 'first_release_date,aggregated_rating,rating,'
+            . 'first_release_date,aggregated_rating,aggregated_rating_count,rating,rating_count,'
             . 'release_dates.date,release_dates.platform,release_dates.region; ';
 
         // Build where clause
@@ -361,6 +361,9 @@ class IGDBService
             'cover_url' => $coverUrl,
             'banner_url' => $bannerUrl,
             'critic_score' => isset($igdbGame['aggregated_rating']) ? (int) round($igdbGame['aggregated_rating']) : null,
+            'critic_score_count' => $igdbGame['aggregated_rating_count'] ?? null,
+            'user_score' => isset($igdbGame['rating']) ? (int) round($igdbGame['rating']) : null,
+            'user_score_count' => $igdbGame['rating_count'] ?? null,
             'platforms_data' => $platformsData,
             'genre_names' => $genreNames,
         ];
@@ -384,7 +387,7 @@ class IGDBService
         $igdbQuery = 'search "' . $escapedQuery . '"; '
             . 'fields name,slug,cover.url,screenshots.url,platforms,genres.name,'
             . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
-            . 'first_release_date,aggregated_rating; '
+            . 'first_release_date,aggregated_rating,aggregated_rating_count,rating,rating_count; '
             . 'where platforms = (' . $platformFilter . '); '
             . 'limit ' . $limit . ';';
 

@@ -6,6 +6,7 @@ import Home from '../pages/Home.vue'
 import MyGames from '../pages/MyGames.vue'
 import GameDetail from '../pages/GameDetail.vue'
 import ReportIssue from '../pages/ReportIssue.vue'
+import Contact from '../pages/Contact.vue'
 import Settings from '../pages/Settings.vue'
 import Profile from '../pages/Profile.vue'
 
@@ -15,6 +16,7 @@ import Corrections from '../components/Admin/Corrections.vue'
 import TrophyUrlImporter from '../components/Admin/TrophyUrlImporter.vue'
 import UnmatchedUrls from '../components/Admin/UnmatchedUrls.vue'
 import NpIdManager from '../components/Admin/NpIdManager.vue'
+import ContactInbox from '../pages/admin/ContactInbox.vue'
 
 const routes = [
     // Public routes
@@ -32,6 +34,11 @@ const routes = [
         path: '/report-issue',
         name: 'report-issue',
         component: ReportIssue
+    },
+    {
+        path: '/contact',
+        name: 'contact',
+        component: Contact
     },
 
     // Public profile
@@ -89,6 +96,12 @@ const routes = [
         path: '/admin/corrections',
         name: 'admin.corrections',
         component: Corrections,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+        path: '/admin/contact',
+        name: 'admin.contact',
+        component: ContactInbox,
         meta: { requiresAuth: true, requiresAdmin: true }
     }
 ]

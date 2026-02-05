@@ -174,6 +174,7 @@ class GameFilterService
         if ($request->filled('min_score')) {
             $query->where(function ($q) use ($request) {
                 $q->where('critic_score', '>=', $request->min_score)
+                  ->orWhere('user_score', '>=', $request->min_score)
                   ->orWhere('opencritic_score', '>=', $request->min_score);
             });
         }
@@ -276,8 +277,17 @@ class GameFilterService
         }
 
         // Handle NULL values for numeric columns - put NULLs at the end
-        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'opencritic_score', 'release_date', 'playthroughs_required', 'missable_trophies'];
-        if (in_array($sortBy, $nullableColumns)) {
+        // For score columns, also push low-count scores to the end (shown as N/A on frontend)
+        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'user_score', 'opencritic_score', 'release_date', 'playthroughs_required', 'missable_trophies'];
+        $minRatings = 3;
+
+        if ($sortBy === 'user_score') {
+            $query->orderByRaw("CASE WHEN user_score IS NULL OR (user_score_count IS NOT NULL AND user_score_count < ?) THEN 1 ELSE 0 END", [$minRatings])
+                  ->orderBy($sortBy, $sortOrder);
+        } elseif ($sortBy === 'critic_score') {
+            $query->orderByRaw("CASE WHEN critic_score IS NULL OR (critic_score_count IS NOT NULL AND critic_score_count < ?) THEN 1 ELSE 0 END", [$minRatings])
+                  ->orderBy($sortBy, $sortOrder);
+        } elseif (in_array($sortBy, $nullableColumns)) {
             $query->orderByRaw("CASE WHEN {$sortBy} IS NULL THEN 1 ELSE 0 END")
                   ->orderBy($sortBy, $sortOrder);
         } else {

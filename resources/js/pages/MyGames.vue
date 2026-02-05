@@ -3,33 +3,30 @@
         <!-- Navigation Tabs Header -->
         <template #header-left>
             <!-- View Mode Tabs - Desktop -->
-            <div class="hidden sm:flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
-                <router-link
-                    to="/"
-                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                    All Games
-                </router-link>
-                <router-link
-                    to="/?view=psn"
-                    :class="[
-                        'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
-                        isPsnLoaded
-                            ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'
-                    ]"
-                >
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                    </svg>
-                    <span v-if="isPsnLoaded">PSN: {{ psnUser?.username }}</span>
-                    <span v-else>Load PSN...</span>
-                </router-link>
-                <span
-                    class="px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
-                >
-                    My Games
-                </span>
+            <div class="hidden sm:flex items-center gap-2">
+                <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
+                    <router-link
+                        to="/"
+                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    >
+                        All Games
+                    </router-link>
+                    <router-link
+                        v-if="isPsnLoaded"
+                        to="/?view=psn"
+                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    >
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
+                        </svg>
+                        PSN: {{ psnUser?.username }}
+                    </router-link>
+                    <span
+                        class="px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
+                    >
+                        My Games
+                    </span>
+                </div>
             </div>
 
             <!-- View Mode Dropdown - Mobile -->
@@ -56,20 +53,15 @@
                         All Games
                     </router-link>
                     <router-link
+                        v-if="isPsnLoaded"
                         to="/?view=psn"
-                        :class="[
-                            'block w-full px-3 py-2 text-left text-sm flex items-center gap-2',
-                            isPsnLoaded
-                                ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'
-                        ]"
+                        class="block w-full px-3 py-2 text-left text-sm flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                         @click="showViewModeMenu = false"
                     >
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
                         </svg>
-                        <span v-if="isPsnLoaded">PSN: {{ psnUser?.username }}</span>
-                        <span v-else>Load PSN...</span>
+                        PSN: {{ psnUser?.username }}
                     </router-link>
                     <span
                         class="block w-full px-3 py-2 text-left text-sm bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
@@ -174,6 +166,7 @@
                                 <option value="title">Title</option>
                                 <option value="difficulty">Difficulty</option>
                                 <option value="time_min">Completion Time</option>
+                                <option value="user_score">User Score</option>
                                 <option value="critic_score">Critic Score</option>
                             </select>
                             <button

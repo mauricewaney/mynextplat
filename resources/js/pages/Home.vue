@@ -18,42 +18,47 @@
                         </router-link>
 
                         <!-- View Mode Tabs - Desktop -->
-                        <div class="hidden sm:flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
+                        <div class="hidden sm:flex items-center gap-2">
+                            <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
+                                <button
+                                    @click="switchViewMode('all')"
+                                    :class="[
+                                        'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                                        viewMode === 'all'
+                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    ]"
+                                >
+                                    All Games
+                                </button>
+                                <button
+                                    v-if="isPsnLoaded"
+                                    @click="switchViewMode('psn')"
+                                    :class="[
+                                        'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
+                                        viewMode === 'psn'
+                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                    ]"
+                                >
+                                    PSN: {{ psnUser?.username }}
+                                </button>
+                                <router-link
+                                    v-if="isAuthenticated"
+                                    to="/my-games"
+                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                >
+                                    My Games
+                                </router-link>
+                            </div>
+                            <!-- Load PSN Button (separate from tabs) -->
                             <button
-                                @click="switchViewMode('all')"
-                                :class="[
-                                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-                                    viewMode === 'all'
-                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                ]"
+                                @click="showPsnSearchModal = true"
+                                class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'"
                             >
-                                All Games
+                                PSN
                             </button>
-                            <button
-                                @click="switchViewMode('psn')"
-                                :class="[
-                                    'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
-                                    viewMode === 'psn'
-                                        ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                        : isPsnLoaded
-                                            ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                            : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400'
-                                ]"
-                            >
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                                </svg>
-                                <span v-if="isPsnLoaded">PSN: {{ psnUser?.username }}</span>
-                                <span v-else>Load PSN...</span>
-                            </button>
-                            <router-link
-                                v-if="isAuthenticated"
-                                to="/my-games"
-                                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                            >
-                                My Games
-                            </router-link>
                         </div>
 
                         <!-- View Mode Dropdown - Mobile -->
@@ -62,10 +67,7 @@
                                 @click="showViewModeMenu = !showViewModeMenu"
                                 class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
                             >
-                                <svg v-if="viewMode === 'psn'" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                                </svg>
-                                <span>{{ viewMode === 'all' ? 'All Games' : 'PSN' }}</span>
+                                <span>{{ viewMode === 'all' ? 'All Games' : `PSN: ${psnUser?.username}` }}</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -87,21 +89,16 @@
                                     All Games
                                 </button>
                                 <button
+                                    v-if="isPsnLoaded"
                                     @click="switchViewMode('psn'); showViewModeMenu = false"
                                     :class="[
                                         'w-full px-3 py-2 text-left text-sm flex items-center gap-2',
                                         viewMode === 'psn'
                                             ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                                            : isPsnLoaded
-                                                ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                                : 'text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700'
+                                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
                                     ]"
                                 >
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                                    </svg>
-                                    <span v-if="isPsnLoaded">PSN: {{ psnUser?.username }}</span>
-                                    <span v-else>Load PSN...</span>
+                                    PSN: {{ psnUser?.username }}
                                 </button>
                                 <router-link
                                     v-if="isAuthenticated"
@@ -118,22 +115,13 @@
 
                     <!-- Mobile actions -->
                     <div class="lg:hidden flex items-center gap-1">
-                        <!-- Mobile PSN Library Button -->
+                        <!-- Mobile PSN Load Button -->
                         <button
-                            @click="isPsnLoaded ? switchViewMode('psn') : showPsnSearchModal = true"
-                            :class="[
-                                'p-2 rounded-lg transition-colors',
-                                viewMode === 'psn'
-                                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
-                                    : isPsnLoaded
-                                        ? 'text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                                        : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800'
-                            ]"
-                            :title="isPsnLoaded ? `PSN: ${psnUser?.username}` : 'Load PSN Library'"
+                            @click="showPsnSearchModal = true"
+                            class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800"
+                            :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'"
                         >
-                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                            </svg>
+                            PSN
                         </button>
                         <button
                             @click="toggleDarkMode"
@@ -400,6 +388,7 @@
                                 <option value="release_date">Release Date</option>
                                 <option value="difficulty">Difficulty</option>
                                 <option value="time_min">Completion Time</option>
+                                <option value="user_score">User Score</option>
                                 <option value="critic_score">Critic Score</option>
                                 <option value="playthroughs_required">Playthroughs</option>
                                 <option value="missable_trophies">Missables</option>
@@ -1094,11 +1083,9 @@ watch(sortBy, (newVal) => {
 })
 
 function switchViewMode(mode) {
-    if (mode === 'psn' && !isPsnLoaded.value) {
-        // Show PSN lookup modal if PSN not loaded
-        showPsnSearchModal.value = true
-        return
-    }
+    // PSN tab only shows when loaded, but keep safety check
+    if (mode === 'psn' && !isPsnLoaded.value) return
+
     viewMode.value = mode
     sessionStorage.setItem('viewMode', mode)
     currentPage.value = 1

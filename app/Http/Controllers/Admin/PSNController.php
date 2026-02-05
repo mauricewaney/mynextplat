@@ -695,6 +695,9 @@ class PSNController extends Controller
                     'cover_url' => $igdbData['cover_url'] ?? null,
                     'banner_url' => $igdbData['banner_url'] ?? null,
                     'critic_score' => $igdbData['critic_score'] ?? null,
+                    'critic_score_count' => $igdbData['critic_score_count'] ?? null,
+                    'user_score' => $igdbData['user_score'] ?? null,
+                    'user_score_count' => $igdbData['user_score_count'] ?? null,
                 ]);
                 $wasMerged = true;
             } else {
@@ -717,6 +720,9 @@ class PSNController extends Controller
                     'cover_url' => $igdbData['cover_url'] ?? null,
                     'banner_url' => $igdbData['banner_url'] ?? null,
                     'critic_score' => $igdbData['critic_score'] ?? null,
+                    'critic_score_count' => $igdbData['critic_score_count'] ?? null,
+                    'user_score' => $igdbData['user_score'] ?? null,
+                    'user_score_count' => $igdbData['user_score_count'] ?? null,
                 ]);
             }
         }
@@ -862,7 +868,8 @@ class PSNController extends Controller
         // Only fill in missing data, don't overwrite
         $fieldsToMerge = [
             'igdb_id', 'developer', 'publisher', 'release_date',
-            'cover_url', 'banner_url', 'critic_score', 'description',
+            'cover_url', 'banner_url', 'critic_score', 'critic_score_count',
+            'user_score', 'user_score_count', 'description',
             'trophy_icon_url', 'bronze_count', 'silver_count', 'gold_count',
         ];
 
