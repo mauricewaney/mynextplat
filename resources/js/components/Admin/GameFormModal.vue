@@ -234,6 +234,21 @@ Online Trophies: None"
                                 <span class="text-sm font-medium text-gray-700">Has Missable Trophies</span>
                             </label>
                         </div>
+
+                        <!-- Unobtainable Warning -->
+                        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    v-model="form.is_unobtainable"
+                                    type="checkbox"
+                                    class="w-5 h-5 text-red-600 rounded focus:ring-2 focus:ring-red-500"
+                                />
+                                <div>
+                                    <span class="text-sm font-semibold text-red-700">Platinum is Unobtainable</span>
+                                    <p class="text-xs text-red-600">Server shutdown, delisted, or otherwise impossible to 100%</p>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Scores & Reviews -->
@@ -623,6 +638,7 @@ const form = ref({
     playthroughs_required: 1,
     has_online_trophies: false,
     missable_trophies: false,
+    is_unobtainable: false,
     critic_score: null,
     opencritic_score: null,
     price_current: null,
@@ -666,6 +682,7 @@ watch(() => props.game, (game) => {
             playthroughs_required: game.playthroughs_required || 1,
             has_online_trophies: game.has_online_trophies || false,
             missable_trophies: game.missable_trophies || false,
+            is_unobtainable: game.is_unobtainable || false,
             critic_score: game.critic_score || null,
             opencritic_score: game.opencritic_score || null,
             price_current: game.price_current || null,
@@ -712,6 +729,7 @@ function resetForm() {
         playthroughs_required: 1,
         has_online_trophies: false,
         missable_trophies: false,
+        is_unobtainable: false,
         critic_score: null,
         opencritic_score: null,
         price_current: null,

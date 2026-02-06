@@ -935,10 +935,14 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import AdminLayout from './AdminLayout.vue'
 import GameFormModal from './GameFormModal.vue'
 import BulkActionModal from './BulkActionModal.vue'
 import PSNLookupPanel from './PSNLookupPanel.vue'
+
+const route = useRoute()
+const router = useRouter()
 
 const games = ref([])
 const total = ref(0)
@@ -1455,9 +1459,25 @@ const fetchStats = async () => {
 }
 
 // Load data on mount
-onMounted(() => {
+onMounted(async () => {
     fetchFormData()
     fetchGames()
     fetchStats()
+
+    // Check for edit query param (from frontend quick-edit link)
+    const editId = route.query.edit
+    if (editId) {
+        try {
+            const response = await fetch(`/api/admin/games/${editId}`)
+            if (response.ok) {
+                const game = await response.json()
+                openEditModal(game)
+                // Clear the query param without reloading
+                router.replace({ query: {} })
+            }
+        } catch (error) {
+            console.error('Error loading game for edit:', error)
+        }
+    }
 })
 </script>

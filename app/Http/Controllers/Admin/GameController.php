@@ -617,6 +617,7 @@ class GameController extends Controller
             'playthroughs_required' => 'nullable|integer|min:1',
             'has_online_trophies' => 'nullable|boolean',
             'missable_trophies' => 'nullable|boolean',
+            'is_unobtainable' => 'nullable|boolean',
 
             // Scores
             'critic_score' => 'nullable|integer|min:0|max:100',

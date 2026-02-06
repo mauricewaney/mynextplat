@@ -1,7 +1,16 @@
 <template>
     <div
-        class="group bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-2 sm:gap-4 p-2 sm:p-4 select-none"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-2 sm:gap-4 p-2 sm:p-4 select-none"
     >
+        <!-- Unobtainable Stamp Overlay -->
+        <div
+            v-if="game.is_unobtainable"
+            class="absolute inset-0 flex items-center justify-center pointer-events-none z-20 overflow-hidden rounded-xl"
+        >
+            <div class="unobtainable-stamp">
+                UNOBTAINABLE
+            </div>
+        </div>
         <!-- Cover Image -->
         <div class="relative w-20 sm:w-28 h-28 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
             <img
@@ -21,6 +30,19 @@
             <div class="absolute top-1 right-1">
                 <AddToListButton :game-id="game.id" @removed="$emit('removed', game.id)" />
             </div>
+            <!-- Admin Edit Button -->
+            <a
+                v-if="isAdmin"
+                :href="`/admin/games?edit=${game.id}`"
+                target="_blank"
+                @click.stop
+                class="absolute bottom-1 right-1 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Edit in Admin"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+            </a>
         </div>
 
         <!-- Info Section -->
@@ -235,7 +257,10 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { apiPost } from '../utils/api'
+import { useAuth } from '../composables/useAuth'
 import AddToListButton from './AddToListButton.vue'
+
+const { isAdmin } = useAuth()
 
 const props = defineProps({
     game: {
@@ -392,5 +417,43 @@ function trackGuideClick(source) {
 .dropdown-leave-to {
     opacity: 0;
     transform: translateY(-4px) scale(0.95);
+}
+
+/* Unobtainable Stamp */
+.unobtainable-stamp {
+    font-family: 'Arial Black', 'Helvetica Bold', sans-serif;
+    font-size: clamp(0.875rem, 3.5vw, 1.5rem);
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    color: #dc2626;
+    border: 3px solid #dc2626;
+    border-radius: 4px;
+    padding: 0.3em 0.6em;
+    transform: rotate(-12deg);
+    opacity: 0.9;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(1px);
+    box-shadow:
+        inset 0 0 0 2px transparent,
+        inset 0 0 0 3px rgba(220, 38, 38, 0.3),
+        0 0 20px rgba(220, 38, 38, 0.2);
+    text-shadow:
+        1px 1px 0 rgba(255, 255, 255, 0.5),
+        -1px -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+:deep(.dark) .unobtainable-stamp,
+.dark .unobtainable-stamp {
+    color: #f87171;
+    border-color: #f87171;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow:
+        inset 0 0 0 2px transparent,
+        inset 0 0 0 3px rgba(248, 113, 113, 0.3),
+        0 0 20px rgba(248, 113, 113, 0.3);
+    text-shadow:
+        1px 1px 0 rgba(0, 0, 0, 0.5),
+        -1px -1px 0 rgba(255, 255, 255, 0.1);
 }
 </style>
