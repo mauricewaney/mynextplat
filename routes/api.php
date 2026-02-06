@@ -38,6 +38,7 @@ Route::get('/psn/library/{username}', [GameController::class, 'psnUserLibrary'])
 Route::get('/user', [AuthController::class, 'user']);
 
 // Public profiles
+Route::get('/profiles', [ProfileController::class, 'index']);
 Route::get('/profile/{identifier}', [ProfileController::class, 'show']);
 
 // Guide Click Tracking (public)

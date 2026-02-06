@@ -20,10 +20,16 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile Not Found</h1>
-                <p class="text-gray-500 dark:text-gray-400 mb-6">This profile doesn't exist.</p>
-                <router-link to="/" class="text-primary-600 dark:text-primary-400 hover:underline">
-                    Browse Games
-                </router-link>
+                <p class="text-gray-500 dark:text-gray-400 mb-6">This profile doesn't exist or is private.</p>
+                <div class="flex items-center justify-center gap-4">
+                    <router-link to="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
+                        Browse Profiles
+                    </router-link>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <router-link to="/" class="text-primary-600 dark:text-primary-400 hover:underline">
+                        Browse Games
+                    </router-link>
+                </div>
             </div>
 
             <!-- Private Profile -->
@@ -47,13 +53,30 @@
                     </svg>
                     <span>This profile is private</span>
                 </div>
-                <router-link to="/" class="text-primary-600 dark:text-primary-400 hover:underline">
-                    Browse Games
-                </router-link>
+                <div class="flex items-center justify-center gap-4">
+                    <router-link to="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
+                        Browse Profiles
+                    </router-link>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <router-link to="/" class="text-primary-600 dark:text-primary-400 hover:underline">
+                        Browse Games
+                    </router-link>
+                </div>
             </div>
 
             <!-- Public Profile -->
             <div v-else>
+                <!-- Back to Profiles -->
+                <router-link
+                    to="/profiles"
+                    class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-4 transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    All Profiles
+                </router-link>
+
                 <!-- Profile Header -->
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 mb-6">
                     <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">

@@ -25,8 +25,8 @@
                                     :class="[
                                         'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
                                         viewMode === 'all'
-                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                            ? 'bg-primary-600 text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
                                     ]"
                                 >
                                     All Games
@@ -37,8 +37,8 @@
                                     :class="[
                                         'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
                                         viewMode === 'psn'
-                                            ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm'
-                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                                            ? 'bg-primary-600 text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
                                     ]"
                                 >
                                     PSN: {{ psnUser?.username }}
@@ -46,7 +46,7 @@
                                 <router-link
                                     v-if="isAuthenticated"
                                     to="/my-games"
-                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
                                 >
                                     My Games
                                 </router-link>
@@ -65,7 +65,7 @@
                         <div class="sm:hidden relative view-mode-menu-container">
                             <button
                                 @click="showViewModeMenu = !showViewModeMenu"
-                                class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-600 rounded-lg text-sm font-medium text-white"
                             >
                                 <span>{{ viewMode === 'all' ? 'All Games' : `PSN: ${psnUser?.username}` }}</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,13 +173,11 @@
 
                     <!-- Desktop actions -->
                     <div class="hidden lg:flex items-center gap-4 text-sm">
-                        <!-- My Games link (authenticated users) -->
                         <router-link
-                            v-if="isAuthenticated"
-                            to="/my-games"
-                            class="px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors font-medium"
+                            to="/contact"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium transition-colors"
                         >
-                            My Games
+                            Contact
                         </router-link>
 
                         <button

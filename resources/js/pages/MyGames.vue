@@ -7,14 +7,14 @@
                 <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                     <router-link
                         to="/"
-                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
                     >
                         All Games
                     </router-link>
                     <router-link
                         v-if="isPsnLoaded"
                         to="/?view=psn"
-                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
                     >
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
@@ -22,7 +22,7 @@
                         PSN: {{ psnUser?.username }}
                     </router-link>
                     <span
-                        class="px-3 py-1.5 rounded-md text-sm font-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
+                        class="px-3 py-1.5 rounded-md text-sm font-medium bg-primary-600 text-white shadow-sm"
                     >
                         My Games
                     </span>
@@ -33,7 +33,7 @@
             <div class="sm:hidden relative view-mode-menu-container">
                 <button
                     @click="showViewModeMenu = !showViewModeMenu"
-                    class="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300"
+                    class="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-600 rounded-lg text-sm font-medium text-white"
                 >
                     <span>My Games</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,27 +138,6 @@
                                 </span>
                             </button>
 
-                            <!-- Notifications Toggle (Desktop) -->
-                            <button
-                                @click="toggleNotifications"
-                                :disabled="updatingNotifications"
-                                class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-sm rounded-full transition-colors ring-1"
-                                :class="[
-                                    notifyNewGuides
-                                        ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 ring-green-200 dark:ring-green-800'
-                                        : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                ]"
-                                :title="notifyNewGuides ? 'Email notifications enabled' : 'Email notifications disabled'"
-                            >
-                                <svg v-if="updatingNotifications" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                </svg>
-                                <span class="hidden md:inline">Notify</span>
-                            </button>
                         </div>
                     </div>
 
@@ -193,6 +172,63 @@
                             <span class="font-semibold text-gray-900 dark:text-white">{{ total }}</span> games
                         </span>
                         <div class="flex items-center gap-2">
+                            <!-- Share Button -->
+                            <button
+                                v-if="profilePublic && profileUrl"
+                                @click="copyShareLink"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors"
+                                :class="[
+                                    showShareCopied
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                ]"
+                                :title="showShareCopied ? 'Link copied!' : 'Copy share link'"
+                            >
+                                <svg v-if="showShareCopied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                </svg>
+                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                </svg>
+                                <span class="hidden sm:inline">{{ showShareCopied ? 'Copied!' : 'Share' }}</span>
+                            </button>
+                            <router-link
+                                v-else
+                                to="/settings"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                title="Enable sharing in Settings"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                                </svg>
+                                <span class="hidden sm:inline">Share</span>
+                            </router-link>
+
+                            <!-- Notifications Toggle -->
+                            <button
+                                @click="toggleNotifications"
+                                :disabled="updatingNotifications"
+                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors"
+                                :class="[
+                                    notifyNewGuides
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
+                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                ]"
+                                :title="notifyNewGuides ? 'Email notifications enabled' : 'Email notifications disabled'"
+                            >
+                                <svg v-if="updatingNotifications" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                <span class="hidden sm:inline">Notify</span>
+                            </button>
+
+                            <!-- Separator -->
+                            <div class="hidden sm:block w-px h-5 bg-gray-200 dark:bg-slate-600"></div>
+
                             <label class="hidden sm:block text-sm text-gray-500 dark:text-gray-400">Sort:</label>
                             <select
                                 v-model="sortBy"
@@ -389,9 +425,11 @@ useHead({
 })
 
 const route = useRoute()
-const { notifyNewGuides, updatePreferences } = useAuth()
+const { notifyNewGuides, profilePublic, profileUrl, updatePreferences } = useAuth()
 const { updateStatus } = useUserGames()
 const { isPsnLoaded, psnUser } = usePSNLibrary()
+
+const showShareCopied = ref(false)
 
 const games = ref([])
 const loading = ref(true)
@@ -617,6 +655,20 @@ async function toggleNotifications() {
         console.error('Failed to update notifications:', e)
     } finally {
         updatingNotifications.value = false
+    }
+}
+
+async function copyShareLink() {
+    if (!profileUrl.value) return
+
+    try {
+        await navigator.clipboard.writeText(profileUrl.value)
+        showShareCopied.value = true
+        setTimeout(() => {
+            showShareCopied.value = false
+        }, 2000)
+    } catch (e) {
+        console.error('Failed to copy:', e)
     }
 }
 

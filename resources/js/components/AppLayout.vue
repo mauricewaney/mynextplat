@@ -218,14 +218,15 @@
                             </svg>
                             <span class="font-medium">Support</span>
                         </a>
+                        <router-link to="/profiles" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            Profiles
+                        </router-link>
                         <router-link to="/contact" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                             Contact
                         </router-link>
                         <router-link to="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                            Privacy Policy
+                            Privacy
                         </router-link>
-                        <span class="hidden sm:inline">&middot;</span>
-                        <span class="hidden sm:inline">Made for trophy hunters</span>
                     </div>
                 </div>
             </div>

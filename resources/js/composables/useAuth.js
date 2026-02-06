@@ -10,6 +10,9 @@ export function useAuth() {
     const isAuthenticated = computed(() => !!user.value)
     const isAdmin = computed(() => user.value?.is_admin === true)
     const notifyNewGuides = computed(() => user.value?.notify_new_guides ?? true)
+    const profilePublic = computed(() => user.value?.profile_public ?? false)
+    const profileSlug = computed(() => user.value?.profile_slug || user.value?.id)
+    const profileUrl = computed(() => profileSlug.value ? `${window.location.origin}/u/${profileSlug.value}` : null)
 
     /**
      * Fetch the current user from the API
@@ -84,6 +87,9 @@ export function useAuth() {
         isAuthenticated,
         isAdmin,
         notifyNewGuides,
+        profilePublic,
+        profileSlug,
+        profileUrl,
         fetchUser,
         initAuth,
         loginWithGoogle,

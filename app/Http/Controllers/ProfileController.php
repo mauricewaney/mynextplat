@@ -10,6 +10,26 @@ use Illuminate\Validation\Rule;
 class ProfileController extends Controller
 {
     /**
+     * List all public profiles.
+     */
+    public function index(Request $request)
+    {
+        $profiles = User::where('profile_public', true)
+            ->select(['id', 'name', 'avatar', 'profile_slug'])
+            ->withCount([
+                'games',
+                'games as platinum_count' => function ($query) {
+                    $query->where('user_game.status', 'platinumed');
+                },
+            ])
+            ->orderByDesc('platinum_count')
+            ->orderByDesc('games_count')
+            ->paginate(18);
+
+        return response()->json($profiles);
+    }
+
+    /**
      * Get a public profile by slug or ID.
      */
     public function show(string $identifier)

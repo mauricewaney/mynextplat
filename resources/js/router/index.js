@@ -10,6 +10,7 @@ import Contact from '../pages/Contact.vue'
 import PrivacyPolicy from '../pages/PrivacyPolicy.vue'
 import Settings from '../pages/Settings.vue'
 import Profile from '../pages/Profile.vue'
+import Profiles from '../pages/Profiles.vue'
 
 // Admin pages
 import GameList from '../components/Admin/GameList.vue'
@@ -45,6 +46,13 @@ const routes = [
         path: '/privacy',
         name: 'privacy',
         component: PrivacyPolicy
+    },
+
+    // Public profiles directory
+    {
+        path: '/profiles',
+        name: 'profiles',
+        component: Profiles
     },
 
     // Public profile
