@@ -7,6 +7,7 @@ import MyGames from '../pages/MyGames.vue'
 import GameDetail from '../pages/GameDetail.vue'
 import ReportIssue from '../pages/ReportIssue.vue'
 import Contact from '../pages/Contact.vue'
+import PrivacyPolicy from '../pages/PrivacyPolicy.vue'
 import Settings from '../pages/Settings.vue'
 import Profile from '../pages/Profile.vue'
 
@@ -39,6 +40,11 @@ const routes = [
         path: '/contact',
         name: 'contact',
         component: Contact
+    },
+    {
+        path: '/privacy',
+        name: 'privacy',
+        component: PrivacyPolicy
     },
 
     // Public profile

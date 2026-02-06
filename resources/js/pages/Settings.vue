@@ -188,9 +188,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useHead } from '@vueuse/head'
 import AppLayout from '../components/AppLayout.vue'
+import { useAppConfig } from '../composables/useAppConfig'
+
+const { appName } = useAppConfig()
 
 useHead({
-    title: 'Settings | MyNextPlat',
+    title: `Settings | ${appName}`,
     meta: [
         { name: 'robots', content: 'noindex, nofollow' },
     ],

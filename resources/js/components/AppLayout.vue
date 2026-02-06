@@ -13,7 +13,7 @@
                                 </svg>
                             </div>
                             <h1 class="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
-                                {{ title || 'MyNextPlat' }}
+                                {{ title || appName }}
                             </h1>
                         </router-link>
 
@@ -186,7 +186,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-medium">MyNextPlat</span>
+                        <span class="text-sm font-medium">{{ appName }}</span>
                         <span class="text-xs text-gray-400 dark:text-gray-500">&copy; {{ new Date().getFullYear() }}</span>
                     </div>
 
@@ -221,6 +221,9 @@
                         <router-link to="/contact" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                             Contact
                         </router-link>
+                        <router-link to="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            Privacy Policy
+                        </router-link>
                         <span class="hidden sm:inline">&middot;</span>
                         <span class="hidden sm:inline">Made for trophy hunters</span>
                     </div>
@@ -233,11 +236,14 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useAuth } from '../composables/useAuth'
+import { useAppConfig } from '../composables/useAppConfig'
+
+const { appName } = useAppConfig()
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'MyNextPlat'
+        default: ''
     }
 })
 

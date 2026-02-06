@@ -83,71 +83,108 @@
 
                 <!-- Main Content -->
                 <main class="flex-1 min-w-0">
-                    <!-- Status Tabs & Settings -->
-                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
-                        <div class="flex flex-wrap gap-2">
+                    <!-- Status Tabs - Horizontally Scrollable on Mobile -->
+                    <div class="filter-row relative mb-3 -mx-4 px-4 sm:mx-0 sm:px-0 py-2 bg-gray-50 dark:bg-slate-950 z-10">
+                        <div class="flex items-center gap-2">
+                            <!-- Scrollable Status Pills -->
+                            <div class="flex-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                                <div class="flex gap-2 pb-1">
+                                    <button
+                                        v-for="tab in statusTabs"
+                                        :key="tab.value"
+                                        @click="switchStatus(tab.value)"
+                                        :class="[
+                                            'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all',
+                                            currentStatus === tab.value
+                                                ? 'bg-primary-600 text-white shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 ring-1 ring-gray-200 dark:ring-slate-700'
+                                        ]"
+                                    >
+                                        <span :class="['w-1.5 h-1.5 rounded-full', statusDotColors[tab.value]]"></span>
+                                        {{ tab.label }}
+                                        <span
+                                            v-if="statusCounts[tab.value] !== undefined && statusCounts[tab.value] > 0"
+                                            :class="[
+                                                'px-1.5 py-0.5 text-[10px] font-bold rounded-full',
+                                                currentStatus === tab.value
+                                                    ? 'bg-white/20 text-white'
+                                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400'
+                                            ]"
+                                        >
+                                            {{ statusCounts[tab.value] }}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Filter Button (Mobile) -->
                             <button
-                                v-for="tab in statusTabs"
-                                :key="tab.value"
-                                @click="switchStatus(tab.value)"
+                                @click="showMobileFilters = true"
                                 :class="[
-                                    'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                                    currentStatus === tab.value
-                                        ? 'bg-primary-600 text-white'
-                                        : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700'
+                                    'lg:hidden relative flex items-center justify-center p-2 rounded-full transition-all ring-1',
+                                    activeFilterCount > 0
+                                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 ring-primary-200 dark:ring-primary-800'
+                                        : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
                                 ]"
                             >
-                                {{ tab.label }}
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                </svg>
                                 <span
-                                    v-if="statusCounts[tab.value] !== undefined"
-                                    :class="[
-                                        'ml-1.5 px-1.5 py-0.5 text-xs rounded',
-                                        currentStatus === tab.value
-                                            ? 'bg-primary-500 text-white'
-                                            : 'bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-400'
-                                    ]"
+                                    v-if="activeFilterCount > 0"
+                                    class="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-primary-600 text-white"
                                 >
-                                    {{ statusCounts[tab.value] }}
+                                    {{ activeFilterCount }}
                                 </span>
                             </button>
-                        </div>
 
-                        <div class="flex items-center gap-2">
-                            <!-- Email Notifications Toggle -->
+                            <!-- Notifications Toggle (Desktop) -->
                             <button
                                 @click="toggleNotifications"
                                 :disabled="updatingNotifications"
-                                class="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors"
+                                class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-sm rounded-full transition-colors ring-1"
                                 :class="[
                                     notifyNewGuides
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
-                                        : 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-slate-700'
+                                        ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 ring-green-200 dark:ring-green-800'
+                                        : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
                                 ]"
                                 :title="notifyNewGuides ? 'Email notifications enabled' : 'Email notifications disabled'"
                             >
                                 <svg v-if="updatingNotifications" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <svg v-else-if="notifyNewGuides" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                                 </svg>
                                 <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
-                                <span class="hidden sm:inline">{{ notifyNewGuides ? 'Notify' : 'Notify' }}</span>
-                            </button>
-
-                            <!-- Mobile Filter Button -->
-                            <button
-                                @click="showMobileFilters = true"
-                                class="lg:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                                </svg>
+                                <span class="hidden md:inline">Notify</span>
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Active Filters Summary (Mobile) -->
+                    <div v-if="activeFilterCount > 0" class="lg:hidden flex flex-wrap gap-1.5 mb-3">
+                        <span
+                            v-for="filter in activeFiltersList"
+                            :key="filter.key"
+                            class="inline-flex items-center gap-1 px-2 py-1 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs rounded-full"
+                        >
+                            {{ filter.label }}
+                            <button
+                                @click="clearFilter(filter.key)"
+                                class="p-0.5 hover:bg-primary-200 dark:hover:bg-primary-800 rounded-full transition-colors"
+                            >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </span>
+                        <button
+                            @click="clearAllFilters"
+                            class="px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                        >
+                            Clear all
+                        </button>
                     </div>
 
                     <!-- Sort Bar -->
@@ -266,35 +303,60 @@
             </div>
         </div>
 
-        <!-- Mobile Filters Modal -->
+        <!-- Mobile Filters Bottom Sheet -->
         <Teleport to="body">
-            <Transition name="fade">
+            <Transition name="bottomsheet">
                 <div
                     v-if="showMobileFilters"
                     class="fixed inset-0 z-50 lg:hidden"
                 >
-                    <div class="absolute inset-0 bg-black/50" @click="showMobileFilters = false"></div>
-                    <div class="absolute inset-y-0 right-0 w-full max-w-sm bg-gray-50 dark:bg-slate-900 shadow-xl overflow-y-auto">
-                        <div class="sticky top-0 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
-                            <h2 class="font-semibold text-gray-900 dark:text-white">Filters</h2>
-                            <button
-                                @click="showMobileFilters = false"
-                                class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
+                    <!-- Backdrop -->
+                    <div
+                        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        @click="showMobileFilters = false"
+                    ></div>
+
+                    <!-- Bottom Sheet -->
+                    <div class="absolute inset-x-0 bottom-0 max-h-[85vh] bg-white dark:bg-slate-900 rounded-t-2xl shadow-xl flex flex-col">
+                        <!-- Handle -->
+                        <div class="flex justify-center pt-3 pb-2">
+                            <div class="w-10 h-1 bg-gray-300 dark:bg-slate-600 rounded-full"></div>
                         </div>
-                        <div class="p-4 pb-24">
+
+                        <!-- Header -->
+                        <div class="flex items-center justify-between px-4 pb-3 border-b border-gray-100 dark:border-slate-800">
+                            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
+                            <div class="flex items-center gap-2">
+                                <button
+                                    v-if="activeFilterCount > 0"
+                                    @click="clearAllFilters"
+                                    class="px-3 py-1 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
+                                >
+                                    Reset
+                                </button>
+                                <button
+                                    @click="showMobileFilters = false"
+                                    class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                >
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Scrollable Content -->
+                        <div class="flex-1 overflow-y-auto overscroll-contain p-4">
                             <GameFilters @update:filters="onFilterChange" />
                         </div>
-                        <div class="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4">
+
+                        <!-- Footer -->
+                        <div class="shrink-0 p-4 border-t border-gray-100 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                             <button
                                 @click="showMobileFilters = false"
-                                class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+                                class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors shadow-sm"
                             >
-                                Show {{ total }} Results
+                                Show {{ total.toLocaleString() }} Results
                             </button>
                         </div>
                     </div>
@@ -309,15 +371,18 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
+import { useAppConfig } from '../composables/useAppConfig'
 import { useUserGames } from '../composables/useUserGames'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
 import AppLayout from '../components/AppLayout.vue'
 import GameFilters from '../components/GameFilters.vue'
 import GameCard from '../components/GameCard.vue'
 
+const { appName } = useAppConfig()
+
 // SEO - noindex for private page
 useHead({
-    title: 'My Games | MyNextPlat',
+    title: `My Games | ${appName}`,
     meta: [
         { name: 'robots', content: 'noindex, nofollow' },
     ],
@@ -345,9 +410,20 @@ const filters = reactive({})
 const statusTabs = [
     { value: 'all', label: 'All' },
     { value: 'backlog', label: 'Backlog' },
-    { value: 'in_progress', label: 'In Progress' },
-    { value: 'platinumed', label: 'Platinumed' },
+    { value: 'in_progress', label: 'Playing' },
+    { value: 'completed', label: '100%' },
+    { value: 'platinumed', label: 'Platinum' },
+    { value: 'abandoned', label: 'Dropped' },
 ]
+
+const statusDotColors = {
+    all: 'bg-gray-400',
+    backlog: 'bg-slate-400',
+    in_progress: 'bg-sky-500',
+    completed: 'bg-emerald-500',
+    platinumed: 'bg-amber-500',
+    abandoned: 'bg-rose-500',
+}
 
 const hasMore = computed(() => currentPage.value < lastPage.value)
 
@@ -359,6 +435,67 @@ const hasActiveFilters = computed(() => {
            filters.difficulty_max < 10 ||
            currentStatus.value !== 'all'
 })
+
+// Count of active filters (excluding status which has its own UI)
+const activeFilterCount = computed(() => {
+    let count = 0
+    if (filters.search) count++
+    if (filters.platform_ids?.length) count++
+    if (filters.genre_ids?.length) count++
+    if (filters.tag_ids?.length) count++
+    if (filters.difficulty_min > 1 || filters.difficulty_max < 10) count++
+    if (filters.time_min > 0 || filters.time_max < 200) count++
+    if (filters.max_playthroughs) count++
+    if (filters.min_score > 0) count++
+    if (filters.has_guide === true || filters.has_guide === false) count++
+    if (filters.has_online_trophies === false) count++
+    if (filters.missable_trophies === false) count++
+    return count
+})
+
+// List of active filters for display
+const activeFiltersList = computed(() => {
+    const list = []
+    if (filters.search) list.push({ key: 'search', label: `"${filters.search}"` })
+    if (filters.platform_ids?.length) list.push({ key: 'platform_ids', label: `${filters.platform_ids.length} platform${filters.platform_ids.length > 1 ? 's' : ''}` })
+    if (filters.genre_ids?.length) list.push({ key: 'genre_ids', label: `${filters.genre_ids.length} genre${filters.genre_ids.length > 1 ? 's' : ''}` })
+    if (filters.difficulty_min > 1 || filters.difficulty_max < 10) list.push({ key: 'difficulty', label: `Diff: ${filters.difficulty_min}-${filters.difficulty_max}` })
+    if (filters.time_min > 0 || filters.time_max < 200) list.push({ key: 'time', label: `Time: ${filters.time_min}-${filters.time_max}h` })
+    if (filters.has_guide === true) list.push({ key: 'has_guide', label: 'Has guide' })
+    if (filters.has_guide === false) list.push({ key: 'has_guide', label: 'No guide' })
+    if (filters.has_online_trophies === false) list.push({ key: 'has_online_trophies', label: 'No online' })
+    if (filters.missable_trophies === false) list.push({ key: 'missable_trophies', label: 'No missables' })
+    return list
+})
+
+function clearFilter(key) {
+    if (key === 'search') filters.search = ''
+    else if (key === 'platform_ids') filters.platform_ids = []
+    else if (key === 'genre_ids') filters.genre_ids = []
+    else if (key === 'difficulty') { filters.difficulty_min = 1; filters.difficulty_max = 10 }
+    else if (key === 'time') { filters.time_min = 0; filters.time_max = 200 }
+    else if (key === 'has_guide') filters.has_guide = null
+    else if (key === 'has_online_trophies') filters.has_online_trophies = null
+    else if (key === 'missable_trophies') filters.missable_trophies = null
+
+    currentPage.value = 1
+    games.value = []
+    loadGames()
+}
+
+function clearAllFilters() {
+    Object.keys(filters).forEach(key => {
+        if (Array.isArray(filters[key])) filters[key] = []
+        else filters[key] = null
+    })
+    filters.difficulty_min = 1
+    filters.difficulty_max = 10
+    filters.time_min = 0
+    filters.time_max = 200
+    currentPage.value = 1
+    games.value = []
+    loadGames()
+}
 
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
@@ -513,5 +650,40 @@ onUnmounted(() => {
 .fade-enter-from,
 .fade-leave-to {
     opacity: 0;
+}
+
+/* Bottom Sheet Animation */
+.bottomsheet-enter-active,
+.bottomsheet-leave-active {
+    transition: opacity 0.3s ease;
+}
+.bottomsheet-enter-active > div:last-child,
+.bottomsheet-leave-active > div:last-child {
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.bottomsheet-enter-from,
+.bottomsheet-leave-to {
+    opacity: 0;
+}
+.bottomsheet-enter-from > div:last-child,
+.bottomsheet-leave-to > div:last-child {
+    transform: translateY(100%);
+}
+
+/* Hide scrollbar for horizontal scroll */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Sticky filter row - only on taller screens */
+@media (min-height: 600px) {
+    .filter-row {
+        position: sticky;
+        top: 64px; /* Header height */
+    }
 }
 </style>

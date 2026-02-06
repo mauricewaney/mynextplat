@@ -87,15 +87,15 @@
                                     <div class="text-xs text-gray-500 dark:text-gray-400">Games</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold text-yellow-500">{{ stats.platinum }}</div>
+                                    <div class="text-2xl font-bold text-amber-500">{{ stats.platinumed || stats.platinum || 0 }}</div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">Platinum</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold text-green-500">{{ stats.completed }}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Completed</div>
+                                    <div class="text-2xl font-bold text-emerald-500">{{ stats.completed || 0 }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">100%</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold text-blue-500">{{ stats.playing }}</div>
+                                    <div class="text-2xl font-bold text-sky-500">{{ stats.in_progress || stats.playing || 0 }}</div>
                                     <div class="text-xs text-gray-500 dark:text-gray-400">Playing</div>
                                 </div>
                             </div>
@@ -218,6 +218,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import AppLayout from '../components/AppLayout.vue'
+import { useAppConfig } from '../composables/useAppConfig'
+
+const { appName } = useAppConfig()
 
 const route = useRoute()
 
@@ -227,33 +230,33 @@ const isPrivate = ref(false)
 const isOwner = ref(false)
 const profileUser = ref(null)
 const games = ref([])
-const stats = ref({ total: 0, platinum: 0, completed: 0, playing: 0, want_to_play: 0 })
+const stats = ref({ total: 0, platinumed: 0, completed: 0, in_progress: 0, backlog: 0 })
 const currentStatus = ref('all')
 const avatarError = ref(false)
 const copied = ref(false)
 
 const statusTabs = [
     { value: 'all', label: 'All' },
-    { value: 'platinum', label: 'Platinum' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'playing', label: 'Playing' },
-    { value: 'want_to_play', label: 'Want to Play' },
+    { value: 'platinumed', label: 'Platinum' },
+    { value: 'completed', label: '100%' },
+    { value: 'in_progress', label: 'Playing' },
+    { value: 'backlog', label: 'Backlog' },
 ]
 
 const statusLabels = {
-    want_to_play: 'Want',
-    playing: 'Playing',
-    completed: 'Done',
-    platinum: 'Plat',
+    backlog: 'Backlog',
+    in_progress: 'Playing',
+    completed: '100%',
+    platinumed: 'Plat',
     abandoned: 'Dropped',
 }
 
 const statusColors = {
-    want_to_play: 'bg-gray-500 text-white',
-    playing: 'bg-blue-500 text-white',
-    completed: 'bg-green-500 text-white',
-    platinum: 'bg-yellow-500 text-black',
-    abandoned: 'bg-red-500 text-white',
+    backlog: 'bg-slate-500 text-white',
+    in_progress: 'bg-sky-500 text-white',
+    completed: 'bg-emerald-500 text-white',
+    platinumed: 'bg-amber-500 text-black',
+    abandoned: 'bg-rose-500 text-white',
 }
 
 const filteredGames = computed(() => {
@@ -271,16 +274,16 @@ function getStatusCount(status) {
 // Dynamic SEO
 useHead(() => {
     if (loading.value) {
-        return { title: 'Loading... | MyNextPlat' }
+        return { title: `Loading... | ${appName}` }
     }
     if (notFound.value || isPrivate.value) {
         return {
-            title: 'Profile | MyNextPlat',
+            title: `Profile | ${appName}`,
             meta: [{ name: 'robots', content: 'noindex' }],
         }
     }
     return {
-        title: `${profileUser.value?.name}'s Games | MyNextPlat`,
+        title: `${profileUser.value?.name}'s Games | ${appName}`,
         meta: [
             { name: 'description', content: `View ${profileUser.value?.name}'s trophy hunting game collection. ${stats.value.platinum} platinums, ${stats.value.total} games total.` },
         ],

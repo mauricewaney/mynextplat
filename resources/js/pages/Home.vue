@@ -13,7 +13,7 @@
                                 </svg>
                             </div>
                             <h1 class="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
-                                MyNextPlat
+                                {{ appName }}
                             </h1>
                         </router-link>
 
@@ -512,7 +512,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <span class="text-sm font-medium">MyNextPlat</span>
+                        <span class="text-sm font-medium">{{ appName }}</span>
                         <span class="text-xs text-gray-400 dark:text-gray-500">&copy; {{ new Date().getFullYear() }}</span>
                     </div>
 
@@ -544,9 +544,12 @@
                             </svg>
                             <span class="font-medium">Support</span>
                         </a>
-                        <a href="mailto:contact@mynextplat.com" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                            contact@mynextplat.com
-                        </a>
+                        <router-link to="/contact" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            Contact
+                        </router-link>
+                        <router-link to="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            Privacy Policy
+                        </router-link>
                         <span class="hidden sm:inline">&middot;</span>
                         <span class="hidden sm:inline">Made for trophy hunters</span>
                     </div>
@@ -842,19 +845,22 @@ import { useHead } from '@vueuse/head'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
 import { useAuth } from '../composables/useAuth'
+import { useAppConfig } from '../composables/useAppConfig'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
 import { useUserGames } from '../composables/useUserGames'
 
+const { appName } = useAppConfig()
+
 // SEO Meta Tags
 useHead({
-    title: 'MyNextPlat - PlayStation Trophy Guides & Tracker',
+    title: `${appName} - PlayStation Trophy Guides & Tracker`,
     meta: [
         { name: 'description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx. Filter by difficulty, time, and more.' },
-        { property: 'og:title', content: 'MyNextPlat - PlayStation Trophy Guides & Tracker' },
+        { property: 'og:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
         { property: 'og:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx.' },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary' },
-        { name: 'twitter:title', content: 'MyNextPlat - PlayStation Trophy Guides & Tracker' },
+        { name: 'twitter:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
         { name: 'twitter:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.' },
         { name: 'keywords', content: 'playstation, trophy guide, platinum trophy, ps5, ps4, psnprofiles, powerpyx, trophy hunting' },
     ],

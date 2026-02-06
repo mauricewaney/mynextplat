@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {{-- SEO Meta Tags (baseline - overridden by Vue for dynamic pages) --}}
-    <title>MyNextPlat - PlayStation Trophy Guides & Tracker</title>
+    <title>{{ config('app.name') }} - PlayStation Trophy Guides & Tracker</title>
     <meta name="description" content="Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx. Filter by difficulty, time, and more.">
     <meta name="keywords" content="playstation, trophy guide, platinum trophy, ps5, ps4, psnprofiles, powerpyx, trophy hunting">
 
     {{-- Open Graph --}}
-    <meta property="og:title" content="MyNextPlat - PlayStation Trophy Guides & Tracker">
+    <meta property="og:title" content="{{ config('app.name') }} - PlayStation Trophy Guides & Tracker">
     <meta property="og:description" content="Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="MyNextPlat">
+    <meta property="og:site_name" content="{{ config('app.name') }}">
 
     {{-- Twitter --}}
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="MyNextPlat - PlayStation Trophy Guides & Tracker">
+    <meta name="twitter:title" content="{{ config('app.name') }} - PlayStation Trophy Guides & Tracker">
     <meta name="twitter:description" content="Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.">
 
     {{-- Canonical URL --}}

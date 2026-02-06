@@ -9,7 +9,7 @@
                             <svg class="w-5 h-5 text-gray-400 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                             </svg>
-                            <h1 class="text-lg font-bold text-gray-900">MyNextPlat</h1>
+                            <h1 class="text-lg font-bold text-gray-900">{{ appName }}</h1>
                         </router-link>
                         <span class="ml-2 px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-medium rounded">Admin</span>
                         <div class="ml-8 flex space-x-1">
@@ -150,6 +150,9 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
+import { useAppConfig } from '../../composables/useAppConfig'
+
+const { appName } = useAppConfig()
 
 const route = useRoute()
 const router = useRouter()

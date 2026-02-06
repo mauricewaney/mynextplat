@@ -47,21 +47,51 @@
                 <!-- Spacer -->
                 <div class="flex-1"></div>
                 <!-- Status Dropdown (when in user's library) -->
-                <select
-                    v-if="game.user_status"
-                    :value="game.user_status"
-                    @change="$emit('update-status', game.id, $event.target.value)"
-                    @click.stop
-                    :class="[
-                        'px-1.5 py-0.5 text-[10px] sm:text-xs border-0 rounded-md focus:ring-2 focus:ring-primary-500 shrink-0',
-                        statusColors[game.user_status] || 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'
-                    ]"
-                >
-                    <option value="backlog">Backlog</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="platinumed">Platinumed</option>
-                    <option value="abandoned">Abandoned</option>
-                </select>
+                <div v-if="game.user_status" class="relative status-dropdown-container shrink-0" @click.stop>
+                    <button
+                        @click="showStatusMenu = !showStatusMenu"
+                        :class="[
+                            'flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs font-medium rounded-lg transition-all duration-200',
+                            'hover:ring-2 hover:ring-offset-1 hover:ring-offset-white dark:hover:ring-offset-slate-800',
+                            statusStyles[game.user_status]?.button || 'bg-gray-100 text-gray-700'
+                        ]"
+                    >
+                        <span :class="['w-1.5 h-1.5 rounded-full', statusStyles[game.user_status]?.dot]"></span>
+                        {{ statusLabels[game.user_status] }}
+                        <svg class="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <Transition name="dropdown">
+                        <div
+                            v-if="showStatusMenu"
+                            class="absolute right-0 top-full mt-1 z-50 min-w-[140px] bg-white dark:bg-slate-800 rounded-xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 overflow-hidden"
+                        >
+                            <div class="py-1">
+                                <button
+                                    v-for="status in statusOptions"
+                                    :key="status.value"
+                                    @click="selectStatus(status.value)"
+                                    :class="[
+                                        'w-full flex items-center gap-2.5 px-3 py-2 text-xs transition-colors',
+                                        game.user_status === status.value
+                                            ? 'bg-gray-50 dark:bg-slate-700/50'
+                                            : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
+                                    ]"
+                                >
+                                    <span :class="['w-2 h-2 rounded-full ring-2 ring-offset-1 ring-offset-white dark:ring-offset-slate-800', status.dot, status.ring]"></span>
+                                    <span :class="['font-medium', game.user_status === status.value ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-300']">
+                                        {{ status.label }}
+                                    </span>
+                                    <svg v-if="game.user_status === status.value" class="w-3.5 h-3.5 ml-auto text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </Transition>
+                </div>
                 <!-- Scores -->
                 <div class="flex items-center gap-1 shrink-0">
                     <!-- User Score -->
@@ -203,7 +233,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { apiPost } from '../utils/api'
 import AddToListButton from './AddToListButton.vue'
 
@@ -214,14 +244,70 @@ const props = defineProps({
     }
 })
 
-defineEmits(['update-status', 'removed'])
+const emit = defineEmits(['update-status', 'removed'])
 
-const statusColors = {
-    backlog: 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300',
-    in_progress: 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300',
-    platinumed: 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300',
-    abandoned: 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300',
+// Status dropdown state
+const showStatusMenu = ref(false)
+
+const statusLabels = {
+    backlog: 'Backlog',
+    in_progress: 'Playing',
+    completed: '100%',
+    platinumed: 'Platinum',
+    abandoned: 'Dropped',
 }
+
+const statusStyles = {
+    backlog: {
+        button: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:ring-slate-300 dark:hover:ring-slate-500',
+        dot: 'bg-slate-400 dark:bg-slate-500',
+    },
+    in_progress: {
+        button: 'bg-sky-50 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 hover:ring-sky-300 dark:hover:ring-sky-600',
+        dot: 'bg-sky-500 dark:bg-sky-400',
+    },
+    completed: {
+        button: 'bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 hover:ring-emerald-300 dark:hover:ring-emerald-600',
+        dot: 'bg-emerald-500 dark:bg-emerald-400',
+    },
+    platinumed: {
+        button: 'bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 hover:ring-amber-300 dark:hover:ring-amber-600',
+        dot: 'bg-amber-500 dark:bg-amber-400',
+    },
+    abandoned: {
+        button: 'bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 hover:ring-rose-300 dark:hover:ring-rose-600',
+        dot: 'bg-rose-500 dark:bg-rose-400',
+    },
+}
+
+const statusOptions = [
+    { value: 'backlog', label: 'Backlog', dot: 'bg-slate-400', ring: 'ring-slate-300 dark:ring-slate-500' },
+    { value: 'in_progress', label: 'Playing', dot: 'bg-sky-500', ring: 'ring-sky-300 dark:ring-sky-500' },
+    { value: 'completed', label: '100%', dot: 'bg-emerald-500', ring: 'ring-emerald-300 dark:ring-emerald-500' },
+    { value: 'platinumed', label: 'Platinum', dot: 'bg-amber-500', ring: 'ring-amber-300 dark:ring-amber-500' },
+    { value: 'abandoned', label: 'Dropped', dot: 'bg-rose-500', ring: 'ring-rose-300 dark:ring-rose-500' },
+]
+
+function selectStatus(status) {
+    showStatusMenu.value = false
+    if (status !== props.game.user_status) {
+        emit('update-status', props.game.id, status)
+    }
+}
+
+function handleClickOutside(e) {
+    if (!e.target.closest('.status-dropdown-container')) {
+        showStatusMenu.value = false
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside)
+})
 
 // Minimum rating counts to display (filter out unreliable scores)
 const MIN_USER_RATINGS = 3
@@ -296,3 +382,15 @@ function trackGuideClick(source) {
     apiPost('/guide-clicks', { game_id: props.game.id, guide_source: source })
 }
 </script>
+
+<style scoped>
+.dropdown-enter-active,
+.dropdown-leave-active {
+    transition: all 0.15s ease-out;
+}
+.dropdown-enter-from,
+.dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.95);
+}
+</style>

@@ -394,9 +394,12 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
+import { useAppConfig } from '../composables/useAppConfig'
 import { useUserGames } from '../composables/useUserGames'
 import { apiPost } from '../utils/api'
 import AppLayout from '../components/AppLayout.vue'
+
+const { appName } = useAppConfig()
 
 const route = useRoute()
 const { isAuthenticated, loginWithGoogle } = useAuth()
@@ -435,11 +438,11 @@ function trackGuideClick(source) {
 useHead(() => {
     if (!game.value) {
         return {
-            title: 'Loading... | MyNextPlat',
+            title: `Loading... | ${appName}`,
         }
     }
 
-    const title = `${game.value.title} Trophy Guide | MyNextPlat`
+    const title = `${game.value.title} Trophy Guide | ${appName}`
     const description = buildDescription()
     const image = game.value.cover_url || game.value.banner_url
 
