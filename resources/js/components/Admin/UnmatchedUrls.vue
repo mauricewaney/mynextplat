@@ -12,6 +12,7 @@
                         <option value="">All Sources</option>
                         <option value="psnprofiles">PSNP</option>
                         <option value="playstationtrophies">PST</option>
+                        <option value="powerpyx">PPX</option>
                     </select>
                     <div class="text-sm text-gray-500">
                         {{ filtered.length }} unmatched
@@ -23,7 +24,7 @@
             </div>
 
             <!-- Stats (compact) -->
-            <div class="grid grid-cols-4 gap-2">
+            <div class="grid grid-cols-6 gap-2">
                 <div class="bg-white rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-red-600">{{ stats.psnprofiles_unmatched || 0 }}</div>
                     <div class="text-xs text-gray-500">PSNP Unmatched</div>
@@ -39,6 +40,14 @@
                 <div class="bg-white rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-green-600">{{ stats.pst_matched || 0 }}</div>
                     <div class="text-xs text-gray-500">PST Matched</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-3 text-center">
+                    <div class="text-xl font-bold text-red-600">{{ stats.ppx_unmatched || 0 }}</div>
+                    <div class="text-xs text-gray-500">PPX Unmatched</div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-3 text-center">
+                    <div class="text-xl font-bold text-green-600">{{ stats.ppx_matched || 0 }}</div>
+                    <div class="text-xs text-gray-500">PPX Matched</div>
                 </div>
             </div>
 
@@ -156,10 +165,14 @@
                                 <!-- URL Info Row -->
                                 <div class="flex items-center gap-2 mb-2">
                                     <span
-                                        :class="item.source === 'psnprofiles' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'"
+                                        :class="{
+                                            'bg-blue-100 text-blue-800': item.source === 'psnprofiles',
+                                            'bg-purple-100 text-purple-800': item.source === 'playstationtrophies',
+                                            'bg-orange-100 text-orange-800': item.source === 'powerpyx'
+                                        }"
                                         class="px-1.5 py-0.5 rounded text-xs font-medium shrink-0"
                                     >
-                                        {{ item.source === 'psnprofiles' ? 'PSNP' : 'PST' }}
+                                        {{ item.source === 'psnprofiles' ? 'PSNP' : item.source === 'playstationtrophies' ? 'PST' : 'PPX' }}
                                     </span>
                                     <span class="font-medium text-gray-900 text-sm truncate">{{ item.extracted_title }}</span>
                                     <button
@@ -387,8 +400,10 @@ async function markAsDlc(item) {
             stats.value.dlc_count = (stats.value.dlc_count || 0) + 1
             if (item.source === 'psnprofiles') {
                 stats.value.psnprofiles_unmatched--
-            } else {
+            } else if (item.source === 'playstationtrophies') {
                 stats.value.pst_unmatched--
+            } else if (item.source === 'powerpyx') {
+                stats.value.ppx_unmatched--
             }
         }
     } catch (e) {
@@ -498,7 +513,7 @@ async function importFromIgdb(item, game, force = false) {
 
         // Handle confirmation needed for existing guide URL
         if (result.needs_confirmation) {
-            const sourceName = item.source === 'psnprofiles' ? 'PSNP' : 'PST'
+            const sourceName = item.source === 'psnprofiles' ? 'PSNP' : item.source === 'playstationtrophies' ? 'PST' : 'PPX'
             if (confirm(`"${result.game_title}" already has a ${sourceName} guide:\n${result.existing_url}\n\nOverwrite with new URL?`)) {
                 return importFromIgdb(item, game, true)
             }
@@ -510,9 +525,12 @@ async function importFromIgdb(item, game, force = false) {
             if (item.source === 'psnprofiles') {
                 stats.value.psnprofiles_unmatched--
                 stats.value.psnprofiles_matched++
-            } else {
+            } else if (item.source === 'playstationtrophies') {
                 stats.value.pst_unmatched--
                 stats.value.pst_matched++
+            } else if (item.source === 'powerpyx') {
+                stats.value.ppx_unmatched--
+                stats.value.ppx_matched++
             }
             previewGame.value = null
             activeItem.value = null
@@ -528,6 +546,7 @@ async function importFromIgdb(item, game, force = false) {
 function getExistingGuideUrl(game, source) {
     if (source === 'psnprofiles') return game.psnprofiles_url
     if (source === 'playstationtrophies') return game.playstationtrophies_url
+    if (source === 'powerpyx') return game.powerpyx_url
     return null
 }
 
@@ -536,7 +555,7 @@ async function matchToGame(item, game) {
     const existingUrl = getExistingGuideUrl(game, item.source)
     let force = false
     if (existingUrl) {
-        const sourceName = item.source === 'psnprofiles' ? 'PSNP' : 'PST'
+        const sourceName = item.source === 'psnprofiles' ? 'PSNP' : item.source === 'playstationtrophies' ? 'PST' : 'PPX'
         if (!confirm(`This game already has a ${sourceName} guide:\n${existingUrl}\n\nOverwrite with new URL?`)) {
             return
         }
@@ -558,9 +577,12 @@ async function matchToGame(item, game) {
             if (item.source === 'psnprofiles') {
                 stats.value.psnprofiles_unmatched--
                 stats.value.psnprofiles_matched++
-            } else {
+            } else if (item.source === 'playstationtrophies') {
                 stats.value.pst_unmatched--
                 stats.value.pst_matched++
+            } else if (item.source === 'powerpyx') {
+                stats.value.ppx_unmatched--
+                stats.value.ppx_matched++
             }
             previewGame.value = null
             activeItem.value = null
@@ -582,8 +604,10 @@ async function skipUrl(item) {
             unmatched.value = unmatched.value.filter(u => u.id !== item.id)
             if (item.source === 'psnprofiles') {
                 stats.value.psnprofiles_unmatched--
-            } else {
+            } else if (item.source === 'playstationtrophies') {
                 stats.value.pst_unmatched--
+            } else if (item.source === 'powerpyx') {
+                stats.value.ppx_unmatched--
             }
         }
     } catch (e) {

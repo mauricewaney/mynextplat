@@ -403,7 +403,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
@@ -437,13 +437,23 @@ const total = ref(0)
 const currentPage = ref(1)
 const lastPage = ref(1)
 const statusCounts = ref({ all: 0 })
-const currentStatus = ref('all')
-const sortBy = ref('added_at')
-const sortOrder = ref('desc')
+const currentStatus = ref(sessionStorage.getItem('myGamesStatus') || 'all')
+const sortBy = ref(sessionStorage.getItem('myGamesSortBy') || 'added_at')
+const sortOrder = ref(sessionStorage.getItem('myGamesSortOrder') || 'desc')
 const showMobileFilters = ref(false)
 const showViewModeMenu = ref(false)
 const updatingNotifications = ref(false)
-const filters = reactive({})
+
+// Load saved filters from sessionStorage
+const savedMyGamesFilters = (() => {
+    try {
+        const saved = sessionStorage.getItem('myGamesFilters')
+        return saved ? JSON.parse(saved) : {}
+    } catch {
+        return {}
+    }
+})()
+const filters = reactive({ ...savedMyGamesFilters })
 
 const statusTabs = [
     { value: 'all', label: 'All' },
@@ -530,6 +540,8 @@ function clearAllFilters() {
     filters.difficulty_max = 10
     filters.time_min = 0
     filters.time_max = 200
+    // Clear saved filters from sessionStorage
+    sessionStorage.removeItem('myGamesFilters')
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -537,6 +549,8 @@ function clearAllFilters() {
 
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
+    // Save filters to sessionStorage
+    sessionStorage.setItem('myGamesFilters', JSON.stringify(newFilters))
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -544,6 +558,7 @@ function onFilterChange(newFilters) {
 
 function switchStatus(status) {
     currentStatus.value = status
+    sessionStorage.setItem('myGamesStatus', status)
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -551,10 +566,19 @@ function switchStatus(status) {
 
 function toggleSortOrder() {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    sessionStorage.setItem('myGamesSortOrder', sortOrder.value)
     currentPage.value = 1
     games.value = []
     loadGames()
 }
+
+// Watch sortBy changes to save to sessionStorage
+watch(sortBy, (newVal) => {
+    sessionStorage.setItem('myGamesSortBy', newVal)
+    currentPage.value = 1
+    games.value = []
+    loadGames()
+})
 
 async function loadGames() {
     loading.value = true
@@ -624,16 +648,49 @@ function loadMore() {
 }
 
 async function updateGameStatus(gameId, status) {
+    // Find the game first
+    const game = games.value.find(g => g.id === gameId)
+    if (!game) return
+
+    const previousStatus = game.user_status
+
+    // Optimistically update local state immediately
+    game.user_status = status
+
+    // Update status counts locally
+    if (statusCounts.value[previousStatus]) {
+        statusCounts.value[previousStatus]--
+    }
+    if (statusCounts.value[status]) {
+        statusCounts.value[status]++
+    } else {
+        statusCounts.value[status] = 1
+    }
+
+    // If we're filtering by a specific status and the game no longer matches, remove it from view
+    if (currentStatus.value !== 'all' && status !== currentStatus.value) {
+        games.value = games.value.filter(g => g.id !== gameId)
+        total.value--
+    }
+
     try {
         await updateStatus(gameId, status)
-        // Update local state
-        const game = games.value.find(g => g.id === gameId)
-        if (game) {
-            game.user_status = status
-        }
-        // Reload to update counts
-        loadGames()
     } catch (e) {
+        // Revert on error
+        game.user_status = previousStatus
+        if (statusCounts.value[previousStatus]) {
+            statusCounts.value[previousStatus]++
+        }
+        if (statusCounts.value[status]) {
+            statusCounts.value[status]--
+        }
+        // Re-add to list if we removed it
+        if (currentStatus.value !== 'all' && status !== currentStatus.value) {
+            // Reload to get correct state
+            currentPage.value = 1
+            games.value = []
+            loadGames()
+        }
         console.error('Failed to update status:', e)
     }
 }

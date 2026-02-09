@@ -43,7 +43,7 @@
                 <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2 block">Platforms</label>
                 <div class="flex flex-wrap gap-1.5">
                     <button
-                        v-for="platform in filterOptions.platforms"
+                        v-for="platform in platforms"
                         :key="platform.id"
                         @click="toggleFilter('platform_ids', platform.id)"
                         :class="[
@@ -53,7 +53,7 @@
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
-                        {{ platform.short_name || platform.name }}
+                        {{ platform.short_name }}
                     </button>
                 </div>
             </div>
@@ -459,8 +459,16 @@ const filters = reactive({
     ...props.modelValue
 })
 
+// Static platforms - rarely change
+const platforms = [
+    { id: 5, short_name: 'PS5' },
+    { id: 2, short_name: 'PS4' },
+    { id: 1, short_name: 'PS3' },
+    { id: 3, short_name: 'Vita' },
+    { id: 4, short_name: 'PSVR' },
+]
+
 const filterOptions = reactive({
-    platforms: [],
     genres: [],
     tags: []
 })
@@ -616,7 +624,6 @@ async function loadFilterOptions() {
     try {
         const response = await fetch('/api/games/filters')
         const data = await response.json()
-        filterOptions.platforms = data.platforms || []
         filterOptions.genres = data.genres || []
         filterOptions.tags = data.tags || []
     } catch (e) {

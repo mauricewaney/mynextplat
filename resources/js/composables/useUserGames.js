@@ -73,15 +73,12 @@ export function useUserGames() {
             if (notes !== undefined) {
                 data.notes = notes
             }
-            const response = await apiPut(`/my-games/${gameId}`, data)
-            if (!response.ok) {
-                const result = await response.json()
-                throw new Error(result.message || 'Failed to update game')
-            }
+            // apiPut returns parsed JSON on success, throws on error
+            await apiPut(`/my-games/${gameId}`, data)
             // Update local state
             const game = games.value.find(g => g.id === gameId)
             if (game) {
-                game.status = status
+                game.user_status = status
                 if (notes !== undefined) {
                     game.notes = notes
                 }

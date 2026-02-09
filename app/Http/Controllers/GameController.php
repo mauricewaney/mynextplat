@@ -10,6 +10,7 @@ use App\Models\PsnTitle;
 use App\Services\GameFilterService;
 use App\Services\PSNService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class GameController extends Controller
 {
@@ -672,15 +673,63 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Game::with(['genres', 'tags', 'platforms']);
+        // Check if this is the default query (no filters, first page, default sort)
+        $isDefaultQuery = $this->isDefaultQuery($request);
 
-        // Apply filters (admin mode = false for public filters only)
+        if ($isDefaultQuery) {
+            // Cache the default "all games" page for 5 minutes
+            $cached = Cache::remember('games:default:page1', 300, function () use ($request) {
+                $query = Game::with(['genres', 'tags', 'platforms']);
+                $this->filterService->applyFilters($query, $request, false);
+                return $this->filterService->paginate($query, $request, 24, 100);
+            });
+
+            return response()->json($cached);
+        }
+
+        // For filtered queries, run normally without cache
+        $query = Game::with(['genres', 'tags', 'platforms']);
         $this->filterService->applyFilters($query, $request, false);
 
-        // Paginate (public default: 24 per page)
         return response()->json(
             $this->filterService->paginate($query, $request, 24, 100)
         );
+    }
+
+    /**
+     * Check if request is for the default unfiltered games list
+     */
+    private function isDefaultQuery(Request $request): bool
+    {
+        // Only cache page 1 with no filters
+        if ($request->input('page', 1) != 1) {
+            return false;
+        }
+
+        // Check for any active filters
+        $filterParams = [
+            'search', 'platform_ids', 'genre_ids', 'tag_ids',
+            'difficulty_min', 'difficulty_max', 'time_min', 'time_max',
+            'has_guide', 'has_online_trophies', 'missable_trophies',
+            'max_playthroughs', 'min_score', 'game_ids',
+            'guide_psnp', 'guide_pst', 'guide_ppx',
+        ];
+
+        foreach ($filterParams as $param) {
+            if ($request->has($param) && $request->input($param) !== null && $request->input($param) !== '') {
+                return false;
+            }
+        }
+
+        // Check sort - only cache default sort (title asc)
+        $sortBy = $request->input('sort_by', 'title');
+        $sortOrder = $request->input('sort_order', 'asc');
+
+        if ($sortBy !== 'title' || $sortOrder !== 'asc') {
+            return false;
+        }
+
+        return true;
     }
 
     /**

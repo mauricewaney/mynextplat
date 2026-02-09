@@ -5,7 +5,7 @@
         <!-- Unobtainable Stamp Overlay -->
         <div
             v-if="game.is_unobtainable"
-            class="absolute inset-0 flex items-center justify-center pointer-events-none z-20 overflow-hidden rounded-xl"
+            class="absolute inset-0 flex items-center justify-center pointer-events-none z-[5] overflow-hidden rounded-xl"
         >
             <div class="unobtainable-stamp">
                 UNOBTAINABLE

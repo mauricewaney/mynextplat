@@ -16,7 +16,7 @@ class TrophyUrlImportController extends Controller
     {
         $request->validate([
             'html' => 'required|string|min:100',
-            'source' => 'required|in:psnprofiles,playstationtrophies',
+            'source' => 'required|in:psnprofiles,playstationtrophies,powerpyx',
         ]);
 
         $html = $request->input('html');
@@ -69,7 +69,11 @@ class TrophyUrlImportController extends Controller
             ]);
 
             // Update game if matched
-            $urlField = $source === 'psnprofiles' ? 'psnprofiles_url' : 'playstationtrophies_url';
+            $urlField = match($source) {
+                'psnprofiles' => 'psnprofiles_url',
+                'playstationtrophies' => 'playstationtrophies_url',
+                'powerpyx' => 'powerpyx_url',
+            };
             if ($game && empty($game->$urlField)) {
                 $game->$urlField = $url;
                 $game->save();
@@ -82,8 +86,10 @@ class TrophyUrlImportController extends Controller
         // Get total counts
         $stats['total_psnprofiles'] = TrophyGuideUrl::where('source', 'psnprofiles')->count();
         $stats['total_playstationtrophies'] = TrophyGuideUrl::where('source', 'playstationtrophies')->count();
+        $stats['total_powerpyx'] = TrophyGuideUrl::where('source', 'powerpyx')->count();
         $stats['games_with_psnprofiles'] = Game::whereNotNull('psnprofiles_url')->count();
         $stats['games_with_playstationtrophies'] = Game::whereNotNull('playstationtrophies_url')->count();
+        $stats['games_with_powerpyx'] = Game::whereNotNull('powerpyx_url')->count();
 
         return response()->json([
             'success' => true,
@@ -110,6 +116,17 @@ class TrophyUrlImportController extends Controller
                     $urls[] = "https://www.playstationtrophies.org{$path}";
                 }
             }
+        } elseif ($source === 'powerpyx') {
+            // Match: href="...trophy-guide..." or href="...trophy-guide-roadmap..."
+            if (preg_match_all('#href=["\']([^"\']*(?:trophy-guide|trophy-guide-roadmap)[^"\']*)["\']#i', $html, $matches)) {
+                foreach ($matches[1] as $path) {
+                    $url = $path;
+                    if (!str_starts_with($url, 'http')) {
+                        $url = 'https://www.powerpyx.com' . $url;
+                    }
+                    $urls[] = $url;
+                }
+            }
         }
 
         return array_unique($urls);
@@ -127,6 +144,11 @@ class TrophyUrlImportController extends Controller
         } elseif ($source === 'playstationtrophies') {
             // URL: https://www.playstationtrophies.org/game/game-name/guide
             if (preg_match('#/game/([^/]+)/guide#i', $url, $matches)) {
+                return $matches[1];
+            }
+        } elseif ($source === 'powerpyx') {
+            // URL: https://www.powerpyx.com/game-name-trophy-guide-roadmap/
+            if (preg_match('#powerpyx\.com/([^/]+)-trophy-guide(?:-roadmap)?/?$#i', $url, $matches)) {
                 return $matches[1];
             }
         }
@@ -185,6 +207,12 @@ class TrophyUrlImportController extends Controller
                 'unmatched' => TrophyGuideUrl::where('source', 'playstationtrophies')->whereNull('game_id')->count(),
                 'games_with_url' => Game::whereNotNull('playstationtrophies_url')->count(),
             ],
+            'powerpyx' => [
+                'total_urls' => TrophyGuideUrl::where('source', 'powerpyx')->count(),
+                'matched' => TrophyGuideUrl::where('source', 'powerpyx')->whereNotNull('game_id')->count(),
+                'unmatched' => TrophyGuideUrl::where('source', 'powerpyx')->whereNull('game_id')->count(),
+                'games_with_url' => Game::whereNotNull('powerpyx_url')->count(),
+            ],
             'total_games' => Game::count(),
         ]);
     }
@@ -204,6 +232,8 @@ class TrophyUrlImportController extends Controller
                 'psnprofiles_matched' => TrophyGuideUrl::where('source', 'psnprofiles')->whereNotNull('game_id')->count(),
                 'pst_unmatched' => TrophyGuideUrl::where('source', 'playstationtrophies')->whereNull('game_id')->where('is_dlc', false)->count(),
                 'pst_matched' => TrophyGuideUrl::where('source', 'playstationtrophies')->whereNotNull('game_id')->count(),
+                'ppx_unmatched' => TrophyGuideUrl::where('source', 'powerpyx')->whereNull('game_id')->where('is_dlc', false)->count(),
+                'ppx_matched' => TrophyGuideUrl::where('source', 'powerpyx')->whereNotNull('game_id')->count(),
                 'dlc_count' => TrophyGuideUrl::whereNull('game_id')->where('is_dlc', true)->count(),
             ],
         ]);
@@ -236,7 +266,11 @@ class TrophyUrlImportController extends Controller
         $trophyUrl->save();
 
         // Update game with URL (only if empty, frontend handles confirmation)
-        $urlField = $trophyUrl->source === 'psnprofiles' ? 'psnprofiles_url' : 'playstationtrophies_url';
+        $urlField = match($trophyUrl->source) {
+            'psnprofiles' => 'psnprofiles_url',
+            'playstationtrophies' => 'playstationtrophies_url',
+            'powerpyx' => 'powerpyx_url',
+        };
         if (empty($game->$urlField) || $request->boolean('force')) {
             $game->$urlField = $trophyUrl->url;
             $game->save();
@@ -307,7 +341,11 @@ class TrophyUrlImportController extends Controller
         $existingGame = Game::where('igdb_id', $request->igdb_id)->first();
 
         if ($existingGame) {
-            $urlField = $trophyUrl->source === 'psnprofiles' ? 'psnprofiles_url' : 'playstationtrophies_url';
+            $urlField = match($trophyUrl->source) {
+                'psnprofiles' => 'psnprofiles_url',
+                'playstationtrophies' => 'playstationtrophies_url',
+                'powerpyx' => 'powerpyx_url',
+            };
 
             // Check if game already has a guide URL for this source
             if (!empty($existingGame->$urlField) && !$request->boolean('force')) {
@@ -371,7 +409,11 @@ class TrophyUrlImportController extends Controller
         $trophyUrl->save();
 
         // Set guide URL on game
-        $urlField = $trophyUrl->source === 'psnprofiles' ? 'psnprofiles_url' : 'playstationtrophies_url';
+        $urlField = match($trophyUrl->source) {
+            'psnprofiles' => 'psnprofiles_url',
+            'playstationtrophies' => 'playstationtrophies_url',
+            'powerpyx' => 'powerpyx_url',
+        };
         $game->$urlField = $trophyUrl->url;
         $game->save();
 

@@ -96,7 +96,7 @@ class UserGameController extends Controller
     private function getStatusCounts($user): array
     {
         $counts = ['all' => 0];
-        $statuses = ['backlog', 'in_progress', 'platinumed', 'abandoned'];
+        $statuses = ['backlog', 'in_progress', 'completed', 'platinumed', 'abandoned'];
 
         foreach ($statuses as $status) {
             $counts[$status] = 0;
@@ -234,7 +234,7 @@ class UserGameController extends Controller
     {
         $validated = $request->validate([
             'game_id' => ['required', 'exists:games,id'],
-            'status' => ['sometimes', Rule::in(['backlog', 'in_progress', 'platinumed', 'abandoned'])],
+            'status' => ['sometimes', Rule::in(['backlog', 'in_progress', 'completed', 'platinumed', 'abandoned'])],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
@@ -287,7 +287,7 @@ class UserGameController extends Controller
     public function update(Request $request, int $gameId): JsonResponse
     {
         $validated = $request->validate([
-            'status' => ['sometimes', Rule::in(['backlog', 'in_progress', 'platinumed', 'abandoned'])],
+            'status' => ['sometimes', Rule::in(['backlog', 'in_progress', 'completed', 'platinumed', 'abandoned'])],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
             'preferred_guide' => ['sometimes', 'nullable', Rule::in(['psnprofiles', 'playstationtrophies', 'powerpyx'])],
         ]);
@@ -338,7 +338,7 @@ class UserGameController extends Controller
         $validated = $request->validate([
             'game_ids' => ['required', 'array', 'min:1'],
             'game_ids.*' => ['integer', 'exists:games,id'],
-            'status' => ['sometimes', 'in:backlog,in_progress,platinumed,abandoned'],
+            'status' => ['sometimes', 'in:backlog,in_progress,completed,platinumed,abandoned'],
         ]);
 
         $user = $request->user();

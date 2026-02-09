@@ -469,6 +469,7 @@
                             v-for="game in games"
                             :key="game.id"
                             :game="game"
+                            @update-status="updateGameStatus"
                         />
                     </div>
 
@@ -542,14 +543,15 @@
                             </svg>
                             <span class="font-medium">Support</span>
                         </a>
+                        <router-link to="/profiles" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            Profiles
+                        </router-link>
                         <router-link to="/contact" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                             Contact
                         </router-link>
                         <router-link to="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                            Privacy Policy
+                            Privacy
                         </router-link>
-                        <span class="hidden sm:inline">&middot;</span>
-                        <span class="hidden sm:inline">Made for trophy hunters</span>
                     </div>
                 </div>
             </div>
@@ -889,7 +891,7 @@ const {
     psnFilteredCount,
 } = usePSNLibrary()
 
-const { bulkAddToList } = useUserGames()
+const { bulkAddToList, updateStatus } = useUserGames()
 
 const psnUsernameInput = ref('')
 
@@ -1030,7 +1032,16 @@ const sortBy = ref(sessionStorage.getItem('sortBy') || 'critic_score')
 const sortOrder = ref(sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
 
-const filters = reactive({})
+// Load saved filters from sessionStorage
+const savedFilters = (() => {
+    try {
+        const saved = sessionStorage.getItem('homeFilters')
+        return saved ? JSON.parse(saved) : {}
+    } catch {
+        return {}
+    }
+})()
+const filters = reactive({ ...savedFilters })
 
 // Dark mode
 const darkMode = ref(false)
@@ -1181,6 +1192,19 @@ function loadMore() {
     loadGames()
 }
 
+async function updateGameStatus(gameId, status) {
+    try {
+        await updateStatus(gameId, status)
+        // Update local state
+        const game = games.value.find(g => g.id === gameId)
+        if (game) {
+            game.user_status = status
+        }
+    } catch (e) {
+        console.error('Failed to update status:', e)
+    }
+}
+
 onMounted(() => {
     initDarkMode()
 
@@ -1203,6 +1227,7 @@ onMounted(() => {
         }
     }
 
+    // Load games with saved filters
     loadGames()
 })
 </script>
