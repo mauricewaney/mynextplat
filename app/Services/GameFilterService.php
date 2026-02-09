@@ -167,10 +167,21 @@ class GameFilterService
     }
 
     /**
-     * Minimum score filter
+     * Minimum score filters (user score and critic score)
      */
     protected function applyScoreFilter(Builder $query, Request $request): void
     {
+        // IGDB User Score filter
+        if ($request->filled('min_user_score')) {
+            $query->where('user_score', '>=', $request->min_user_score);
+        }
+
+        // IGDB Critic Score filter
+        if ($request->filled('min_critic_score')) {
+            $query->where('critic_score', '>=', $request->min_critic_score);
+        }
+
+        // Legacy min_score filter (checks any score) - kept for backwards compatibility
         if ($request->filled('min_score')) {
             $query->where(function ($q) use ($request) {
                 $q->where('critic_score', '>=', $request->min_score)

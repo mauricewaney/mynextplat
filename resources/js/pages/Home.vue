@@ -384,6 +384,7 @@
                             >
                                 <option value="title">Title</option>
                                 <option value="release_date">Release Date</option>
+                                <option value="added_at">Date Added</option>
                                 <option value="difficulty">Difficulty</option>
                                 <option value="time_min">Completion Time</option>
                                 <option value="user_score">User Score</option>
@@ -1035,7 +1036,7 @@ const showMobileFilters = ref(false)
 // Load saved filters from sessionStorage
 const savedFilters = (() => {
     try {
-        const saved = sessionStorage.getItem('homeFilters')
+        const saved = sessionStorage.getItem('gameFilters')
         return saved ? JSON.parse(saved) : {}
     } catch {
         return {}
@@ -1077,7 +1078,7 @@ function onFilterChange(newFilters) {
     // Save filters to sessionStorage (exclude game_ids as they're from PSN lookup)
     const filtersToSave = { ...newFilters }
     delete filtersToSave.game_ids
-    sessionStorage.setItem('homeFilters', JSON.stringify(filtersToSave))
+    sessionStorage.setItem('gameFilters', JSON.stringify(filtersToSave))
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -1154,7 +1155,8 @@ async function loadGames() {
         if (filters.time_min > 0) params.append('time_min', filters.time_min)
         if (filters.time_max < 200) params.append('time_max', filters.time_max)
         if (filters.max_playthroughs) params.append('max_playthroughs', filters.max_playthroughs)
-        if (filters.min_score > 0) params.append('min_score', filters.min_score)
+        if (filters.min_user_score > 0) params.append('min_user_score', filters.min_user_score)
+        if (filters.min_critic_score > 0) params.append('min_critic_score', filters.min_critic_score)
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
         if (filters.guide_psnp) params.append('guide_psnp', 'true')

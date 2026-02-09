@@ -235,12 +235,15 @@
                                 @change="loadGames"
                                 class="border-0 bg-gray-100 dark:bg-slate-700 dark:text-gray-200 rounded-lg text-sm py-1.5 pl-3 pr-8 focus:ring-2 focus:ring-primary-500"
                             >
-                                <option value="added_at">Date Added</option>
                                 <option value="title">Title</option>
+                                <option value="release_date">Release Date</option>
+                                <option value="added_at">Date Added</option>
                                 <option value="difficulty">Difficulty</option>
                                 <option value="time_min">Completion Time</option>
                                 <option value="user_score">User Score</option>
                                 <option value="critic_score">Critic Score</option>
+                                <option value="playthroughs_required">Playthroughs</option>
+                                <option value="missable_trophies">Missables</option>
                             </select>
                             <button
                                 @click="toggleSortOrder"
@@ -438,8 +441,8 @@ const currentPage = ref(1)
 const lastPage = ref(1)
 const statusCounts = ref({ all: 0 })
 const currentStatus = ref(sessionStorage.getItem('myGamesStatus') || 'all')
-const sortBy = ref(sessionStorage.getItem('myGamesSortBy') || 'added_at')
-const sortOrder = ref(sessionStorage.getItem('myGamesSortOrder') || 'desc')
+const sortBy = ref(sessionStorage.getItem('sortBy') || 'critic_score')
+const sortOrder = ref(sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
 const showViewModeMenu = ref(false)
 const updatingNotifications = ref(false)
@@ -447,7 +450,7 @@ const updatingNotifications = ref(false)
 // Load saved filters from sessionStorage
 const savedMyGamesFilters = (() => {
     try {
-        const saved = sessionStorage.getItem('myGamesFilters')
+        const saved = sessionStorage.getItem('gameFilters')
         return saved ? JSON.parse(saved) : {}
     } catch {
         return {}
@@ -494,7 +497,8 @@ const activeFilterCount = computed(() => {
     if (filters.difficulty_min > 1 || filters.difficulty_max < 10) count++
     if (filters.time_min > 0 || filters.time_max < 200) count++
     if (filters.max_playthroughs) count++
-    if (filters.min_score > 0) count++
+    if (filters.min_user_score > 0) count++
+    if (filters.min_critic_score > 0) count++
     if (filters.has_guide === true || filters.has_guide === false) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
@@ -541,7 +545,7 @@ function clearAllFilters() {
     filters.time_min = 0
     filters.time_max = 200
     // Clear saved filters from sessionStorage
-    sessionStorage.removeItem('myGamesFilters')
+    sessionStorage.removeItem('gameFilters')
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -550,7 +554,7 @@ function clearAllFilters() {
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
     // Save filters to sessionStorage
-    sessionStorage.setItem('myGamesFilters', JSON.stringify(newFilters))
+    sessionStorage.setItem('gameFilters', JSON.stringify(newFilters))
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -566,7 +570,7 @@ function switchStatus(status) {
 
 function toggleSortOrder() {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-    sessionStorage.setItem('myGamesSortOrder', sortOrder.value)
+    sessionStorage.setItem('sortOrder', sortOrder.value)
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -574,7 +578,7 @@ function toggleSortOrder() {
 
 // Watch sortBy changes to save to sessionStorage
 watch(sortBy, (newVal) => {
-    sessionStorage.setItem('myGamesSortBy', newVal)
+    sessionStorage.setItem('sortBy', newVal)
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -609,7 +613,8 @@ async function loadGames() {
         if (filters.time_min > 0) params.append('time_min', filters.time_min)
         if (filters.time_max < 200) params.append('time_max', filters.time_max)
         if (filters.max_playthroughs) params.append('max_playthroughs', filters.max_playthroughs)
-        if (filters.min_score > 0) params.append('min_score', filters.min_score)
+        if (filters.min_user_score > 0) params.append('min_user_score', filters.min_user_score)
+        if (filters.min_critic_score > 0) params.append('min_critic_score', filters.min_critic_score)
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
 

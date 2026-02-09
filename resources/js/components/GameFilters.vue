@@ -58,16 +58,34 @@
                 </div>
             </div>
 
-            <!-- Minimum Score -->
+            <!-- IGDB User Score -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-sm mb-2">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">Minimum Score</span>
-                    <span v-if="filters.min_score > 0" class="text-primary-600 dark:text-primary-400 font-medium">{{ filters.min_score }}+</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB User Score</span>
+                    <span v-if="filters.min_user_score > 0" class="text-primary-600 dark:text-primary-400 font-medium">{{ filters.min_user_score }}+</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
                 </div>
                 <input
                     type="range"
-                    v-model.number="filters.min_score"
+                    v-model.number="filters.min_user_score"
+                    min="0"
+                    max="100"
+                    step="5"
+                    class="w-full accent-primary-600"
+                    @input="emitFilters"
+                />
+            </div>
+
+            <!-- IGDB Critic Score -->
+            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <div class="flex items-center justify-between text-sm mb-2">
+                    <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB Critic Score</span>
+                    <span v-if="filters.min_critic_score > 0" class="text-primary-600 dark:text-primary-400 font-medium">{{ filters.min_critic_score }}+</span>
+                    <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
+                </div>
+                <input
+                    type="range"
+                    v-model.number="filters.min_critic_score"
                     min="0"
                     max="100"
                     step="5"
@@ -431,7 +449,7 @@ const props = defineProps({
 // Load saved filters from sessionStorage
 const savedFilters = (() => {
     try {
-        const saved = sessionStorage.getItem('homeFilters')
+        const saved = sessionStorage.getItem('gameFilters')
         return saved ? JSON.parse(saved) : {}
     } catch {
         return {}
@@ -448,7 +466,8 @@ const filters = reactive({
     time_min: 0,
     time_max: 200,
     max_playthroughs: null,
-    min_score: 0,
+    min_user_score: 0,
+    min_critic_score: 0,
     has_online_trophies: null,
     missable_trophies: null,
     has_guide: null, // null = any, true = only with guides, false = only without guides
@@ -494,7 +513,8 @@ const activeFilterCount = computed(() => {
     if (filters.difficulty_min > 1 || filters.difficulty_max < 10) count++
     if (filters.time_min > 0 || filters.time_max < 200) count++
     if (filters.max_playthroughs) count++
-    if (filters.min_score > 0) count++
+    if (filters.min_user_score > 0) count++
+    if (filters.min_critic_score > 0) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
     if (filters.has_guide !== null) count++
@@ -586,7 +606,8 @@ function clearAllFilters() {
     filters.time_min = 0
     filters.time_max = 200
     filters.max_playthroughs = null
-    filters.min_score = 0
+    filters.min_user_score = 0
+    filters.min_critic_score = 0
     filters.has_online_trophies = null
     filters.missable_trophies = null
     filters.has_guide = null
@@ -595,7 +616,7 @@ function clearAllFilters() {
     filters.guide_ppx = false
 
     // Clear saved filters from sessionStorage
-    sessionStorage.removeItem('homeFilters')
+    sessionStorage.removeItem('gameFilters')
 
     emitFilters()
 }
