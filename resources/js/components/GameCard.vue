@@ -114,31 +114,29 @@
                         </div>
                     </Transition>
                 </div>
-                <!-- Scores -->
+                <!-- Scores (always reserve space) -->
                 <div class="flex items-center gap-1 shrink-0">
                     <!-- User Score -->
                     <div
-                        v-if="displayUserScore !== null"
                         :class="[
-                            'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold text-white',
-                            userScoreClass,
-                            displayUserScore === 'N/A' ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
+                            'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold',
+                            displayUserScore !== null ? ['text-white', userScoreClass] : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-gray-500',
+                            displayUserScore === 'N/A' || displayUserScore === null ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
                         ]"
-                        :title="displayUserScore === 'N/A' ? 'Not enough user ratings' : `User score: ${displayUserScore} (${game.user_score_count} ratings)`"
+                        :title="displayUserScore === null ? 'No user score' : displayUserScore === 'N/A' ? 'Not enough user ratings' : `User score: ${displayUserScore} (${game.user_score_count} ratings)`"
                     >
-                        {{ displayUserScore }}
+                        {{ displayUserScore ?? '--' }}
                     </div>
                     <!-- Critic Score -->
                     <div
-                        v-if="displayCriticScore !== null"
                         :class="[
                             'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
-                            criticScoreClass,
-                            displayCriticScore === 'N/A' ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
+                            displayCriticScore !== null ? criticScoreClass : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500',
+                            displayCriticScore === 'N/A' || displayCriticScore === null ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
                         ]"
-                        :title="displayCriticScore === 'N/A' ? 'Not enough critic reviews' : `Critic score: ${displayCriticScore} (${game.critic_score_count} sources)`"
+                        :title="displayCriticScore === null ? 'No critic score' : displayCriticScore === 'N/A' ? 'Not enough critic reviews' : `Critic score: ${displayCriticScore} (${game.critic_score_count} sources)`"
                     >
-                        {{ displayCriticScore }}
+                        {{ displayCriticScore ?? '--' }}
                     </div>
                 </div>
             </div>
