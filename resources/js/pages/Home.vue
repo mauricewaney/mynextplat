@@ -135,22 +135,13 @@
                             </svg>
                         </button>
                         <!-- Mobile Auth -->
-                        <button
+                        <UserMenuDropdown
                             v-if="isAuthenticated"
-                            @click.stop="showUserMenu = !showUserMenu"
-                            class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors user-menu-container shrink-0"
-                        >
-                            <img
-                                v-if="user?.avatar && !avatarError"
-                                :src="user.avatar"
-                                :alt="user.name"
-                                class="w-8 h-8 rounded-full object-cover aspect-square"
-                                @error="avatarError = true"
-                            />
-                            <div v-else class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium aspect-square shrink-0">
-                                {{ user?.name?.charAt(0) || '?' }}
-                            </div>
-                        </button>
+                            :show-chevron="false"
+                            button-class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+                            avatar-class="w-8 h-8 rounded-full object-cover aspect-square"
+                            fallback-avatar-class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium aspect-square shrink-0"
+                        />
                         <button
                             v-else
                             @click="loginWithGoogle"
@@ -194,60 +185,7 @@
                         </button>
 
                         <!-- Auth UI -->
-                        <div v-if="isAuthenticated" class="relative user-menu-container">
-                            <button
-                                @click.stop="showUserMenu = !showUserMenu"
-                                class="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-                            >
-                                <img
-                                    v-if="user?.avatar && !avatarError"
-                                    :src="user.avatar"
-                                    :alt="user.name"
-                                    class="w-8 h-8 rounded-full"
-                                    @error="avatarError = true"
-                                />
-                                <div v-else class="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
-                                    {{ user?.name?.charAt(0) || '?' }}
-                                </div>
-                                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <Transition name="dropdown">
-                                <div
-                                    v-if="showUserMenu"
-                                    class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 z-50"
-                                >
-                                    <div class="px-4 py-2 border-b border-gray-100 dark:border-slate-700">
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user?.name }}</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
-                                    </div>
-                                    <router-link
-                                        to="/my-games"
-                                        @click="showUserMenu = false"
-                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
-                                    >
-                                        My Games
-                                    </router-link>
-                                    <router-link
-                                        v-if="isAdmin"
-                                        to="/admin"
-                                        @click="showUserMenu = false"
-                                        class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
-                                    >
-                                        Admin
-                                    </router-link>
-                                    <button
-                                        @click="handleLogout"
-                                        class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700"
-                                    >
-                                        Sign Out
-                                    </button>
-                                </div>
-                            </Transition>
-                        </div>
+                        <UserMenuDropdown v-if="isAuthenticated" />
 
                         <!-- Login Button -->
                         <button
@@ -845,6 +783,7 @@ import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
+import UserMenuDropdown from '../components/UserMenuDropdown.vue'
 import { useAuth } from '../composables/useAuth'
 import { useAppConfig } from '../composables/useAppConfig'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
@@ -869,12 +808,6 @@ useHead({
 
 const route = useRoute()
 const { user, isAuthenticated, isAdmin, initAuth, loginWithGoogle, logout } = useAuth()
-const avatarError = ref(false)
-
-// Reset avatar error when user changes
-watch(() => user.value?.avatar, () => {
-    avatarError.value = false
-})
 const {
     psnGameIds,
     psnAllGameIds,
@@ -947,7 +880,6 @@ async function bulkAddPsnGamesToLibrary() {
 const showDonations = import.meta.env.VITE_SHOW_DONATIONS === 'true'
 const donationUrl = import.meta.env.VITE_DONATION_URL || 'https://ko-fi.com/mynextplat'
 
-const showUserMenu = ref(false)
 const showPsnSearchModal = ref(false)
 const showUnmatchedModal = ref(false)
 const unmatchedSearch = ref('')
@@ -1002,16 +934,8 @@ const filteredUnmatchedTitles = computed(() => {
     )
 })
 
-async function handleLogout() {
-    await logout()
-    showUserMenu.value = false
-}
-
 // Close menus when clicking outside
 function closeMenus(e) {
-    if (!e.target.closest('.user-menu-container')) {
-        showUserMenu.value = false
-    }
     if (!e.target.closest('.view-mode-menu-container')) {
         showViewModeMenu.value = false
     }
