@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('psn_titles', 'skipped_at')) {
+            return;
+        }
+
         Schema::table('psn_titles', function (Blueprint $table) {
             $table->timestamp('skipped_at')->nullable()->after('times_seen');
             $table->index('skipped_at');
