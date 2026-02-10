@@ -14,6 +14,7 @@ class PSNService
     private const GAME_LIST_URL = 'https://m.np.playstation.com/api/gamelist/v2/users/{accountId}/titles';
     private const PURCHASED_URL = 'https://m.np.playstation.com/api/entitlement/v1/users/{accountId}/entitlements';
     private const SEARCH_URL = 'https://m.np.playstation.com/api/search/v1/universalSearch';
+    private const LEGACY_PROFILE_URL = 'https://us-prof.np.community.playstation.net/userProfile/v1/users/{username}/profile2';
     private const PROFILE_URL = 'https://m.np.playstation.com/api/userProfile/v1/internal/users/{accountId}/profiles';
 
     // PlayStation credentials from psnawp (actively maintained Python library)
@@ -194,6 +195,22 @@ class PSNService
 
         \Log::info('PSN Search: Searching for user', ['username' => $username]);
 
+        // Try universal search first
+        $result = $this->searchUserViaUniversalSearch($username);
+        if ($result) {
+            return $result;
+        }
+
+        // Fallback: legacy profile endpoint (works from datacenter IPs)
+        \Log::info('PSN Search: Universal search failed, trying legacy profile endpoint');
+        return $this->searchUserViaLegacyProfile($username);
+    }
+
+    /**
+     * Search via the universal search API
+     */
+    private function searchUserViaUniversalSearch(string $username): ?array
+    {
         $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
             'Authorization' => 'Bearer ' . $this->accessToken,
         ]))->post(self::SEARCH_URL, [
@@ -232,6 +249,43 @@ class PSNService
                     'accountId' => $first['socialMetadata']['accountId'],
                     'onlineId' => $first['socialMetadata']['onlineId'],
                     'avatarUrl' => $first['socialMetadata']['avatarUrl'] ?? null,
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Fallback: resolve username via the legacy profile endpoint
+     */
+    private function searchUserViaLegacyProfile(string $username): ?array
+    {
+        $url = str_replace('{username}', urlencode($username), self::LEGACY_PROFILE_URL);
+
+        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+            'Authorization' => 'Bearer ' . $this->accessToken,
+        ]))->get($url, [
+            'fields' => 'accountId,onlineId,avatarUrls',
+        ]);
+
+        \Log::info('PSN Legacy Profile: Response', [
+            'status' => $response->status(),
+            'body' => substr($response->body(), 0, 500),
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $profile = $data['profile'] ?? $data;
+
+            $accountId = $profile['accountId'] ?? null;
+            $onlineId = $profile['onlineId'] ?? $username;
+
+            if ($accountId) {
+                return [
+                    'accountId' => $accountId,
+                    'onlineId' => $onlineId,
+                    'avatarUrl' => $profile['avatarUrls'][0]['avatarUrl'] ?? $profile['avatarUrl'] ?? null,
                 ];
             }
         }
