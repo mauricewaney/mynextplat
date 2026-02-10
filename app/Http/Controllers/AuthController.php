@@ -62,7 +62,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         if (!$user) {
-            return response()->json(null);
+            return response()->json(null, 401);
         }
 
         return response()->json([
