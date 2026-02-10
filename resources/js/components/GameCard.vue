@@ -12,7 +12,7 @@
             </div>
         </div>
         <!-- Cover Image -->
-        <div class="relative w-24 sm:w-28 h-36 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
+        <div class="relative w-28 sm:w-28 h-40 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
             <img
                 v-if="game.cover_url"
                 :src="game.cover_url"
@@ -119,9 +119,9 @@
                     <!-- User Score -->
                     <div
                         :class="[
-                            'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold',
+                            'w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold',
                             displayUserScore !== null ? ['text-white', userScoreClass] : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-gray-500',
-                            displayUserScore === 'N/A' || displayUserScore === null ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
+                            displayUserScore === 'N/A' || displayUserScore === null ? 'text-[9px] sm:text-[10px]' : 'text-sm sm:text-sm'
                         ]"
                         :title="displayUserScore === null ? 'No user score' : displayUserScore === 'N/A' ? 'Not enough user ratings' : `User score: ${displayUserScore} (${game.user_score_count} ratings)`"
                     >
@@ -130,9 +130,9 @@
                     <!-- Critic Score -->
                     <div
                         :class="[
-                            'w-6 h-6 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
+                            'w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
                             displayCriticScore !== null ? criticScoreClass : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500',
-                            displayCriticScore === 'N/A' || displayCriticScore === null ? 'text-[8px] sm:text-[10px]' : 'text-xs sm:text-sm'
+                            displayCriticScore === 'N/A' || displayCriticScore === null ? 'text-[9px] sm:text-[10px]' : 'text-sm sm:text-sm'
                         ]"
                         :title="displayCriticScore === null ? 'No critic score' : displayCriticScore === 'N/A' ? 'Not enough critic reviews' : `Critic score: ${displayCriticScore} (${game.critic_score_count} sources)`"
                     >
