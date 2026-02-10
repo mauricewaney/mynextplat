@@ -74,9 +74,9 @@
                             <span
                                 v-for="platform in game.platforms"
                                 :key="platform.id"
-                                class="px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs font-medium rounded"
+                                class="h-10 px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-sm font-medium rounded"
                             >
-                                {{ platform.short_name }}
+                                <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-8" />
                             </span>
                         </div>
 
@@ -398,6 +398,7 @@ import { useAppConfig } from '../composables/useAppConfig'
 import { useUserGames } from '../composables/useUserGames'
 import { apiPost } from '../utils/api'
 import AppLayout from '../components/AppLayout.vue'
+import PlatformIcon from '../components/PlatformIcon.vue'
 
 const { appName } = useAppConfig()
 

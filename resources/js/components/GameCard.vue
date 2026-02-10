@@ -61,9 +61,9 @@
                     <span
                         v-for="platform in game.platforms.slice(0, 3)"
                         :key="platform.id"
-                        class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded"
+                        class="h-8 px-1.5 inline-flex items-center bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded"
                     >
-                        {{ platform.short_name || platform.name }}
+                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name || platform.name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-6" />
                     </span>
                 </div>
                 <!-- Spacer -->
@@ -259,6 +259,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { apiPost } from '../utils/api'
 import { useAuth } from '../composables/useAuth'
 import AddToListButton from './AddToListButton.vue'
+import PlatformIcon from './PlatformIcon.vue'
 
 const { isAdmin } = useAuth()
 

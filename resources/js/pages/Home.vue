@@ -496,39 +496,51 @@
             </div>
         </footer>
 
-        <!-- Mobile Filters Modal -->
+        <!-- Mobile Filters Bottom Sheet -->
         <Teleport to="body">
             <Transition name="fade">
                 <div
                     v-if="showMobileFilters"
                     class="fixed inset-0 z-50 lg:hidden"
+                    @click.self="showMobileFilters = false"
                 >
                     <div class="absolute inset-0 bg-black/50" @click="showMobileFilters = false"></div>
-                    <div class="absolute inset-y-0 right-0 w-full max-w-sm bg-gray-50 dark:bg-slate-900 shadow-xl overflow-y-auto">
-                        <div class="sticky top-0 bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
-                            <h2 class="font-semibold text-gray-900 dark:text-white">Filters</h2>
-                            <button
-                                @click="showMobileFilters = false"
-                                class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
+                    <Transition name="slide-up">
+                        <div
+                            v-if="showMobileFilters"
+                            class="absolute inset-x-0 bottom-0 max-h-[85vh] bg-gray-50 dark:bg-slate-900 shadow-xl rounded-t-2xl flex flex-col"
+                        >
+                            <!-- Handle bar -->
+                            <div class="flex justify-center pt-3 pb-1">
+                                <div class="w-10 h-1 bg-gray-300 dark:bg-slate-600 rounded-full"></div>
+                            </div>
+                            <!-- Header -->
+                            <div class="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
+                                <h2 class="font-semibold text-gray-900 dark:text-white">Filters</h2>
+                                <button
+                                    @click="showMobileFilters = false"
+                                    class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                >
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <!-- Scrollable content -->
+                            <div class="flex-1 overflow-y-auto p-4 pb-24">
+                                <GameFilters @update:filters="onFilterChange" />
+                            </div>
+                            <!-- Sticky footer with Show Results button -->
+                            <div class="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4">
+                                <button
+                                    @click="showMobileFilters = false"
+                                    class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
+                                >
+                                    Show {{ total.toLocaleString() }} Results
+                                </button>
+                            </div>
                         </div>
-                        <div class="p-4 pb-24">
-                            <GameFilters @update:filters="onFilterChange" />
-                        </div>
-                        <!-- Sticky footer with Show Results button -->
-                        <div class="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4">
-                            <button
-                                @click="showMobileFilters = false"
-                                class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors"
-                            >
-                                Show {{ total.toLocaleString() }} Results
-                            </button>
-                        </div>
-                    </div>
+                    </Transition>
                 </div>
             </Transition>
         </Teleport>
@@ -1178,5 +1190,14 @@ onMounted(() => {
 .dropdown-leave-to {
     opacity: 0;
     transform: translateY(-8px);
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+    transition: transform 0.3s ease;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+    transform: translateY(100%);
 }
 </style>

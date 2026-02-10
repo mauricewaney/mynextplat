@@ -47,13 +47,13 @@
                         :key="platform.id"
                         @click="toggleFilter('platform_ids', platform.id)"
                         :class="[
-                            'px-2.5 py-1 rounded-md text-sm font-medium transition-all',
+                            'h-10 px-2 rounded-md text-sm font-medium transition-all inline-flex items-center',
                             isSelected('platform_ids', platform.id)
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
-                        {{ platform.short_name }}
+                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-8" />
                     </button>
                 </div>
             </div>
@@ -474,6 +474,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import PlatformIcon from './PlatformIcon.vue'
 
 const emit = defineEmits(['update:filters'])
 
@@ -520,11 +521,11 @@ const filters = reactive({
 
 // Static platforms - rarely change
 const platforms = [
-    { id: 5, short_name: 'PS5' },
-    { id: 2, short_name: 'PS4' },
-    { id: 1, short_name: 'PS3' },
-    { id: 3, short_name: 'Vita' },
-    { id: 4, short_name: 'PSVR' },
+    { id: 5, short_name: 'PS5', slug: 'ps5' },
+    { id: 2, short_name: 'PS4', slug: 'ps4' },
+    { id: 1, short_name: 'PS3', slug: 'ps3' },
+    { id: 3, short_name: 'Vita', slug: 'ps-vita' },
+    { id: 4, short_name: 'VR', slug: 'ps-vr' },
 ]
 
 const filterOptions = reactive({
