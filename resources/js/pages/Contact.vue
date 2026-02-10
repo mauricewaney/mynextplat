@@ -154,8 +154,21 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
+import { useAppConfig } from '../composables/useAppConfig'
 import AppLayout from '../components/AppLayout.vue'
+
+const { appName } = useAppConfig()
+
+useHead({
+    title: `Contact Us | ${appName}`,
+    meta: [
+        { name: 'description', content: 'Get in touch with the MyNextPlat team. Report bugs, suggest features, or ask questions about PlayStation trophy guides.' },
+        { property: 'og:title', content: `Contact Us | ${appName}` },
+        { property: 'og:description', content: 'Get in touch with the MyNextPlat team. Report bugs, suggest features, or ask questions.' },
+    ],
+})
 
 let recaptchaScript = null
 const { isAuthenticated, user } = useAuth()

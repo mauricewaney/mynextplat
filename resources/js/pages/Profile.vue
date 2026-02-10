@@ -305,10 +305,26 @@ useHead(() => {
             meta: [{ name: 'robots', content: 'noindex' }],
         }
     }
+    const name = profileUser.value?.display_name
+    const platCount = stats.value.platinumed || stats.value.platinum || 0
+    const totalCount = stats.value.total || 0
+    const title = `${name}'s Games | ${appName}`
+    const description = `View ${name}'s trophy hunting collection. ${platCount} platinums, ${totalCount} games total.`
+
     return {
-        title: `${profileUser.value?.display_name}'s Games | ${appName}`,
+        title,
         meta: [
-            { name: 'description', content: `View ${profileUser.value?.display_name}'s trophy hunting game collection. ${stats.value.platinum} platinums, ${stats.value.total} games total.` },
+            { name: 'description', content: description },
+            { property: 'og:title', content: title },
+            { property: 'og:description', content: description },
+            { property: 'og:type', content: 'profile' },
+            ...(profileUser.value?.avatar ? [
+                { property: 'og:image', content: profileUser.value.avatar },
+                { name: 'twitter:image', content: profileUser.value.avatar },
+            ] : []),
+            { name: 'twitter:card', content: 'summary' },
+            { name: 'twitter:title', content: title },
+            { name: 'twitter:description', content: description },
         ],
     }
 })

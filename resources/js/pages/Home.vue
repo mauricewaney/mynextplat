@@ -804,6 +804,8 @@ import { useUserGames } from '../composables/useUserGames'
 const { appName } = useAppConfig()
 
 // SEO Meta Tags
+const ogImage = `${window.location.origin}/images/og-banner.png`
+
 useHead({
     title: `${appName} - PlayStation Trophy Guides & Tracker`,
     meta: [
@@ -811,9 +813,13 @@ useHead({
         { property: 'og:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
         { property: 'og:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx.' },
         { property: 'og:type', content: 'website' },
-        { name: 'twitter:card', content: 'summary' },
+        { property: 'og:image', content: ogImage },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
         { name: 'twitter:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.' },
+        { name: 'twitter:image', content: ogImage },
         { name: 'keywords', content: 'playstation, trophy guide, platinum trophy, ps5, ps4, psnprofiles, powerpyx, trophy hunting' },
     ],
 })

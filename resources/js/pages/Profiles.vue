@@ -120,7 +120,9 @@ const { appName } = useAppConfig()
 useHead({
     title: `Public Profiles | ${appName}`,
     meta: [
-        { name: 'description', content: 'Browse public trophy hunting profiles and game collections.' },
+        { name: 'description', content: 'Browse public trophy hunting profiles and game collections. See what other PlayStation trophy hunters are playing and their platinum achievements.' },
+        { property: 'og:title', content: `Public Profiles | ${appName}` },
+        { property: 'og:description', content: 'Browse public trophy hunting profiles and game collections.' },
     ],
 })
 

@@ -231,10 +231,21 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
+import { useAppConfig } from '../composables/useAppConfig'
 import AppLayout from '../components/AppLayout.vue'
 
+const { appName } = useAppConfig()
 const route = useRoute()
+
+useHead({
+    title: `Report an Issue | ${appName}`,
+    meta: [
+        { name: 'description', content: 'Report incorrect game data, missing information, or broken links on MyNextPlat.' },
+        { name: 'robots', content: 'noindex' },
+    ],
+})
 let recaptchaScript = null
 const { isAuthenticated, user } = useAuth()
 

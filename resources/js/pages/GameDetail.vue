@@ -49,135 +49,139 @@
 
             <!-- Header Section -->
             <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden mb-8">
-                <div class="md:flex">
+                <!-- Top: Cover + Title/Platforms/Developer side-by-side -->
+                <div class="flex p-4 sm:p-6 gap-4 sm:gap-6">
                     <!-- Cover Image -->
-                    <div class="md:w-1/3 lg:w-1/4">
+                    <div class="w-28 sm:w-48 md:w-56 shrink-0">
                         <img
                             v-if="game.cover_url"
                             :src="game.cover_url"
                             :alt="game.title + ' cover'"
-                            class="w-full h-auto object-cover"
+                            class="w-full h-auto rounded-lg"
                         />
-                        <div v-else class="w-full h-64 bg-gray-200 dark:bg-slate-700 flex items-center justify-center">
+                        <div v-else class="w-full aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
                             <span class="text-gray-400 text-4xl">?</span>
                         </div>
                     </div>
 
-                    <!-- Game Info -->
-                    <div class="p-6 md:flex-1">
-                        <h1 v-if="!game.banner_url" class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    <!-- Title + Platforms + Developer -->
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                             {{ game.title }}
                         </h1>
 
                         <!-- Platforms -->
-                        <div v-if="game.platforms?.length" class="flex flex-wrap gap-2 mb-4">
+                        <div v-if="game.platforms?.length" class="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-4">
                             <span
                                 v-for="platform in game.platforms"
                                 :key="platform.id"
-                                class="h-10 px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-sm font-medium rounded"
+                                class="h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs sm:text-sm font-medium rounded"
                             >
-                                <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-8" />
+                                <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-5 sm:h-8" />
                             </span>
                         </div>
 
                         <!-- Developer/Publisher -->
-                        <div class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                             <span v-if="game.developer">{{ game.developer }}</span>
                             <span v-if="game.developer && game.publisher"> / </span>
                             <span v-if="game.publisher">{{ game.publisher }}</span>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Trophy Stats Grid -->
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                            <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 text-center">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ game.difficulty || '?' }}<span class="text-sm font-normal">/10</span>
-                                </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Difficulty</div>
+                <!-- Bottom: Stats, Genres, Actions (full width) -->
+                <div class="px-4 sm:px-6 pb-4 sm:pb-6">
+                    <!-- Trophy Stats Grid -->
+                    <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                        <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
+                            <div class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                {{ game.difficulty || '?' }}<span class="text-xs sm:text-sm font-normal">/10</span>
                             </div>
-                            <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 text-center">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ game.time_min || '?' }}<span v-if="game.time_max && game.time_max !== game.time_min">-{{ game.time_max }}</span>
-                                </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Hours</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Difficulty</div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
+                            <div class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                {{ game.time_min || '?' }}<span v-if="game.time_max && game.time_max !== game.time_min" class="text-sm">-{{ game.time_max }}</span>
                             </div>
-                            <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 text-center">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ game.playthroughs_required || '?' }}
-                                </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Playthroughs</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Hours</div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
+                            <div class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
+                                {{ game.playthroughs_required || '?' }}
                             </div>
-                            <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-3 text-center">
-                                <div class="text-2xl font-bold" :class="game.missable_trophies ? 'text-orange-500' : 'text-green-500'">
-                                    {{ game.missable_trophies ? 'Yes' : 'No' }}
-                                </div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Missables</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Runs</div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
+                            <div class="text-lg sm:text-2xl font-bold" :class="game.missable_trophies ? 'text-orange-500' : 'text-green-500'">
+                                {{ game.missable_trophies ? 'Yes' : 'No' }}
                             </div>
+                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Missables</div>
                         </div>
+                    </div>
 
-                        <!-- Online Trophies Warning -->
-                        <div v-if="game.has_online_trophies" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
-                            <span class="text-red-700 dark:text-red-300 text-sm font-medium">
-                                This game has online trophies
-                            </span>
-                        </div>
+                    <!-- Online Trophies Warning -->
+                    <div v-if="game.has_online_trophies" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+                        <span class="text-red-700 dark:text-red-300 text-sm font-medium">
+                            This game has online trophies
+                        </span>
+                    </div>
 
-                        <!-- Genres -->
-                        <div v-if="game.genres?.length" class="mb-4">
-                            <span class="text-sm text-gray-500 dark:text-gray-400 mr-2">Genres:</span>
-                            <span
-                                v-for="(genre, i) in game.genres"
-                                :key="genre.id"
-                                class="text-sm text-gray-700 dark:text-gray-300"
-                            >
-                                {{ genre.name }}<span v-if="i < game.genres.length - 1">, </span>
-                            </span>
-                        </div>
+                    <!-- Genres -->
+                    <div v-if="game.genres?.length" class="mb-4">
+                        <span class="text-sm text-gray-500 dark:text-gray-400 mr-2">Genres:</span>
+                        <span
+                            v-for="(genre, i) in game.genres"
+                            :key="genre.id"
+                            class="text-sm text-gray-700 dark:text-gray-300"
+                        >
+                            {{ genre.name }}<span v-if="i < game.genres.length - 1">, </span>
+                        </span>
+                    </div>
 
-                        <!-- Action Buttons -->
-                        <div class="flex items-center gap-3">
-                            <!-- Add to List Button -->
-                            <button
-                                @click="toggleList"
-                                :disabled="listLoading"
-                                :class="[
-                                    'inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all',
-                                    inList
-                                        ? 'bg-primary-600 text-white hover:bg-primary-700'
-                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600 dark:hover:text-primary-400',
-                                    listLoading ? 'opacity-50 cursor-wait' : ''
-                                ]"
-                            >
-                                <!-- Loading -->
-                                <svg v-if="listLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <!-- Check icon (in list) -->
-                                <svg v-else-if="inList" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                <!-- Plus icon (not in list) -->
-                                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                                </svg>
-                                <span v-if="!isAuthenticated">Sign in to add to list</span>
-                                <span v-else-if="inList">In My List</span>
-                                <span v-else>Add to My List</span>
-                            </button>
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-3">
+                        <!-- Add to List Button -->
+                        <button
+                            @click="toggleList"
+                            :disabled="listLoading"
+                            :class="[
+                                'inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium transition-all text-sm sm:text-base',
+                                inList
+                                    ? 'bg-primary-600 text-white hover:bg-primary-700'
+                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 hover:bg-primary-100 dark:hover:bg-primary-900/50 hover:text-primary-600 dark:hover:text-primary-400',
+                                listLoading ? 'opacity-50 cursor-wait' : ''
+                            ]"
+                        >
+                            <!-- Loading -->
+                            <svg v-if="listLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <!-- Check icon (in list) -->
+                            <svg v-else-if="inList" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <!-- Plus icon (not in list) -->
+                            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            <span v-if="!isAuthenticated">Sign in to add</span>
+                            <span v-else-if="inList">In My List</span>
+                            <span v-else>Add to My List</span>
+                        </button>
 
-                            <!-- Report Issue Button -->
-                            <router-link
-                                :to="`/report-issue?game=${game.slug}`"
-                                class="inline-flex items-center gap-2 px-4 py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm"
-                                title="Report incorrect information"
-                            >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                <span class="hidden sm:inline">Report Issue</span>
-                            </router-link>
-                        </div>
+                        <!-- Report Issue Button -->
+                        <router-link
+                            :to="`/report-issue?game=${game.slug}`"
+                            class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm"
+                            title="Report incorrect information"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <span class="hidden sm:inline">Report Issue</span>
+                        </router-link>
                     </div>
                 </div>
             </div>

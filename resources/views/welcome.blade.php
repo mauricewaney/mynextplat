@@ -15,13 +15,23 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ config('app.name') }}">
 
+    {{-- Open Graph Image --}}
+    <meta property="og:image" content="{{ url('/images/og-banner.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
     {{-- Twitter --}}
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ config('app.name') }} - PlayStation Trophy Guides & Tracker">
     <meta name="twitter:description" content="Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.">
+    <meta name="twitter:image" content="{{ url('/images/og-banner.png') }}">
 
     {{-- Canonical URL --}}
     <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Preconnect to external domains for faster resource loading --}}
+    <link rel="preconnect" href="https://images.igdb.com" crossorigin>
+    <link rel="dns-prefetch" href="https://images.igdb.com">
 
     {{-- Prevent flash of wrong theme by applying dark mode before render --}}
     <script>
