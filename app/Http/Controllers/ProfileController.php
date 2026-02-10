@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
@@ -15,7 +14,7 @@ class ProfileController extends Controller
     public function index(Request $request)
     {
         $profiles = User::where('profile_public', true)
-            ->select(['id', 'name', 'avatar', 'profile_slug'])
+            ->select(['id', 'name', 'avatar', 'profile_slug', 'profile_name'])
             ->withCount([
                 'games',
                 'games as platinum_count' => function ($query) {
@@ -25,6 +24,12 @@ class ProfileController extends Controller
             ->orderByDesc('platinum_count')
             ->orderByDesc('games_count')
             ->paginate(18);
+
+        // Add display_name to each profile
+        $profiles->getCollection()->transform(function ($profile) {
+            $profile->display_name = $profile->profile_name ?: $profile->name;
+            return $profile;
+        });
 
         return response()->json($profiles);
     }
@@ -48,12 +53,14 @@ class ProfileController extends Controller
         $currentUser = auth('sanctum')->user();
         $isOwner = $currentUser && $currentUser->id === $user->id;
 
+        $displayName = $user->profile_name ?: $user->name;
+
         // Check if profile is accessible
         if (!$user->profile_public && !$isOwner) {
             return response()->json([
                 'private' => true,
                 'user' => [
-                    'name' => $user->name,
+                    'display_name' => $displayName,
                     'avatar' => $user->avatar,
                 ],
             ]);
@@ -103,7 +110,7 @@ class ProfileController extends Controller
             'is_owner' => $isOwner,
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'display_name' => $displayName,
                 'avatar' => $user->avatar,
                 'profile_slug' => $user->profile_slug,
                 'member_since' => $user->created_at->format('F Y'),
@@ -120,15 +127,23 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Generate a profile slug if not set
+        // Generate a profile name and slug if not set
+        if (!$user->profile_name) {
+            $user->profile_name = $user->name;
+        }
+
         if (!$user->profile_slug) {
             $user->profile_slug = $user->generateProfileSlug();
+        }
+
+        if ($user->isDirty()) {
             $user->save();
         }
 
         return response()->json([
             'profile_public' => $user->profile_public,
             'profile_slug' => $user->profile_slug,
+            'profile_name' => $user->profile_name,
             'profile_url' => url('/u/' . $user->getProfileIdentifier()),
             'notify_new_guides' => $user->notify_new_guides,
             'email' => $user->email,
@@ -145,23 +160,29 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'profile_public' => 'sometimes|boolean',
-            'profile_slug' => [
-                'sometimes',
-                'string',
-                'min:3',
-                'max:30',
-                'regex:/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{1,2}$/',
-                Rule::unique('users', 'profile_slug')->ignore($user->id),
-            ],
+            'profile_name' => 'sometimes|string|min:2|max:50',
             'notify_new_guides' => 'sometimes|boolean',
         ], [
-            'profile_slug.regex' => 'Username can only contain lowercase letters, numbers, and hyphens (not at start/end).',
-            'profile_slug.unique' => 'This username is already taken.',
+            'profile_name.min' => 'Collection name must be at least 2 characters.',
+            'profile_name.max' => 'Collection name must be at most 50 characters.',
         ]);
 
-        // Normalize slug to lowercase
-        if (isset($validated['profile_slug'])) {
-            $validated['profile_slug'] = Str::lower($validated['profile_slug']);
+        // Auto-generate slug from profile_name if it changed
+        if (isset($validated['profile_name'])) {
+            $slug = Str::slug($validated['profile_name']);
+            if (empty($slug)) {
+                $slug = 'user';
+            }
+
+            // Ensure uniqueness
+            $baseSlug = $slug;
+            $counter = 1;
+            while (User::where('profile_slug', $slug)->where('id', '!=', $user->id)->exists()) {
+                $slug = $baseSlug . '-' . $counter;
+                $counter++;
+            }
+
+            $validated['profile_slug'] = $slug;
         }
 
         $user->update($validated);
@@ -170,29 +191,32 @@ class ProfileController extends Controller
             'message' => 'Settings updated',
             'profile_public' => $user->profile_public,
             'profile_slug' => $user->profile_slug,
+            'profile_name' => $user->profile_name,
             'profile_url' => url('/u/' . $user->getProfileIdentifier()),
             'notify_new_guides' => $user->notify_new_guides,
         ]);
     }
 
     /**
-     * Check if a profile slug is available.
+     * Check if a profile name (and its generated slug) is available.
      */
     public function checkSlug(Request $request)
     {
-        $slug = Str::lower($request->input('slug', ''));
+        $profileName = $request->input('name', '');
         $user = $request->user();
 
-        if (strlen($slug) < 3) {
-            return response()->json(['available' => false, 'message' => 'Too short (min 3 characters)']);
+        if (strlen($profileName) < 2) {
+            return response()->json(['available' => false, 'message' => 'Too short (min 2 characters)']);
         }
 
-        if (strlen($slug) > 30) {
-            return response()->json(['available' => false, 'message' => 'Too long (max 30 characters)']);
+        if (strlen($profileName) > 50) {
+            return response()->json(['available' => false, 'message' => 'Too long (max 50 characters)']);
         }
 
-        if (!preg_match('/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]{1,2}$/', $slug)) {
-            return response()->json(['available' => false, 'message' => 'Invalid format']);
+        $slug = Str::slug($profileName);
+
+        if (empty($slug)) {
+            return response()->json(['available' => false, 'message' => 'Invalid name — must contain letters or numbers']);
         }
 
         $exists = User::where('profile_slug', $slug)
@@ -201,7 +225,8 @@ class ProfileController extends Controller
 
         return response()->json([
             'available' => !$exists,
-            'message' => $exists ? 'Already taken' : 'Available',
+            'slug' => $slug,
+            'message' => $exists ? 'This name generates a URL that\'s already taken' : 'Available',
         ]);
     }
 }

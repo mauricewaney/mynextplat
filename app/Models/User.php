@@ -28,6 +28,7 @@ class User extends Authenticatable
         'last_notified_at',
         'profile_public',
         'profile_slug',
+        'profile_name',
     ];
 
     /**
@@ -66,11 +67,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Generate a unique profile slug from the user's name.
+     * Generate a unique profile slug from the user's profile name.
      */
     public function generateProfileSlug(): string
     {
-        $base = \Illuminate\Support\Str::slug($this->name);
+        $base = \Illuminate\Support\Str::slug($this->profile_name ?: $this->name);
         if (empty($base)) {
             $base = 'user';
         }

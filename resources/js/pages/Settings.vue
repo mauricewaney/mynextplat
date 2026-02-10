@@ -66,50 +66,36 @@
                     </div>
                 </div>
 
-                <!-- Profile URL / Username -->
+                <!-- Profile Display Name -->
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Profile Username</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Collection Name</h2>
                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        Customize your profile URL: {{ baseUrl }}/u/<span class="text-primary-600 dark:text-primary-400">{{ settings.profile_slug || 'username' }}</span>
+                        The title of your game collection (e.g., "Retro Games", "PS5 Platinums")
                     </p>
 
                     <div class="flex gap-2">
                         <div class="relative flex-1">
                             <input
-                                v-model="slugInput"
+                                v-model="profileNameInput"
                                 type="text"
-                                placeholder="username"
-                                maxlength="30"
+                                placeholder="My Game Collection"
+                                maxlength="50"
                                 class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                                @input="checkSlugDebounced"
                             />
-                            <!-- Availability indicator -->
-                            <div v-if="slugInput && slugInput !== settings.profile_slug" class="absolute right-3 top-1/2 -translate-y-1/2">
-                                <svg v-if="checkingSlug" class="w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                                <svg v-else-if="slugAvailable" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                <svg v-else class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </div>
                         </div>
                         <button
-                            @click="saveSlug"
-                            :disabled="saving || !slugAvailable || slugInput === settings.profile_slug || !slugInput"
+                            @click="saveProfileName"
+                            :disabled="saving || !profileNameInput || profileNameInput.trim().length < 2 || profileNameInput === settings.profile_name"
                             class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Save
                         </button>
                     </div>
-                    <p v-if="slugMessage" :class="['text-xs mt-2', slugAvailable ? 'text-green-600 dark:text-green-400' : 'text-red-500']">
-                        {{ slugMessage }}
-                    </p>
                     <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                        3-30 characters, lowercase letters, numbers, and hyphens only
+                        URL preview: {{ baseUrl }}/u/<span class="text-primary-600 dark:text-primary-400">{{ generatedSlug || 'your-name' }}</span>
+                    </p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        2-50 characters. The URL slug is auto-generated from your collection name.
                     </p>
                 </div>
 
@@ -204,16 +190,14 @@ const saving = ref(false)
 const settings = ref({
     profile_public: false,
     profile_slug: '',
+    profile_name: '',
     profile_url: '',
     notify_new_guides: false,
     email: '',
     name: '',
 })
 
-const slugInput = ref('')
-const checkingSlug = ref(false)
-const slugAvailable = ref(true)
-const slugMessage = ref('')
+const profileNameInput = ref('')
 const copied = ref(false)
 const message = ref('')
 const messageType = ref('success')
@@ -221,7 +205,19 @@ const messageType = ref('success')
 const baseUrl = computed(() => window.location.origin)
 const profileUrl = computed(() => `${baseUrl.value}/u/${settings.value.profile_slug}`)
 
-let slugCheckTimeout = null
+const generatedSlug = computed(() => {
+    const name = profileNameInput.value?.trim()
+    if (!name) return ''
+    // Simple client-side slug preview (mirrors Str::slug behavior)
+    return name
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/[\s-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        || 'your-name'
+})
 
 async function loadSettings() {
     try {
@@ -231,7 +227,7 @@ async function loadSettings() {
         if (response.ok) {
             const data = await response.json()
             settings.value = data
-            slugInput.value = data.profile_slug || ''
+            profileNameInput.value = data.profile_name || ''
         }
     } catch (e) {
         console.error('Failed to load settings:', e)
@@ -258,14 +254,19 @@ async function updateSetting(key, value) {
         const data = await response.json()
 
         if (!response.ok) {
+            const errors = data.errors
+            if (errors) {
+                throw new Error(Object.values(errors).flat().join(' '))
+            }
             throw new Error(data.message || 'Failed to update settings')
         }
 
         // Update local state
         if (data.profile_public !== undefined) settings.value.profile_public = data.profile_public
-        if (data.profile_slug !== undefined) {
-            settings.value.profile_slug = data.profile_slug
-            slugInput.value = data.profile_slug
+        if (data.profile_slug !== undefined) settings.value.profile_slug = data.profile_slug
+        if (data.profile_name !== undefined) {
+            settings.value.profile_name = data.profile_name
+            profileNameInput.value = data.profile_name
         }
         if (data.notify_new_guides !== undefined) settings.value.notify_new_guides = data.notify_new_guides
 
@@ -288,40 +289,10 @@ function toggleNotifications() {
     updateSetting('notify_new_guides', !settings.value.notify_new_guides)
 }
 
-function checkSlugDebounced() {
-    clearTimeout(slugCheckTimeout)
-    slugMessage.value = ''
-
-    const slug = slugInput.value.toLowerCase().trim()
-
-    if (!slug || slug === settings.value.profile_slug) {
-        slugAvailable.value = true
-        return
-    }
-
-    checkingSlug.value = true
-    slugCheckTimeout = setTimeout(() => checkSlug(slug), 300)
-}
-
-async function checkSlug(slug) {
-    try {
-        const response = await fetch(`/api/settings/check-slug?slug=${encodeURIComponent(slug)}`, {
-            credentials: 'include',
-        })
-        const data = await response.json()
-        slugAvailable.value = data.available
-        slugMessage.value = data.message
-    } catch (e) {
-        slugAvailable.value = false
-        slugMessage.value = 'Failed to check availability'
-    } finally {
-        checkingSlug.value = false
-    }
-}
-
-function saveSlug() {
-    if (slugInput.value && slugAvailable.value) {
-        updateSetting('profile_slug', slugInput.value.toLowerCase().trim())
+function saveProfileName() {
+    const name = profileNameInput.value?.trim()
+    if (name && name.length >= 2) {
+        updateSetting('profile_name', name)
     }
 }
 

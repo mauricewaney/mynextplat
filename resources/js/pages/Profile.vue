@@ -1,5 +1,5 @@
 <template>
-    <AppLayout :title="profileUser?.name ? `${profileUser.name}'s Profile` : 'Profile'">
+    <AppLayout :title="profileUser?.display_name ? `${profileUser.display_name}'s Profile` : 'Profile'">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Loading -->
             <div v-if="loading" class="space-y-6">
@@ -38,7 +38,7 @@
                     <img
                         v-if="profileUser?.avatar"
                         :src="profileUser.avatar"
-                        :alt="profileUser.name"
+                        :alt="profileUser.display_name"
                         class="w-20 h-20 rounded-full"
                         @error="$event.target.style.display='none'"
                     />
@@ -46,7 +46,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ profileUser?.name }}</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ profileUser?.display_name }}</h1>
                 <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 mb-6">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -85,19 +85,19 @@
                             <img
                                 v-if="profileUser?.avatar && !avatarError"
                                 :src="profileUser.avatar"
-                                :alt="profileUser.name"
+                                :alt="profileUser.display_name"
                                 class="w-20 h-20 rounded-full object-cover"
                                 @error="avatarError = true"
                             />
                             <span v-else class="text-3xl font-bold text-primary-600 dark:text-primary-400">
-                                {{ profileUser?.name?.charAt(0) || '?' }}
+                                {{ profileUser?.display_name?.charAt(0) || '?' }}
                             </span>
                         </div>
 
                         <!-- Info -->
                         <div class="flex-1 text-center sm:text-left">
                             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                {{ profileUser?.name }}
+                                {{ profileUser?.display_name }}
                             </h1>
                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                 Member since {{ profileUser?.member_since }}
@@ -306,9 +306,9 @@ useHead(() => {
         }
     }
     return {
-        title: `${profileUser.value?.name}'s Games | ${appName}`,
+        title: `${profileUser.value?.display_name}'s Games | ${appName}`,
         meta: [
-            { name: 'description', content: `View ${profileUser.value?.name}'s trophy hunting game collection. ${stats.value.platinum} platinums, ${stats.value.total} games total.` },
+            { name: 'description', content: `View ${profileUser.value?.display_name}'s trophy hunting game collection. ${stats.value.platinum} platinums, ${stats.value.total} games total.` },
         ],
     }
 })

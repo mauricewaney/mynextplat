@@ -50,19 +50,19 @@
                             <img
                                 v-if="profile.avatar"
                                 :src="profile.avatar"
-                                :alt="profile.name"
+                                :alt="profile.display_name"
                                 class="w-14 h-14 rounded-full object-cover"
                                 @error="$event.target.style.display='none'"
                             />
                             <span v-else class="text-xl font-bold text-primary-600 dark:text-primary-400">
-                                {{ profile.name?.charAt(0) || '?' }}
+                                {{ profile.display_name?.charAt(0) || '?' }}
                             </span>
                         </div>
 
                         <!-- Info -->
                         <div class="flex-1 min-w-0">
                             <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
-                                {{ profile.name }}
+                                {{ profile.display_name }}
                             </h3>
                             <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
                                 <span class="flex items-center gap-1">
