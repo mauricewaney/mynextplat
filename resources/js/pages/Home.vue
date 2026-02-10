@@ -791,7 +791,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
@@ -828,6 +828,7 @@ useHead({
 })
 
 const route = useRoute()
+const router = useRouter()
 const { user, isAuthenticated, isAdmin, initAuth, loginWithGoogle, logout } = useAuth()
 const {
     psnGameIds,
@@ -914,8 +915,9 @@ const showBulkAddConfirm = ref(false)
 watch(() => route.query.login, (val) => {
     if (val === 'required') {
         showLoginPrompt.value = true
-        // Clear the query param
-        window.history.replaceState({}, '', '/')
+        // Clear the login param while preserving others
+        const { login, ...rest } = route.query
+        router.replace({ query: rest })
     }
 }, { immediate: true })
 
@@ -968,18 +970,107 @@ onMounted(() => {
 })
 
 
+// --- Filter ↔ URL query param sync ---
+// Maps internal filter keys to short URL param names
+const FILTER_PARAM_MAP = {
+    platform_ids: 'platforms',
+    genre_ids: 'genres',
+    tag_ids: 'tags',
+    difficulty_min: 'diff_min',
+    difficulty_max: 'diff_max',
+    time_min: 'time_min',
+    time_max: 'time_max',
+    max_playthroughs: 'runs',
+    user_score_min: 'uscore_min',
+    user_score_max: 'uscore_max',
+    critic_score_min: 'cscore_min',
+    critic_score_max: 'cscore_max',
+    has_online_trophies: 'online',
+    missable_trophies: 'missable',
+    has_guide: 'guide',
+    guide_psnp: 'psnp',
+    guide_pst: 'pst',
+    guide_ppx: 'ppx',
+}
+const PARAM_FILTER_MAP = Object.fromEntries(
+    Object.entries(FILTER_PARAM_MAP).map(([k, v]) => [v, k])
+)
+
+const FILTER_DEFAULTS = {
+    platform_ids: [],
+    genre_ids: [],
+    tag_ids: [],
+    difficulty_min: 1,
+    difficulty_max: 10,
+    time_min: 0,
+    time_max: 200,
+    max_playthroughs: null,
+    user_score_min: 0,
+    user_score_max: 100,
+    critic_score_min: 0,
+    critic_score_max: 100,
+    has_online_trophies: null,
+    missable_trophies: null,
+    has_guide: null,
+    guide_psnp: false,
+    guide_pst: false,
+    guide_ppx: false,
+}
+
+const ARRAY_KEYS = new Set(['platform_ids', 'genre_ids', 'tag_ids'])
+const BOOL_KEYS = new Set(['has_online_trophies', 'missable_trophies', 'has_guide'])
+const FLAG_KEYS = new Set(['guide_psnp', 'guide_pst', 'guide_ppx'])
+
+// Non-filter query params we must preserve
+const RESERVED_PARAMS = new Set(['login', 'view'])
+
+function queryToFilters(query) {
+    const result = {}
+    let hasSomething = false
+
+    for (const [paramName, filterKey] of Object.entries(PARAM_FILTER_MAP)) {
+        const raw = query[paramName]
+        if (raw == null || raw === '') continue
+
+        hasSomething = true
+        if (ARRAY_KEYS.has(filterKey)) {
+            const nums = String(raw).split(',').map(Number).filter(n => !isNaN(n) && n > 0)
+            if (nums.length) result[filterKey] = nums
+        } else if (BOOL_KEYS.has(filterKey)) {
+            if (raw === 'true') result[filterKey] = true
+            else if (raw === 'false') result[filterKey] = false
+        } else if (FLAG_KEYS.has(filterKey)) {
+            result[filterKey] = raw === '1' || raw === 'true'
+        } else {
+            const n = Number(raw)
+            if (!isNaN(n)) result[filterKey] = n
+        }
+    }
+
+    // Parse sort params
+    const parsedSort = {}
+    if (query.sort) { parsedSort.sortBy = query.sort; hasSomething = true }
+    if (query.order) { parsedSort.sortOrder = query.order; hasSomething = true }
+
+    return hasSomething ? { filters: result, ...parsedSort } : null
+}
+
 const games = ref([])
 const loading = ref(true)
 const total = ref(0)
 const currentPage = ref(1)
 const lastPage = ref(1)
-// Load saved state from sessionStorage or use defaults
-const sortBy = ref(sessionStorage.getItem('sortBy') || 'critic_score')
-const sortOrder = ref(sessionStorage.getItem('sortOrder') || 'desc')
+// Load saved state — URL query params take priority over sessionStorage
+const urlState = queryToFilters(route.query)
+const sortBy = ref(urlState?.sortBy || sessionStorage.getItem('sortBy') || 'critic_score')
+const sortOrder = ref(urlState?.sortOrder || sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
 
-// Load saved filters from sessionStorage
+// Load filters: URL params first (shared link), then sessionStorage (returning user)
 const savedFilters = (() => {
+    if (urlState?.filters && Object.keys(urlState.filters).length) {
+        return urlState.filters
+    }
     try {
         const saved = sessionStorage.getItem('gameFilters')
         return saved ? JSON.parse(saved) : {}
@@ -988,6 +1079,44 @@ const savedFilters = (() => {
     }
 })()
 const filters = reactive({ ...savedFilters })
+
+function filtersToQuery() {
+    const query = {}
+
+    // Preserve non-filter query params
+    for (const key of RESERVED_PARAMS) {
+        if (route.query[key] != null) {
+            query[key] = route.query[key]
+        }
+    }
+
+    for (const [filterKey, paramName] of Object.entries(FILTER_PARAM_MAP)) {
+        const val = filters[filterKey]
+        const def = FILTER_DEFAULTS[filterKey]
+
+        if (ARRAY_KEYS.has(filterKey)) {
+            if (val?.length) query[paramName] = val.join(',')
+        } else if (BOOL_KEYS.has(filterKey)) {
+            if (val === true) query[paramName] = 'true'
+            else if (val === false) query[paramName] = 'false'
+        } else if (FLAG_KEYS.has(filterKey)) {
+            if (val) query[paramName] = '1'
+        } else {
+            // numeric — only include if different from default
+            if (val != null && val !== def) query[paramName] = String(val)
+        }
+    }
+
+    // Sort params
+    if (sortBy.value !== 'critic_score') query.sort = sortBy.value
+    if (sortOrder.value !== 'desc') query.order = sortOrder.value
+
+    return query
+}
+
+function syncQueryToUrl() {
+    router.replace({ query: filtersToQuery() })
+}
 
 // Dark mode
 const darkMode = ref(false)
@@ -1027,6 +1156,7 @@ function onFilterChange(newFilters) {
     currentPage.value = 1
     games.value = []
     loadGames()
+    syncQueryToUrl()
     // Don't auto-close mobile filters - let user adjust multiple filters
 }
 
@@ -1036,11 +1166,13 @@ function toggleSortOrder() {
     currentPage.value = 1
     games.value = []
     loadGames()
+    syncQueryToUrl()
 }
 
-// Watch sortBy changes to save to sessionStorage
+// Watch sortBy changes to save to sessionStorage and sync URL
 watch(sortBy, (newVal) => {
     sessionStorage.setItem('sortBy', newVal)
+    syncQueryToUrl()
 })
 
 function switchViewMode(mode) {
