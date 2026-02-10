@@ -62,36 +62,74 @@
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-sm mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB User Score</span>
-                    <span v-if="filters.min_user_score > 0" class="text-primary-600 dark:text-primary-400 font-medium">{{ filters.min_user_score }}+</span>
+                    <span v-if="filters.user_score_min > 0 || filters.user_score_max < 100" class="text-gray-600 dark:text-gray-400">{{ filters.user_score_min }} - {{ filters.user_score_max }}</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
                 </div>
-                <input
-                    type="range"
-                    v-model.number="filters.min_user_score"
-                    min="0"
-                    max="100"
-                    step="5"
-                    class="w-full accent-primary-600"
-                    @input="emitFilters"
-                />
+                <div class="relative h-2">
+                    <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
+                    <div
+                        class="absolute h-full bg-primary-500 rounded-full"
+                        :style="{
+                            left: `${(filters.user_score_min / 100) * 100}%`,
+                            right: `${((100 - filters.user_score_max) / 100) * 100}%`
+                        }"
+                    ></div>
+                    <input
+                        type="range"
+                        v-model.number="filters.user_score_min"
+                        min="0"
+                        max="100"
+                        step="5"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        @input="onUserScoreMinChange"
+                    />
+                    <input
+                        type="range"
+                        v-model.number="filters.user_score_max"
+                        min="0"
+                        max="100"
+                        step="5"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        @input="onUserScoreMaxChange"
+                    />
+                </div>
             </div>
 
             <!-- IGDB Critic Score -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-sm mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB Critic Score</span>
-                    <span v-if="filters.min_critic_score > 0" class="text-primary-600 dark:text-primary-400 font-medium">{{ filters.min_critic_score }}+</span>
+                    <span v-if="filters.critic_score_min > 0 || filters.critic_score_max < 100" class="text-gray-600 dark:text-gray-400">{{ filters.critic_score_min }} - {{ filters.critic_score_max }}</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
                 </div>
-                <input
-                    type="range"
-                    v-model.number="filters.min_critic_score"
-                    min="0"
-                    max="100"
-                    step="5"
-                    class="w-full accent-primary-600"
-                    @input="emitFilters"
-                />
+                <div class="relative h-2">
+                    <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
+                    <div
+                        class="absolute h-full bg-primary-500 rounded-full"
+                        :style="{
+                            left: `${(filters.critic_score_min / 100) * 100}%`,
+                            right: `${((100 - filters.critic_score_max) / 100) * 100}%`
+                        }"
+                    ></div>
+                    <input
+                        type="range"
+                        v-model.number="filters.critic_score_min"
+                        min="0"
+                        max="100"
+                        step="5"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        @input="onCriticScoreMinChange"
+                    />
+                    <input
+                        type="range"
+                        v-model.number="filters.critic_score_max"
+                        min="0"
+                        max="100"
+                        step="5"
+                        class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
+                        @input="onCriticScoreMaxChange"
+                    />
+                </div>
             </div>
 
             <!-- Difficulty -->
@@ -466,8 +504,10 @@ const filters = reactive({
     time_min: 0,
     time_max: 200,
     max_playthroughs: null,
-    min_user_score: 0,
-    min_critic_score: 0,
+    user_score_min: 0,
+    user_score_max: 100,
+    critic_score_min: 0,
+    critic_score_max: 100,
     has_online_trophies: null,
     missable_trophies: null,
     has_guide: null, // null = any, true = only with guides, false = only without guides
@@ -513,8 +553,8 @@ const activeFilterCount = computed(() => {
     if (filters.difficulty_min > 1 || filters.difficulty_max < 10) count++
     if (filters.time_min > 0 || filters.time_max < 200) count++
     if (filters.max_playthroughs) count++
-    if (filters.min_user_score > 0) count++
-    if (filters.min_critic_score > 0) count++
+    if (filters.user_score_min > 0 || filters.user_score_max < 100) count++
+    if (filters.critic_score_min > 0 || filters.critic_score_max < 100) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
     if (filters.has_guide !== null) count++
@@ -572,6 +612,34 @@ function onDifficultyMaxChange() {
     emitFilters()
 }
 
+function onUserScoreMinChange() {
+    if (filters.user_score_min > filters.user_score_max) {
+        filters.user_score_max = filters.user_score_min
+    }
+    emitFilters()
+}
+
+function onUserScoreMaxChange() {
+    if (filters.user_score_max < filters.user_score_min) {
+        filters.user_score_min = filters.user_score_max
+    }
+    emitFilters()
+}
+
+function onCriticScoreMinChange() {
+    if (filters.critic_score_min > filters.critic_score_max) {
+        filters.critic_score_max = filters.critic_score_min
+    }
+    emitFilters()
+}
+
+function onCriticScoreMaxChange() {
+    if (filters.critic_score_max < filters.critic_score_min) {
+        filters.critic_score_min = filters.critic_score_max
+    }
+    emitFilters()
+}
+
 function onTimeMinChange() {
     if (filters.time_min > filters.time_max) {
         filters.time_max = filters.time_min
@@ -606,8 +674,10 @@ function clearAllFilters() {
     filters.time_min = 0
     filters.time_max = 200
     filters.max_playthroughs = null
-    filters.min_user_score = 0
-    filters.min_critic_score = 0
+    filters.user_score_min = 0
+    filters.user_score_max = 100
+    filters.critic_score_min = 0
+    filters.critic_score_max = 100
     filters.has_online_trophies = null
     filters.missable_trophies = null
     filters.has_guide = null

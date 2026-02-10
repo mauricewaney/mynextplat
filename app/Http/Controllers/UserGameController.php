@@ -186,14 +186,20 @@ class UserGameController extends Controller
             $query->where('playthroughs_required', '<=', (int) $request->max_playthroughs);
         }
 
-        // IGDB User Score filter
-        if ($request->filled('min_user_score')) {
-            $query->where('user_score', '>=', (int) $request->min_user_score);
+        // IGDB User Score range filter
+        if ($request->filled('user_score_min') && (int) $request->user_score_min > 0) {
+            $query->where('user_score', '>=', (int) $request->user_score_min);
+        }
+        if ($request->filled('user_score_max') && (int) $request->user_score_max < 100) {
+            $query->where('user_score', '<=', (int) $request->user_score_max);
         }
 
-        // IGDB Critic Score filter
-        if ($request->filled('min_critic_score')) {
-            $query->where('critic_score', '>=', (int) $request->min_critic_score);
+        // IGDB Critic Score range filter
+        if ($request->filled('critic_score_min') && (int) $request->critic_score_min > 0) {
+            $query->where('critic_score', '>=', (int) $request->critic_score_min);
+        }
+        if ($request->filled('critic_score_max') && (int) $request->critic_score_max < 100) {
+            $query->where('critic_score', '<=', (int) $request->critic_score_max);
         }
 
         // Legacy min_score filter (checks any score)

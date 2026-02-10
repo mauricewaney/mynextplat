@@ -497,8 +497,8 @@ const activeFilterCount = computed(() => {
     if (filters.difficulty_min > 1 || filters.difficulty_max < 10) count++
     if (filters.time_min > 0 || filters.time_max < 200) count++
     if (filters.max_playthroughs) count++
-    if (filters.min_user_score > 0) count++
-    if (filters.min_critic_score > 0) count++
+    if (filters.user_score_min > 0 || filters.user_score_max < 100) count++
+    if (filters.critic_score_min > 0 || filters.critic_score_max < 100) count++
     if (filters.has_guide === true || filters.has_guide === false) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
@@ -544,6 +544,10 @@ function clearAllFilters() {
     filters.difficulty_max = 10
     filters.time_min = 0
     filters.time_max = 200
+    filters.user_score_min = 0
+    filters.user_score_max = 100
+    filters.critic_score_min = 0
+    filters.critic_score_max = 100
     // Clear saved filters from sessionStorage
     sessionStorage.removeItem('gameFilters')
     currentPage.value = 1
@@ -613,8 +617,10 @@ async function loadGames() {
         if (filters.time_min > 0) params.append('time_min', filters.time_min)
         if (filters.time_max < 200) params.append('time_max', filters.time_max)
         if (filters.max_playthroughs) params.append('max_playthroughs', filters.max_playthroughs)
-        if (filters.min_user_score > 0) params.append('min_user_score', filters.min_user_score)
-        if (filters.min_critic_score > 0) params.append('min_critic_score', filters.min_critic_score)
+        if (filters.user_score_min > 0) params.append('user_score_min', filters.user_score_min)
+        if (filters.user_score_max < 100) params.append('user_score_max', filters.user_score_max)
+        if (filters.critic_score_min > 0) params.append('critic_score_min', filters.critic_score_min)
+        if (filters.critic_score_max < 100) params.append('critic_score_max', filters.critic_score_max)
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
 
