@@ -451,15 +451,20 @@ useHead(() => {
     const description = buildDescription()
     const image = game.value.cover_url || game.value.banner_url
 
+    const canonicalUrl = `${window.location.origin}/game/${route.params.slug}`
+
     return {
         title,
+        link: [
+            { rel: 'canonical', href: canonicalUrl },
+        ],
         meta: [
             { name: 'description', content: description },
             // Open Graph
             { property: 'og:title', content: title },
             { property: 'og:description', content: description },
             { property: 'og:type', content: 'website' },
-            { property: 'og:url', content: window.location.href },
+            { property: 'og:url', content: canonicalUrl },
             ...(image ? [{ property: 'og:image', content: image }] : []),
             // Twitter
             { name: 'twitter:card', content: 'summary_large_image' },
@@ -481,6 +486,27 @@ useHead(() => {
                     genre: game.value.genres?.map(g => g.name) || [],
                     publisher: game.value.publisher || undefined,
                     developer: { '@type': 'Organization', name: game.value.developer } || undefined,
+                }),
+            },
+            {
+                type: 'application/ld+json',
+                innerHTML: JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'BreadcrumbList',
+                    itemListElement: [
+                        {
+                            '@type': 'ListItem',
+                            position: 1,
+                            name: 'Home',
+                            item: window.location.origin,
+                        },
+                        {
+                            '@type': 'ListItem',
+                            position: 2,
+                            name: game.value.title,
+                            item: canonicalUrl,
+                        },
+                    ],
                 }),
             },
         ],

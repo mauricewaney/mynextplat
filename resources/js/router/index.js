@@ -11,6 +11,7 @@ import PrivacyPolicy from '../pages/PrivacyPolicy.vue'
 import Settings from '../pages/Settings.vue'
 import Profile from '../pages/Profile.vue'
 import Profiles from '../pages/Profiles.vue'
+import NotFound from '../pages/NotFound.vue'
 
 // Admin pages
 import GameList from '../components/Admin/GameList.vue'
@@ -117,6 +118,13 @@ const routes = [
         name: 'admin.contact',
         component: ContactInbox,
         meta: { requiresAuth: true, requiresAdmin: true }
+    },
+
+    // 404 catch-all (must be last)
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        component: NotFound
     }
 ]
 

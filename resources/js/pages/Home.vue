@@ -808,6 +808,9 @@ const ogImage = `${window.location.origin}/images/og-banner.png`
 
 useHead({
     title: `${appName} - PlayStation Trophy Guides & Tracker`,
+    link: [
+        { rel: 'canonical', href: window.location.origin + '/' },
+    ],
     meta: [
         { name: 'description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx. Filter by difficulty, time, and more.' },
         { property: 'og:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
