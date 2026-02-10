@@ -1,6 +1,6 @@
 <template>
     <div
-        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-2 sm:gap-4 p-2 sm:p-4 select-none"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-3 sm:gap-4 p-3 sm:p-4 select-none"
     >
         <!-- Unobtainable Stamp Overlay -->
         <div
@@ -12,7 +12,7 @@
             </div>
         </div>
         <!-- Cover Image -->
-        <div class="relative w-20 sm:w-28 h-28 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
+        <div class="relative w-24 sm:w-28 h-36 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
             <img
                 v-if="game.cover_url"
                 :src="game.cover_url"
@@ -150,45 +150,41 @@
 
             <!-- Stats Group -->
             <div class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1">
-                <!-- Mobile: 2 rows, compact -->
-                <div class="grid grid-cols-3 gap-x-2 gap-y-1 sm:hidden text-xs">
-                    <div class="text-center">
+                <!-- Mobile: 2 rows, stacked label below value -->
+                <div class="grid grid-cols-3 gap-x-2 gap-y-2 sm:hidden text-xs">
+                    <div>
                         <div v-if="game.difficulty" :class="['font-bold', difficultyTextClass]">{{ game.difficulty }}/10</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-400 dark:text-gray-500 text-[10px]">Diff</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Difficulty</div>
                     </div>
-                    <div class="text-center">
-                        <div class="font-bold text-gray-700 dark:text-gray-300">
-                            <template v-if="timeValues">{{ timeValues.mobile }}</template>
-                            <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                        </div>
-                        <div class="text-gray-400 dark:text-gray-500 text-[10px]">Time</div>
+                    <div>
+                        <div v-if="timeValues" class="font-bold text-gray-700 dark:text-gray-300">{{ timeValues.mobile }}</div>
+                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Time</div>
                     </div>
-                    <div class="text-center">
-                        <div class="font-bold text-gray-700 dark:text-gray-300">
-                            <span v-if="game.playthroughs_required">{{ game.playthroughs_required }}x</span>
-                            <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                        </div>
-                        <div class="text-gray-400 dark:text-gray-500 text-[10px]">Runs</div>
+                    <div>
+                        <div v-if="game.playthroughs_required" class="font-bold text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}x</div>
+                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Runs</div>
                     </div>
-                    <div class="text-center">
+                    <div>
                         <div v-if="game.missable_trophies === false" class="font-bold text-emerald-600 dark:text-emerald-400">No</div>
                         <div v-else-if="game.missable_trophies === true" class="font-bold text-amber-600 dark:text-amber-400">Yes</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-400 dark:text-gray-500 text-[10px]">Miss</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Missables</div>
                     </div>
-                    <div class="text-center">
+                    <div>
                         <div v-if="game.has_online_trophies === false" class="font-bold text-emerald-600 dark:text-emerald-400">No</div>
                         <div v-else-if="game.has_online_trophies === true" class="font-bold text-red-600 dark:text-red-400">Yes</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-400 dark:text-gray-500 text-[10px]">Online</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Online</div>
                     </div>
                 </div>
                 <!-- Desktop: original label-value rows -->
                 <div class="hidden sm:grid grid-cols-2 gap-x-2 gap-y-1.5 text-sm">
                     <!-- Difficulty -->
                     <div class="flex items-center gap-2">
-                        <span class="text-gray-400 dark:text-gray-500 w-20 shrink-0">Difficulty</span>
+                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Difficulty</span>
                         <div v-if="game.difficulty" class="flex items-center gap-1">
                             <div class="w-12 h-1.5 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden">
                                 <div
@@ -203,7 +199,7 @@
 
                     <!-- Missables -->
                     <div class="flex items-center gap-2">
-                        <span class="text-gray-400 dark:text-gray-500 w-20 shrink-0">Missables</span>
+                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Missables</span>
                         <span v-if="game.missable_trophies === false" class="text-emerald-600 dark:text-emerald-400 font-medium">None</span>
                         <span v-else-if="game.missable_trophies === true" class="text-amber-600 dark:text-amber-400 font-medium">Yes</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
@@ -211,21 +207,21 @@
 
                     <!-- Time -->
                     <div class="flex items-center gap-2">
-                        <span class="text-gray-400 dark:text-gray-500 w-20 shrink-0">Time</span>
+                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Time</span>
                         <span v-if="timeValues" class="font-medium text-gray-700 dark:text-gray-300">{{ timeValues.desktop }}</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
                     </div>
 
                     <!-- Playthroughs -->
                     <div class="flex items-center gap-2">
-                        <span class="text-gray-400 dark:text-gray-500 w-20 shrink-0">Runs</span>
+                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Runs</span>
                         <span v-if="game.playthroughs_required" class="font-medium text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}x</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
                     </div>
 
                     <!-- Online -->
                     <div class="flex items-center gap-2">
-                        <span class="text-gray-400 dark:text-gray-500 w-20 shrink-0">Online</span>
+                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Online</span>
                         <span v-if="game.has_online_trophies === false" class="text-emerald-600 dark:text-emerald-400 font-medium">No</span>
                         <span v-else-if="game.has_online_trophies === true" class="text-red-600 dark:text-red-400 font-medium">Yes</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
