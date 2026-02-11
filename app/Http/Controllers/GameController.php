@@ -706,13 +706,15 @@ class GameController extends Controller
             return false;
         }
 
-        // Check for any active filters
+        // Check for any active filters beyond the default has_guide=true
         $filterParams = [
             'search', 'platform_ids', 'genre_ids', 'tag_ids',
             'difficulty_min', 'difficulty_max', 'time_min', 'time_max',
-            'has_guide', 'has_online_trophies', 'missable_trophies',
+            'has_online_trophies', 'missable_trophies',
             'max_playthroughs', 'min_score', 'game_ids',
             'guide_psnp', 'guide_pst', 'guide_ppx',
+            'user_score_min', 'user_score_max',
+            'critic_score_min', 'critic_score_max',
         ];
 
         foreach ($filterParams as $param) {
@@ -721,11 +723,17 @@ class GameController extends Controller
             }
         }
 
-        // Check sort - only cache default sort (title asc)
-        $sortBy = $request->input('sort_by', 'title');
-        $sortOrder = $request->input('sort_order', 'asc');
+        // has_guide=true is the default homepage state — allow it
+        $hasGuide = $request->input('has_guide');
+        if ($hasGuide !== null && $hasGuide !== '' && $hasGuide !== 'true') {
+            return false;
+        }
 
-        if ($sortBy !== 'title' || $sortOrder !== 'asc') {
+        // Check sort - cache default sort (critic_score desc, matching frontend default)
+        $sortBy = $request->input('sort_by', 'critic_score');
+        $sortOrder = $request->input('sort_order', 'desc');
+
+        if ($sortBy !== 'critic_score' || $sortOrder !== 'desc') {
             return false;
         }
 
