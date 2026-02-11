@@ -417,8 +417,8 @@
                 </div>
             </div>
 
-            <!-- Tags (multiselect dropdown) -->
-            <div class="px-4 py-3">
+            <!-- Tags (multiselect dropdown) — hidden until needed -->
+            <div v-if="false" class="px-4 py-3">
                 <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Tags</label>
                 <div class="relative" ref="tagDropdownRef">
                     <button
