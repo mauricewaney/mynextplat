@@ -1,6 +1,7 @@
 <template>
     <div
-        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-3 sm:gap-4 p-3 sm:p-4 select-none"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-3 sm:gap-4 p-3 sm:p-4 select-none cursor-pointer"
+        @click="navigateToGame"
     >
         <!-- Unobtainable Stamp Overlay -->
         <div
@@ -306,12 +307,18 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 import { apiPost } from '../utils/api'
 import { useAuth } from '../composables/useAuth'
 import AddToListButton from './AddToListButton.vue'
 import PlatformIcon from './PlatformIcon.vue'
 
+const router = useRouter()
 const { isAdmin } = useAuth()
+
+function navigateToGame() {
+    router.push('/game/' + props.game.slug)
+}
 
 const props = defineProps({
     game: {
