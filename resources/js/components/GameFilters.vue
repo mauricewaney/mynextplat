@@ -9,7 +9,7 @@
                 v-model="filters.search"
                 type="text"
                 placeholder="Search games..."
-                class="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 dark:text-gray-200 border-0 rounded-xl shadow-sm focus:ring-2 focus:ring-primary-500 text-sm placeholder-gray-400 dark:placeholder-gray-500"
+                class="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 dark:text-gray-200 border border-gray-200 dark:border-slate-600 rounded-xl shadow-sm dark:shadow-none outline-none focus:border-gray-400 dark:focus:border-slate-500 text-sm placeholder-gray-400 dark:placeholder-gray-500"
                 @input="debouncedEmit"
             />
             <button

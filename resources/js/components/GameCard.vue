@@ -117,26 +117,50 @@
                 <!-- Scores (always reserve space) -->
                 <div class="flex items-center gap-1 shrink-0">
                     <!-- User Score -->
-                    <div
-                        :class="[
-                            'w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold',
-                            displayUserScore !== null ? ['text-white', userScoreClass] : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-gray-500',
-                            displayUserScore === 'N/A' || displayUserScore === null ? 'text-[9px] sm:text-[10px]' : 'text-sm sm:text-sm'
-                        ]"
-                        :title="displayUserScore === null ? 'No user score' : displayUserScore === 'N/A' ? 'Not enough user ratings' : `User score: ${displayUserScore} (${game.user_score_count} ratings)`"
-                    >
-                        {{ displayUserScore ?? '--' }}
+                    <div class="group/user relative inline-flex" @click.stop="toggleTooltip('user')">
+                        <div
+                            :class="[
+                                'w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold',
+                                displayUserScore !== null ? ['text-white', userScoreClass] : 'bg-gray-200 dark:bg-slate-700 text-gray-400 dark:text-gray-500',
+                                displayUserScore === 'N/A' || displayUserScore === null ? 'text-[9px] sm:text-[10px]' : 'text-sm sm:text-sm'
+                            ]"
+                        >
+                            {{ displayUserScore ?? '--' }}
+                        </div>
+                        <div
+                            :class="[
+                                'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 whitespace-nowrap pointer-events-none z-50 transition-opacity duration-150',
+                                showTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
+                            ]"
+                        >
+                            <template v-if="displayUserScore === null">No user score</template>
+                            <template v-else-if="displayUserScore === 'N/A'">Not enough IGDB user ratings</template>
+                            <template v-else>IGDB User Score ({{ game.user_score_count }} ratings)</template>
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-100 dark:border-t-slate-700"></div>
+                        </div>
                     </div>
                     <!-- Critic Score -->
-                    <div
-                        :class="[
-                            'w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
-                            displayCriticScore !== null ? criticScoreClass : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500',
-                            displayCriticScore === 'N/A' || displayCriticScore === null ? 'text-[9px] sm:text-[10px]' : 'text-sm sm:text-sm'
-                        ]"
-                        :title="displayCriticScore === null ? 'No critic score' : displayCriticScore === 'N/A' ? 'Not enough critic reviews' : `Critic score: ${displayCriticScore} (${game.critic_score_count} sources)`"
-                    >
-                        {{ displayCriticScore ?? '--' }}
+                    <div class="group/critic relative inline-flex" @click.stop="toggleTooltip('critic')">
+                        <div
+                            :class="[
+                                'w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
+                                displayCriticScore !== null ? criticScoreClass : 'border-gray-200 dark:border-slate-600 text-gray-400 dark:text-gray-500',
+                                displayCriticScore === 'N/A' || displayCriticScore === null ? 'text-[9px] sm:text-[10px]' : 'text-xs sm:text-xs'
+                            ]"
+                        >
+                            {{ displayCriticScore ?? '--' }}
+                        </div>
+                        <div
+                            :class="[
+                                'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 whitespace-nowrap pointer-events-none z-50 transition-opacity duration-150',
+                                showTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
+                            ]"
+                        >
+                            <template v-if="displayCriticScore === null">No critic score</template>
+                            <template v-else-if="displayCriticScore === 'N/A'">Not enough IGDB critic reviews</template>
+                            <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-100 dark:border-t-slate-700"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -300,6 +324,20 @@ const emit = defineEmits(['update-status', 'removed'])
 
 // Status dropdown state
 const showStatusMenu = ref(false)
+
+// Tooltip state (mobile tap)
+const showTooltip = ref(null)
+let tooltipTimer = null
+
+function toggleTooltip(type) {
+    if (showTooltip.value === type) {
+        showTooltip.value = null
+    } else {
+        showTooltip.value = type
+        clearTimeout(tooltipTimer)
+        tooltipTimer = setTimeout(() => { showTooltip.value = null }, 2000)
+    }
+}
 
 const statusLabels = {
     backlog: 'Backlog',

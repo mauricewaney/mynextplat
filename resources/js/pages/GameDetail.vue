@@ -64,28 +64,80 @@
                         </div>
                     </div>
 
-                    <!-- Title + Platforms + Developer -->
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            {{ game.title }}
-                        </h1>
-
-                        <!-- Platforms -->
-                        <div v-if="game.platforms?.length" class="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-4">
-                            <span
-                                v-for="platform in game.platforms"
-                                :key="platform.id"
-                                class="h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs sm:text-sm font-medium rounded"
-                            >
-                                <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-5 sm:h-8" />
-                            </span>
+                    <!-- Title + Platforms + Developer + Scores -->
+                    <div class="flex-1 min-w-0 flex flex-col justify-between">
+                        <!-- Scores Row (top-right) -->
+                        <div class="flex justify-end gap-3 mb-2">
+                            <!-- User Score -->
+                            <div v-if="displayUserScore !== null" class="group/user relative flex flex-col items-center" @click.stop="toggleScoreTooltip('user')">
+                                <div
+                                    :class="[
+                                        'w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold text-white',
+                                        userScoreClass,
+                                        displayUserScore === 'N/A' ? 'text-xs sm:text-sm' : 'text-lg sm:text-xl'
+                                    ]"
+                                >
+                                    {{ displayUserScore }}
+                                </div>
+                                <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">User</span>
+                                <div
+                                    :class="[
+                                        'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 whitespace-nowrap pointer-events-none z-50 transition-opacity duration-150',
+                                        showScoreTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
+                                    ]"
+                                >
+                                    <template v-if="displayUserScore === 'N/A'">Not enough IGDB user ratings</template>
+                                    <template v-else>IGDB User Score ({{ game.user_score_count }} ratings)</template>
+                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-100 dark:border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <!-- Critic Score -->
+                            <div v-if="displayCriticScore !== null" class="group/critic relative flex flex-col items-center" @click.stop="toggleScoreTooltip('critic')">
+                                <div
+                                    :class="[
+                                        'w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold border-2',
+                                        criticScoreClass,
+                                        displayCriticScore === 'N/A' ? 'text-xs sm:text-sm' : 'text-lg sm:text-xl'
+                                    ]"
+                                >
+                                    {{ displayCriticScore }}
+                                </div>
+                                <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Critic</span>
+                                <div
+                                    :class="[
+                                        'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 whitespace-nowrap pointer-events-none z-50 transition-opacity duration-150',
+                                        showScoreTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
+                                    ]"
+                                >
+                                    <template v-if="displayCriticScore === 'N/A'">Not enough IGDB critic reviews</template>
+                                    <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
+                                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-100 dark:border-t-slate-700"></div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Developer/Publisher -->
-                        <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                            <span v-if="game.developer">{{ game.developer }}</span>
-                            <span v-if="game.developer && game.publisher"> / </span>
-                            <span v-if="game.publisher">{{ game.publisher }}</span>
+                        <div>
+                            <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                                {{ game.title }}
+                            </h1>
+
+                            <!-- Platforms -->
+                            <div v-if="game.platforms?.length" class="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-4">
+                                <span
+                                    v-for="platform in game.platforms"
+                                    :key="platform.id"
+                                    class="h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs sm:text-sm font-medium rounded"
+                                >
+                                    <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-5 sm:h-8" />
+                                </span>
+                            </div>
+
+                            <!-- Developer/Publisher -->
+                            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                <span v-if="game.developer">{{ game.developer }}</span>
+                                <span v-if="game.developer && game.publisher"> / </span>
+                                <span v-if="game.publisher">{{ game.publisher }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -432,6 +484,54 @@ const guideLabels = {
 const hasGuides = computed(() => {
     return game.value?.psnprofiles_url || game.value?.playstationtrophies_url || game.value?.powerpyx_url
 })
+
+// Score display
+const MIN_USER_RATINGS = 3
+const MIN_CRITIC_SOURCES = 3
+
+const displayUserScore = computed(() => {
+    if (!game.value?.user_score) return null
+    const count = game.value.user_score_count
+    if (count != null && count < MIN_USER_RATINGS) return 'N/A'
+    return game.value.user_score
+})
+
+const displayCriticScore = computed(() => {
+    if (!game.value?.critic_score) return null
+    const count = game.value.critic_score_count
+    if (count != null && count < MIN_CRITIC_SOURCES) return 'N/A'
+    return game.value.critic_score
+})
+
+const userScoreClass = computed(() => {
+    const s = displayUserScore.value
+    if (s === 'N/A') return 'bg-gray-400 dark:bg-gray-600'
+    if (s >= 75) return 'bg-emerald-500'
+    if (s >= 50) return 'bg-yellow-500'
+    return 'bg-red-500'
+})
+
+const criticScoreClass = computed(() => {
+    const s = displayCriticScore.value
+    if (s === 'N/A') return 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'
+    if (s >= 75) return 'border-emerald-500 text-emerald-600 dark:text-emerald-400'
+    if (s >= 50) return 'border-yellow-500 text-yellow-600 dark:text-yellow-400'
+    return 'border-red-500 text-red-600 dark:text-red-400'
+})
+
+// Score tooltip state (mobile tap)
+const showScoreTooltip = ref(null)
+let scoreTooltipTimer = null
+
+function toggleScoreTooltip(type) {
+    if (showScoreTooltip.value === type) {
+        showScoreTooltip.value = null
+    } else {
+        showScoreTooltip.value = type
+        clearTimeout(scoreTooltipTimer)
+        scoreTooltipTimer = setTimeout(() => { showScoreTooltip.value = null }, 2000)
+    }
+}
 
 function trackGuideClick(source) {
     if (game.value) {
