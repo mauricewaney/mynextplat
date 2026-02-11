@@ -82,7 +82,7 @@
                                 <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">User</span>
                                 <div
                                     :class="[
-                                        'absolute bottom-full right-0 mb-1.5 px-2 py-1 max-w-[200px] text-wrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
+                                        'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
                                         showScoreTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
                                     ]"
                                 >
@@ -104,7 +104,7 @@
                                 <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Critic</span>
                                 <div
                                     :class="[
-                                        'absolute bottom-full right-0 mb-1.5 px-2 py-1 max-w-[200px] text-wrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
+                                        'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
                                         showScoreTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
                                     ]"
                                 >
