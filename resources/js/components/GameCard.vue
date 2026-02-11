@@ -130,14 +130,13 @@
                         </div>
                         <div
                             :class="[
-                                'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 whitespace-nowrap pointer-events-none z-50 transition-opacity duration-150',
+                                'absolute bottom-full right-0 mb-1.5 px-2 py-1 max-w-[200px] text-wrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
                                 showTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
                             ]"
                         >
                             <template v-if="displayUserScore === null">No user score</template>
                             <template v-else-if="displayUserScore === 'N/A'">Not enough IGDB user ratings</template>
                             <template v-else>IGDB User Score ({{ game.user_score_count }} ratings)</template>
-                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-100 dark:border-t-slate-700"></div>
                         </div>
                     </div>
                     <!-- Critic Score -->
@@ -153,14 +152,13 @@
                         </div>
                         <div
                             :class="[
-                                'absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 whitespace-nowrap pointer-events-none z-50 transition-opacity duration-150',
+                                'absolute bottom-full right-0 mb-1.5 px-2 py-1 max-w-[200px] text-wrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
                                 showTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
                             ]"
                         >
                             <template v-if="displayCriticScore === null">No critic score</template>
                             <template v-else-if="displayCriticScore === 'N/A'">Not enough IGDB critic reviews</template>
                             <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
-                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-100 dark:border-t-slate-700"></div>
                         </div>
                     </div>
                 </div>
