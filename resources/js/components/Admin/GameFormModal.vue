@@ -10,7 +10,7 @@
                 <div class="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900">
-                            {{ isEdit ? 'Edit Game' : 'Add New Game' }}
+                            {{ isEdit ? (game?.title || 'Edit Game') : 'Add New Game' }}
                         </h2>
                         <!-- Guide Links -->
                         <div v-if="isEdit && (game?.psnprofiles_url || game?.playstationtrophies_url || game?.powerpyx_url)" class="flex items-center gap-2 mt-1">
@@ -93,79 +93,66 @@
                             </span>
                         </div>
 
-                        <!-- Difficulty -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Difficulty (1-10)
-                            </label>
-                            <input
-                                v-model.number="form.difficulty"
-                                type="number"
-                                min="1"
-                                max="10"
-                                step="1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="5"
-                            />
-                            <p class="text-xs text-gray-500 mt-1">1 = Very Easy, 10 = Extremely Hard</p>
-                        </div>
-
-                        <!-- Time Range -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <!-- Difficulty, Playthroughs, Hours, Online, Missable -->
+                        <div class="grid grid-cols-5 gap-3 items-end">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Min Time (hours)</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Difficulty</label>
                                 <input
-                                    v-model.number="form.time_min"
+                                    v-model.number="form.difficulty"
                                     type="number"
-                                    min="0"
-                                    step="0.5"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="50"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                    class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                    placeholder="1-10"
                                 />
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Max Time (hours)</label>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Playthroughs</label>
                                 <input
-                                    v-model.number="form.time_max"
+                                    v-model.number="form.playthroughs_required"
                                     type="number"
-                                    min="0"
-                                    step="0.5"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="60"
+                                    min="1"
+                                    class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                    placeholder="1"
                                 />
                             </div>
-                        </div>
-
-                        <!-- Playthroughs Required -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Playthroughs Required</label>
-                            <input
-                                v-model.number="form.playthroughs_required"
-                                type="number"
-                                min="1"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="1"
-                            />
-                        </div>
-
-                        <!-- Trophy Booleans -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <label class="flex items-center space-x-2 cursor-pointer">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Hours (min-max)</label>
+                                <div class="flex gap-1">
+                                    <input
+                                        v-model.number="form.time_min"
+                                        type="number"
+                                        min="0"
+                                        step="0.5"
+                                        class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        placeholder="Min"
+                                    />
+                                    <input
+                                        v-model.number="form.time_max"
+                                        type="number"
+                                        min="0"
+                                        step="0.5"
+                                        class="w-full px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        placeholder="Max"
+                                    />
+                                </div>
+                            </div>
+                            <label class="flex items-center space-x-2 cursor-pointer pb-2">
                                 <input
                                     v-model="form.has_online_trophies"
                                     type="checkbox"
                                     class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                                 />
-                                <span class="text-sm font-medium text-gray-700">Has Online Trophies</span>
+                                <span class="text-xs font-medium text-gray-700">Online</span>
                             </label>
-
-                            <label class="flex items-center space-x-2 cursor-pointer">
+                            <label class="flex items-center space-x-2 cursor-pointer pb-2">
                                 <input
                                     v-model="form.missable_trophies"
                                     type="checkbox"
                                     class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                                 />
-                                <span class="text-sm font-medium text-gray-700">Has Missable Trophies</span>
+                                <span class="text-xs font-medium text-gray-700">Missable</span>
                             </label>
                         </div>
 
