@@ -53,84 +53,29 @@
                             </a>
                         </div>
                     </div>
-                    <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button
+                            v-if="isEdit"
+                            type="button"
+                            @click="submitForm"
+                            class="px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium disabled:opacity-50"
+                            :disabled="loading"
+                        >
+                            {{ loading ? 'Saving...' : 'Update' }}
+                        </button>
+                        <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Form -->
                 <form @submit.prevent="submitForm" class="p-6 space-y-6">
-                    <!-- Basic Information -->
+                    <!-- Trophy Data (priority fields) -->
                     <div class="space-y-4">
-                        <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
-
-                        <!-- Title -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Game Title <span class="text-red-500">*</span>
-                            </label>
-                            <input
-                                v-model="form.title"
-                                type="text"
-                                required
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="e.g., Ghost of Tsushima"
-                            />
-                            <p v-if="errors.title" class="text-red-500 text-sm mt-1">{{ errors.title[0] }}</p>
-                        </div>
-
-                        <!-- Slug -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Slug (URL-friendly, auto-generated if empty)
-                            </label>
-                            <input
-                                v-model="form.slug"
-                                type="text"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="ghost-of-tsushima"
-                            />
-                            <p v-if="errors.slug" class="text-red-500 text-sm mt-1">{{ errors.slug[0] }}</p>
-                        </div>
-
-                        <!-- Developer & Publisher -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Developer</label>
-                                <input
-                                    v-model="form.developer"
-                                    type="text"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Sucker Punch Productions"
-                                />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Publisher</label>
-                                <input
-                                    v-model="form.publisher"
-                                    type="text"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Sony Interactive Entertainment"
-                                />
-                            </div>
-                        </div>
-
-                        <!-- Release Date -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
-                            <input
-                                v-model="form.release_date"
-                                type="date"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Trophy Information -->
-                    <div class="space-y-4">
-                        <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Trophy Information</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Trophy Data</h3>
 
                         <!-- Data Source Badge -->
                         <div v-if="form.data_source" class="flex items-center gap-2">
@@ -146,33 +91,6 @@
                             >
                                 {{ form.data_source === 'playstationtrophies' ? 'PST' : form.data_source === 'powerpyx' ? 'PPX' : form.data_source === 'psnprofiles' ? 'PSNP' : form.data_source }}
                             </span>
-                        </div>
-
-                        <!-- Quick Fill from Guide -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Quick Fill (paste guide info)
-                                <span class="text-xs text-gray-400 ml-2">Paste to auto-save, or Enter to save manually</span>
-                            </label>
-                            <textarea
-                                v-model="guideText"
-                                @paste="onGuidePaste"
-                                @input="parseGuideText"
-                                @keydown.enter.prevent="onQuickFillEnter"
-                                rows="3"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
-                                placeholder="Paste guide info here, e.g.:
-Difficulty: 7/10
-Time: 40-50 hours
-Missable Trophies: 12
-Online Trophies: None"
-                            ></textarea>
-                            <p v-if="parsedFields.length > 0" class="text-xs text-green-600 mt-1">
-                                Parsed: {{ parsedFields.join(', ') }}
-                            </p>
-                            <p v-else class="text-xs text-gray-500 mt-1">
-                                Paste text from PSNProfiles, PlayStationTrophies, or PowerPyx to auto-fill fields
-                            </p>
                         </div>
 
                         <!-- Difficulty -->
@@ -251,6 +169,119 @@ Online Trophies: None"
                             </label>
                         </div>
 
+                        <!-- Verified -->
+                        <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    v-model="form.is_verified"
+                                    type="checkbox"
+                                    class="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                                />
+                                <div>
+                                    <span class="text-sm font-semibold text-green-700">Mark as Verified</span>
+                                    <p class="text-xs text-green-600">Data has been manually checked and confirmed accurate</p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Quick Fill from Guide -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Quick Fill (paste guide info)
+                                <span class="text-xs text-gray-400 ml-2">Paste to auto-save, or Enter to save manually</span>
+                            </label>
+                            <textarea
+                                v-model="guideText"
+                                @paste="onGuidePaste"
+                                @input="parseGuideText"
+                                @keydown.enter.prevent="onQuickFillEnter"
+                                rows="3"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                                placeholder="Paste guide info here, e.g.:
+Difficulty: 7/10
+Time: 40-50 hours
+Missable Trophies: 12
+Online Trophies: None"
+                            ></textarea>
+                            <p v-if="parsedFields.length > 0" class="text-xs text-green-600 mt-1">
+                                Parsed: {{ parsedFields.join(', ') }}
+                            </p>
+                            <p v-else class="text-xs text-gray-500 mt-1">
+                                Paste text from PSNProfiles, PlayStationTrophies, or PowerPyx to auto-fill fields
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+
+                        <!-- Title -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Game Title <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                v-model="form.title"
+                                type="text"
+                                required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="e.g., Ghost of Tsushima"
+                            />
+                            <p v-if="errors.title" class="text-red-500 text-sm mt-1">{{ errors.title[0] }}</p>
+                        </div>
+
+                        <!-- Slug -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Slug (URL-friendly, auto-generated if empty)
+                            </label>
+                            <input
+                                v-model="form.slug"
+                                type="text"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="ghost-of-tsushima"
+                            />
+                            <p v-if="errors.slug" class="text-red-500 text-sm mt-1">{{ errors.slug[0] }}</p>
+                        </div>
+
+                        <!-- Developer & Publisher -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Developer</label>
+                                <input
+                                    v-model="form.developer"
+                                    type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Sucker Punch Productions"
+                                />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Publisher</label>
+                                <input
+                                    v-model="form.publisher"
+                                    type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Sony Interactive Entertainment"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Release Date -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Release Date</label>
+                            <input
+                                v-model="form.release_date"
+                                type="date"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Server & Obtainability -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Server & Obtainability</h3>
+
                         <!-- Server Shutdown Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Server Shutdown Date</label>
@@ -262,7 +293,7 @@ Online Trophies: None"
                         </div>
 
                         <!-- Unobtainable Warning -->
-                        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
                             <label class="flex items-center space-x-3 cursor-pointer">
                                 <input
                                     v-model="form.is_unobtainable"
@@ -272,21 +303,6 @@ Online Trophies: None"
                                 <div>
                                     <span class="text-sm font-semibold text-red-700">Platinum is Unobtainable</span>
                                     <p class="text-xs text-red-600">Server shutdown, delisted, or otherwise impossible to 100%</p>
-                                </div>
-                            </label>
-                        </div>
-
-                        <!-- Verified -->
-                        <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <label class="flex items-center space-x-3 cursor-pointer">
-                                <input
-                                    v-model="form.is_verified"
-                                    type="checkbox"
-                                    class="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                                />
-                                <div>
-                                    <span class="text-sm font-semibold text-green-700">Mark as Verified</span>
-                                    <p class="text-xs text-green-600">Data has been manually checked and confirmed accurate</p>
                                 </div>
                             </label>
                         </div>
