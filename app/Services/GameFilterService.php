@@ -264,6 +264,13 @@ class GameFilterService
               ->whereNull('playthroughs_required');
         }
 
+        // PSNP only filter (has psnprofiles guide but no other guides)
+        if ($request->filled('psnp_only') && $this->isTruthy($request->psnp_only)) {
+            $query->whereNotNull('psnprofiles_url')
+                  ->whereNull('playstationtrophies_url')
+                  ->whereNull('powerpyx_url');
+        }
+
         // Needs verification filter (has guide + not verified)
         if ($request->filled('needs_verification') && $this->isTruthy($request->needs_verification)) {
             $query->where(function ($q) {

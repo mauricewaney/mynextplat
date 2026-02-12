@@ -312,6 +312,15 @@
                             />
                             <span class="text-xs font-medium text-orange-500">PPX</span>
                         </label>
+                        <label class="flex items-center space-x-1 cursor-pointer border-l pl-3 ml-1">
+                            <input
+                                v-model="filters.psnp_only"
+                                type="checkbox"
+                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                @change="onFilterChange"
+                            />
+                            <span class="text-xs font-medium text-blue-600">PSNP Only</span>
+                        </label>
                     </div>
                     <label class="flex items-center space-x-2 cursor-pointer">
                         <input
@@ -1014,6 +1023,7 @@ const filters = reactive({
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
+    psnp_only: false,
     sort_by: 'created_at',
     sort_order: 'desc'
 })
@@ -1142,6 +1152,7 @@ const resetFilters = () => {
     filters.guide_psnp = false
     filters.guide_pst = false
     filters.guide_ppx = false
+    filters.psnp_only = false
     fetchGames(true) // Reset to page 1
 }
 
