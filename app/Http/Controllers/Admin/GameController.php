@@ -156,11 +156,17 @@ class GameController extends Controller
         ->whereNull('playthroughs_required')
         ->count();
 
+        $verified = Game::where('is_verified', true)->count();
+
         return response()->json([
             'total_games' => $totalGames,
             'with_guide' => $gamesWithGuide,
             'with_difficulty' => $gamesWithDifficulty,
             'needs_data' => $gamesNeedingData,
+            'verified' => $verified,
+            'verified_percent' => $gamesWithGuide > 0
+                ? round($verified / $gamesWithGuide * 100, 1)
+                : 0,
             'completion_percent' => $gamesWithGuide > 0
                 ? round(($gamesWithGuide - $gamesNeedingData) / $gamesWithGuide * 100, 1)
                 : 0,
@@ -638,6 +644,9 @@ class GameController extends Controller
             'has_online_trophies' => 'nullable|boolean',
             'missable_trophies' => 'nullable|boolean',
             'is_unobtainable' => 'nullable|boolean',
+            'server_shutdown_date' => 'nullable|date',
+            'is_verified' => 'nullable|boolean',
+            'data_source' => 'nullable|string|max:30',
 
             // Scores
             'critic_score' => 'nullable|integer|min:0|max:100',

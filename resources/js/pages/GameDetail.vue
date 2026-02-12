@@ -143,7 +143,7 @@
                 <!-- Bottom: Stats, Genres, Actions (full width) -->
                 <div class="px-4 sm:px-6 pb-4 sm:pb-6">
                     <!-- Trophy Stats Grid -->
-                    <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                    <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6" :class="game.data_source ? 'sm:grid-cols-5' : ''">
                         <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
                             <div class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                                 {{ game.difficulty || '?' }}<span class="text-xs sm:text-sm font-normal">/10</span>
@@ -168,12 +168,43 @@
                             </div>
                             <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Missables</div>
                         </div>
+                        <div v-if="game.data_source" class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center col-span-4 sm:col-span-1">
+                            <div
+                                class="text-lg sm:text-2xl font-bold"
+                                :class="
+                                    game.data_source === 'playstationtrophies' ? 'text-purple-600 dark:text-purple-400' :
+                                    game.data_source === 'powerpyx' ? 'text-orange-500 dark:text-orange-400' :
+                                    game.data_source === 'psnprofiles' ? 'text-blue-600 dark:text-blue-400' :
+                                    'text-gray-600 dark:text-gray-400'
+                                "
+                            >
+                                {{ game.data_source === 'playstationtrophies' ? 'PST' : game.data_source === 'powerpyx' ? 'PPX' : game.data_source === 'psnprofiles' ? 'PSNP' : game.data_source }}
+                            </div>
+                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Source</div>
+                        </div>
                     </div>
 
-                    <!-- Online Trophies Warning -->
+                    <!-- Server Shutdown Warning -->
+                    <div v-if="game.server_shutdown_date && new Date(game.server_shutdown_date) > new Date()" class="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mb-4">
+                        <span class="text-amber-700 dark:text-amber-300 text-sm font-medium">
+                            Online servers shutting down on {{ new Date(game.server_shutdown_date).toLocaleDateString() }}
+                        </span>
+                    </div>
+                    <div v-else-if="game.server_shutdown_date && new Date(game.server_shutdown_date) <= new Date()" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+                        <span class="text-red-700 dark:text-red-300 text-sm font-medium">
+                            Servers shut down on {{ new Date(game.server_shutdown_date).toLocaleDateString() }} — platinum is unobtainable
+                        </span>
+                    </div>
+
+                    <!-- Online Trophies Status -->
                     <div v-if="game.has_online_trophies" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
                         <span class="text-red-700 dark:text-red-300 text-sm font-medium">
                             This game has online trophies
+                        </span>
+                    </div>
+                    <div v-else-if="game.has_online_trophies === false" class="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 mb-4">
+                        <span class="text-emerald-700 dark:text-emerald-300 text-sm font-medium">
+                            No online trophies required
                         </span>
                     </div>
 
@@ -584,6 +615,15 @@ useHead(() => {
                     genre: game.value.genres?.map(g => g.name) || [],
                     publisher: game.value.publisher || undefined,
                     developer: { '@type': 'Organization', name: game.value.developer } || undefined,
+                    ...(displayUserScore.value && displayUserScore.value !== 'N/A' ? {
+                        aggregateRating: {
+                            '@type': 'AggregateRating',
+                            ratingValue: displayUserScore.value,
+                            bestRating: 100,
+                            worstRating: 0,
+                            ratingCount: game.value.user_score_count,
+                        },
+                    } : {}),
                 }),
             },
             {

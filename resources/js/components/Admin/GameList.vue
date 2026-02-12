@@ -18,6 +18,10 @@
                         <div class="text-2xl font-bold text-orange-600">{{ stats.needs_data }}</div>
                         <div class="text-xs text-gray-500">Need Data</div>
                     </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ stats.verified }}</div>
+                        <div class="text-xs text-gray-500">Verified</div>
+                    </div>
                     <div class="flex flex-col items-center">
                         <div class="w-32 bg-gray-200 rounded-full h-2.5">
                             <div
@@ -268,6 +272,15 @@
                         />
                         <span class="text-sm font-medium text-yellow-700">Semi Filled</span>
                     </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            v-model="filters.needs_verification"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            @change="onFilterChange"
+                        />
+                        <span class="text-sm font-medium text-green-700">Needs Verification</span>
+                    </label>
 
                     <!-- Guide Source Filters -->
                     <div class="flex items-center gap-1 border-l pl-4 ml-2">
@@ -478,6 +491,13 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Time
                         </th>
+                        <th
+                            @click="sortBy('user_score_count')"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                        >
+                            Popularity
+                            <span v-if="filters.sort_by === 'user_score_count'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
+                        </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Platforms
                         </th>
@@ -516,7 +536,12 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ game.title }}</div>
+                            <div class="text-sm font-medium text-gray-900 flex items-center gap-1">
+                                {{ game.title }}
+                                <svg v-if="game.is_verified" class="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
                             <div class="text-sm text-gray-500">{{ game.developer }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -538,6 +563,9 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ game.time_range || 'N/A' }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ game.user_score_count || '-' }}
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-wrap gap-1">
@@ -982,6 +1010,7 @@ const filters = reactive({
     has_guide: true,
     needs_data: true,
     semi_filled: false,
+    needs_verification: false,
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
@@ -1109,6 +1138,7 @@ const resetFilters = () => {
     filters.has_guide = true
     filters.needs_data = true
     filters.semi_filled = false
+    filters.needs_verification = false
     filters.guide_psnp = false
     filters.guide_pst = false
     filters.guide_ppx = false

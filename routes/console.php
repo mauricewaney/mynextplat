@@ -76,6 +76,26 @@ Schedule::command('trophy:daily-search')
 
 /*
 |--------------------------------------------------------------------------
+| Server Shutdown → Unobtainable
+|--------------------------------------------------------------------------
+|
+| Games whose server_shutdown_date has passed are marked unobtainable.
+| Runs daily at 00:05 AM.
+|
+*/
+
+Schedule::call(function () {
+    Game::where('server_shutdown_date', '<=', now())
+        ->where('is_unobtainable', false)
+        ->update(['is_unobtainable' => true]);
+})
+    ->daily()
+    ->at('00:05')
+    ->name('server-shutdown-unobtainable')
+    ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
 | New Guide Email Notifications
 |--------------------------------------------------------------------------
 |

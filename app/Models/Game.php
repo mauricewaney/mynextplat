@@ -31,6 +31,9 @@ class Game extends Model
         'has_online_trophies',
         'missable_trophies',
         'is_unobtainable',
+        'server_shutdown_date',
+        'is_verified',
+        'data_source',
         'bronze_count',
         'silver_count',
         'gold_count',
@@ -58,9 +61,11 @@ class Game extends Model
 
     protected $casts = [
         'release_date' => 'date',
+        'server_shutdown_date' => 'date',
         'has_online_trophies' => 'boolean',
         'missable_trophies' => 'boolean',
         'is_unobtainable' => 'boolean',
+        'is_verified' => 'boolean',
         'has_platinum' => 'boolean',
         'is_psplus_extra' => 'boolean',
         'is_psplus_premium' => 'boolean',

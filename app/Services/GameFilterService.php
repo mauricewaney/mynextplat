@@ -211,12 +211,18 @@ class GameFilterService
         }
 
         // Has guide filter (available to public)
-        if ($request->filled('has_guide') && $this->isTruthy($request->has_guide)) {
-            $query->where(function ($q) {
-                $q->whereNotNull('psnprofiles_url')
-                  ->orWhereNotNull('playstationtrophies_url')
-                  ->orWhereNotNull('powerpyx_url');
-            });
+        if ($request->filled('has_guide')) {
+            if ($this->isTruthy($request->has_guide)) {
+                $query->where(function ($q) {
+                    $q->whereNotNull('psnprofiles_url')
+                      ->orWhereNotNull('playstationtrophies_url')
+                      ->orWhereNotNull('powerpyx_url');
+                });
+            } else {
+                $query->whereNull('psnprofiles_url')
+                      ->whereNull('playstationtrophies_url')
+                      ->whereNull('powerpyx_url');
+            }
         }
 
         // Guide source filters (available to public)
@@ -258,6 +264,18 @@ class GameFilterService
               ->whereNull('playthroughs_required');
         }
 
+        // Needs verification filter (has guide + not verified)
+        if ($request->filled('needs_verification') && $this->isTruthy($request->needs_verification)) {
+            $query->where(function ($q) {
+                $q->whereNotNull('psnprofiles_url')
+                  ->orWhereNotNull('playstationtrophies_url')
+                  ->orWhereNotNull('powerpyx_url');
+            })->where(function ($q) {
+                $q->where('is_verified', false)
+                  ->orWhereNull('is_verified');
+            });
+        }
+
         // Semi filled filter (has guide and SOME but not ALL key fields filled)
         if ($request->filled('semi_filled') && $this->isTruthy($request->semi_filled)) {
             $query->where(function ($q) {
@@ -295,7 +313,7 @@ class GameFilterService
 
         // Handle NULL values for numeric columns - put NULLs at the end
         // For score columns, also push low-count scores to the end (shown as N/A on frontend)
-        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'user_score', 'opencritic_score', 'release_date', 'playthroughs_required', 'missable_trophies'];
+        $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'user_score', 'opencritic_score', 'release_date', 'playthroughs_required', 'missable_trophies', 'user_score_count'];
         $minRatings = 3;
 
         if ($sortBy === 'user_score') {
