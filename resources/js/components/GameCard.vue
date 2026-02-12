@@ -200,6 +200,10 @@
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Online</div>
                     </div>
+                    <div v-if="game.data_source">
+                        <div :class="['font-bold', dataSourceClass]">{{ dataSourceLabel }}</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Source</div>
+                    </div>
                 </div>
                 <!-- Desktop: original label-value rows -->
                 <div class="hidden sm:grid grid-cols-2 gap-x-2 gap-y-1.5 text-sm">
@@ -246,6 +250,12 @@
                         <span v-if="game.has_online_trophies === false" class="text-emerald-600 dark:text-emerald-400 font-medium">No</span>
                         <span v-else-if="game.has_online_trophies === true" class="text-red-600 dark:text-red-400 font-medium">Yes</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
+                    </div>
+
+                    <!-- Source -->
+                    <div v-if="game.data_source" class="flex items-center gap-2">
+                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Source</span>
+                        <span :class="['font-medium', dataSourceClass]">{{ dataSourceLabel }}</span>
                     </div>
                 </div>
             </div>
@@ -467,6 +477,22 @@ const timeValues = computed(() => {
     if (!min) return { mobile: `~${max}h`, desktop: `~${max} hours` }
     if (!max) return { mobile: `${min}h+`, desktop: `${min}+ hours` }
     return { mobile: `${min}-${max}h`, desktop: `${min}-${max} hours` }
+})
+
+const dataSourceLabel = computed(() => {
+    const s = props.game.data_source
+    if (s === 'playstationtrophies') return 'Pst'
+    if (s === 'powerpyx') return 'Ppx'
+    if (s === 'psnprofiles') return 'Psnp'
+    return s
+})
+
+const dataSourceClass = computed(() => {
+    const s = props.game.data_source
+    if (s === 'playstationtrophies') return 'text-purple-600 dark:text-purple-400'
+    if (s === 'powerpyx') return 'text-orange-500 dark:text-orange-400'
+    if (s === 'psnprofiles') return 'text-blue-600 dark:text-blue-400'
+    return 'text-gray-600 dark:text-gray-400'
 })
 
 const hasGuide = computed(() => {

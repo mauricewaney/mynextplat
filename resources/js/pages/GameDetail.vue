@@ -170,7 +170,7 @@
                         </div>
                         <div v-if="game.data_source" class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center col-span-4 sm:col-span-1">
                             <div
-                                class="text-lg sm:text-2xl font-bold"
+                                class="text-base sm:text-lg font-bold"
                                 :class="
                                     game.data_source === 'playstationtrophies' ? 'text-purple-600 dark:text-purple-400' :
                                     game.data_source === 'powerpyx' ? 'text-orange-500 dark:text-orange-400' :
@@ -178,7 +178,7 @@
                                     'text-gray-600 dark:text-gray-400'
                                 "
                             >
-                                {{ game.data_source === 'playstationtrophies' ? 'PST' : game.data_source === 'powerpyx' ? 'PPX' : game.data_source === 'psnprofiles' ? 'PSNP' : game.data_source }}
+                                {{ game.data_source === 'playstationtrophies' ? 'Pst' : game.data_source === 'powerpyx' ? 'Ppx' : game.data_source === 'psnprofiles' ? 'Psnp' : game.data_source }}
                             </div>
                             <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Source</div>
                         </div>

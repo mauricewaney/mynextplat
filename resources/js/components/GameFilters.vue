@@ -53,7 +53,7 @@
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
-                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-8" />
+                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" :size-class="platform.slug === 'ps-vr' ? 'h-5' : 'h-8'" />
                     </button>
                 </div>
             </div>
