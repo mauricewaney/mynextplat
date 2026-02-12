@@ -481,9 +481,9 @@ const timeValues = computed(() => {
 
 const dataSourceLabel = computed(() => {
     const s = props.game.data_source
-    if (s === 'playstationtrophies') return 'Pst'
-    if (s === 'powerpyx') return 'Ppx'
-    if (s === 'psnprofiles') return 'Psnp'
+    if (s === 'playstationtrophies') return 'ps trophies'
+    if (s === 'powerpyx') return 'powerpyx'
+    if (s === 'psnprofiles') return 'psnprofiles'
     return s
 })
 
