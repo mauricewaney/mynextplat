@@ -210,6 +210,11 @@ class GameFilterService
             $query->where('missable_trophies', $this->isTruthy($request->missable_trophies));
         }
 
+        // Has platinum filter
+        if ($request->filled('has_platinum')) {
+            $query->where('has_platinum', $this->isTruthy($request->has_platinum));
+        }
+
         // Has guide filter (available to public)
         if ($request->filled('has_guide')) {
             if ($this->isTruthy($request->has_guide)) {

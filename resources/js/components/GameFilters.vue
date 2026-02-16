@@ -213,6 +213,22 @@
                         <div class="relative">
                             <input
                                 type="checkbox"
+                                v-model="filters.has_platinum"
+                                :true-value="true"
+                                :false-value="null"
+                                class="sr-only peer"
+                                @change="emitFilters"
+                            />
+                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-yellow-500 transition-colors"></div>
+                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                        </div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Has platinum</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer group flex-1">
+                        <div class="relative">
+                            <input
+                                type="checkbox"
                                 v-model="filters.has_online_trophies"
                                 :true-value="false"
                                 :false-value="null"
@@ -509,6 +525,7 @@ const filters = reactive({
     user_score_max: 100,
     critic_score_min: 0,
     critic_score_max: 100,
+    has_platinum: true,
     has_online_trophies: null,
     missable_trophies: null,
     has_guide: null, // null = any, true = only with guides, false = only without guides
@@ -556,6 +573,7 @@ const activeFilterCount = computed(() => {
     if (filters.max_playthroughs) count++
     if (filters.user_score_min > 0 || filters.user_score_max < 100) count++
     if (filters.critic_score_min > 0 || filters.critic_score_max < 100) count++
+    if (filters.has_platinum === true) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
     if (filters.has_guide !== null) count++
@@ -679,6 +697,7 @@ function clearAllFilters() {
     filters.user_score_max = 100
     filters.critic_score_min = 0
     filters.critic_score_max = 100
+    filters.has_platinum = null
     filters.has_online_trophies = null
     filters.missable_trophies = null
     filters.has_guide = null

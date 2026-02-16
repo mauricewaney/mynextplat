@@ -646,6 +646,7 @@ class GameController extends Controller
             'is_unobtainable' => 'nullable|boolean',
             'server_shutdown_date' => 'nullable|date',
             'is_verified' => 'nullable|boolean',
+            'has_platinum' => 'nullable|boolean',
             'data_source' => 'nullable|string|max:30',
 
             // Scores

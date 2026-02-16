@@ -93,8 +93,8 @@
                             </span>
                         </div>
 
-                        <!-- Difficulty, Playthroughs, Hours, Online, Missable -->
-                        <div class="grid grid-cols-5 gap-3 items-end">
+                        <!-- Difficulty, Playthroughs, Hours, Online, Missable, Platinum -->
+                        <div class="grid grid-cols-6 gap-3 items-end">
                             <div>
                                 <label class="block text-xs font-medium text-gray-700 mb-1">Difficulty</label>
                                 <input
@@ -153,6 +153,14 @@
                                     class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                                 />
                                 <span class="text-xs font-medium text-gray-700">Missable</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer pb-2">
+                                <input
+                                    v-model="form.has_platinum"
+                                    type="checkbox"
+                                    class="w-4 h-4 text-yellow-500 rounded focus:ring-2 focus:ring-yellow-400"
+                                />
+                                <span class="text-xs font-medium text-gray-700">Platinum</span>
                             </label>
                         </div>
 
@@ -682,6 +690,7 @@ const form = ref({
     playthroughs_required: 1,
     has_online_trophies: false,
     missable_trophies: false,
+    has_platinum: true,
     is_unobtainable: false,
     server_shutdown_date: '',
     is_verified: false,
@@ -729,6 +738,7 @@ watch(() => props.game, (game) => {
             playthroughs_required: game.playthroughs_required || 1,
             has_online_trophies: game.has_online_trophies || false,
             missable_trophies: game.missable_trophies || false,
+            has_platinum: game.has_platinum !== undefined ? game.has_platinum : true,
             is_unobtainable: game.is_unobtainable || false,
             server_shutdown_date: formatDateForInput(game.server_shutdown_date),
             is_verified: game.is_verified || false,
@@ -779,6 +789,7 @@ function resetForm() {
         playthroughs_required: 1,
         has_online_trophies: false,
         missable_trophies: false,
+        has_platinum: true,
         is_unobtainable: false,
         server_shutdown_date: '',
         is_verified: false,
