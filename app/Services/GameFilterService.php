@@ -269,6 +269,11 @@ class GameFilterService
               ->whereNull('playthroughs_required');
         }
 
+        // Verified filter (show only verified games)
+        if ($request->filled('is_verified') && $this->isTruthy($request->is_verified)) {
+            $query->where('is_verified', true);
+        }
+
         // PSNP only filter (has psnprofiles guide but no other guides)
         if ($request->filled('psnp_only') && $this->isTruthy($request->psnp_only)) {
             $query->whereNotNull('psnprofiles_url')

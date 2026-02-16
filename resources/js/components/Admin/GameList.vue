@@ -281,6 +281,15 @@
                         />
                         <span class="text-sm font-medium text-green-700">Needs Verification</span>
                     </label>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            v-model="filters.is_verified"
+                            type="checkbox"
+                            class="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                            @change="onFilterChange"
+                        />
+                        <span class="text-sm font-medium text-green-700">Verified</span>
+                    </label>
 
                     <!-- Guide Source Filters -->
                     <div class="flex items-center gap-1 border-l pl-4 ml-2">
@@ -1020,6 +1029,7 @@ const filters = reactive({
     needs_data: true,
     semi_filled: false,
     needs_verification: false,
+    is_verified: false,
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
@@ -1149,6 +1159,7 @@ const resetFilters = () => {
     filters.needs_data = true
     filters.semi_filled = false
     filters.needs_verification = false
+    filters.is_verified = false
     filters.guide_psnp = false
     filters.guide_pst = false
     filters.guide_ppx = false
