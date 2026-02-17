@@ -927,13 +927,12 @@ function parseGuideText() {
     const parsed = [];
 
     // Parse difficulty
-    // Priority: "5/10" standalone > "Difficulty: 7/10" > "Difficulty: 7"
-    // IMPORTANT: Check X/10 patterns FIRST to avoid matching "Difficulty 1" from PSNProfiles grid paste
-    // (where "Difficulty" is a label and "1" is the playthrough count on the same line)
-    const difficultyMatch = text.match(/^(\d+(?:\.\d+)?)\s*\/\s*10\s*$/m)  // PSNProfiles: "5/10" on own line
-        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10\s*difficulty/i)  // "5/10 Difficulty"
+    // Priority: context-aware patterns (X/10 near "Difficulty") first, then standalone X/10
+    // This avoids matching a stray X/10 from other sections (e.g. guide header rating)
+    const difficultyMatch = text.match(/(\d+(?:\.\d+)?)\s*\/\s*10\s*\n?\s*difficulty/im)  // "5/10\nDifficulty" or "5/10 Difficulty"
         || text.match(/difficulty\s*(?:rating)?[:\s]*(\d+(?:\.\d+)?)\s*\/\s*10/i)  // "Difficulty: 7/10"
-        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10/i)  // Any "X/10"
+        || text.match(/^(\d+(?:\.\d+)?)\s*\/\s*10\s*$/m)  // Standalone "5/10" on own line
+        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10/i)  // Any "X/10" (fallback)
         || text.match(/difficulty\s*:\s*(\d+(?:\.\d+)?)/i);  // "Difficulty: 7" (colon required)
     if (difficultyMatch) {
         const diff = Math.round(parseFloat(difficultyMatch[1]));

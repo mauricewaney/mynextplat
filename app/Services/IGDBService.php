@@ -384,25 +384,52 @@ class IGDBService
         $platformFilter = implode(',', self::PLAYSTATION_PLATFORMS);
         $escapedQuery = $this->escapeForIGDB($query);
 
-        // Search with full game data
-        $igdbQuery = 'search "' . $escapedQuery . '"; '
-            . 'fields name,slug,cover.url,screenshots.url,platforms,genres.name,'
+        $fields = 'fields name,slug,cover.url,screenshots.url,platforms,genres.name,'
             . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
-            . 'first_release_date,aggregated_rating,aggregated_rating_count,rating,rating_count; '
+            . 'first_release_date,aggregated_rating,aggregated_rating_count,rating,rating_count; ';
+
+        $headers = [
+            'Client-ID' => $this->clientId,
+            'Authorization' => 'Bearer ' . $accessToken,
+        ];
+
+        // 1. Fuzzy search
+        $searchQuery = 'search "' . $escapedQuery . '"; '
+            . $fields
             . 'where platforms = (' . $platformFilter . '); '
             . 'limit ' . $limit . ';';
 
-        $response = Http::withHeaders([
-            'Client-ID' => $this->clientId,
-            'Authorization' => 'Bearer ' . $accessToken,
-        ])->withBody($igdbQuery, 'text/plain')
-          ->post('https://api.igdb.com/v4/games');
+        $response = Http::withHeaders($headers)
+            ->withBody($searchQuery, 'text/plain')
+            ->post('https://api.igdb.com/v4/games');
 
         if (!$response->successful()) {
             throw new \Exception('IGDB API error: ' . $response->body());
         }
 
         $games = $response->json() ?? [];
+
+        // 2. If fuzzy search didn't fill results, also try exact name match
+        if (count($games) < $limit) {
+            $seenIds = array_column($games, 'id');
+
+            $nameQuery = $fields
+                . 'where name ~ *"' . $escapedQuery . '"* & platforms = (' . $platformFilter . '); '
+                . 'limit ' . ($limit - count($games)) . ';';
+
+            $nameResponse = Http::withHeaders($headers)
+                ->withBody($nameQuery, 'text/plain')
+                ->post('https://api.igdb.com/v4/games');
+
+            if ($nameResponse->successful()) {
+                foreach ($nameResponse->json() ?? [] as $game) {
+                    if (!in_array($game['id'], $seenIds)) {
+                        $games[] = $game;
+                        $seenIds[] = $game['id'];
+                    }
+                }
+            }
+        }
 
         // Parse each game into our format
         return array_map(function ($game) {
