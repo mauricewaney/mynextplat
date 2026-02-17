@@ -927,12 +927,14 @@ function parseGuideText() {
     const parsed = [];
 
     // Parse difficulty
-    // PowerPyx format: "Difficulty: 7/10", "Difficulty Rating: 7"
-    // PSNProfiles format: "5/10" on its own line, or "5/10 Difficulty"
-    const difficultyMatch = text.match(/difficulty[:\s]*(\d+(?:\.\d+)?)\s*(?:\/\s*10)?/i)
-        || text.match(/^(\d+(?:\.\d+)?)\s*\/\s*10\s*$/m)  // PSNProfiles: "5/10" on own line
+    // Priority: "5/10" standalone > "Difficulty: 7/10" > "Difficulty: 7"
+    // IMPORTANT: Check X/10 patterns FIRST to avoid matching "Difficulty 1" from PSNProfiles grid paste
+    // (where "Difficulty" is a label and "1" is the playthrough count on the same line)
+    const difficultyMatch = text.match(/^(\d+(?:\.\d+)?)\s*\/\s*10\s*$/m)  // PSNProfiles: "5/10" on own line
         || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10\s*difficulty/i)  // "5/10 Difficulty"
-        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10/i);
+        || text.match(/difficulty\s*(?:rating)?[:\s]*(\d+(?:\.\d+)?)\s*\/\s*10/i)  // "Difficulty: 7/10"
+        || text.match(/(\d+(?:\.\d+)?)\s*\/\s*10/i)  // Any "X/10"
+        || text.match(/difficulty\s*:\s*(\d+(?:\.\d+)?)/i);  // "Difficulty: 7" (colon required)
     if (difficultyMatch) {
         const diff = Math.round(parseFloat(difficultyMatch[1]));
         if (diff >= 1 && diff <= 10) {
@@ -943,10 +945,11 @@ function parseGuideText() {
 
     // Parse time
     // PowerPyx format: "Time: 40-50 hours", "Approximate amount of time to platinum: 40-50 hours"
-    // PSNProfiles format: "70 Hours" (number before Hours), "70-100 Hours"
+    // PSNProfiles format: "70 Hours", "70-100 Hours", or grid paste "50\nHours"
     const timeMatch = text.match(/time(?:\s+to\s+platinum)?[:\s]*(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)?/i)
         || text.match(/(\d+)\s*[-–to]+\s*(\d+)\+?\s*(?:hours?|hrs?)/i)
         || text.match(/^(\d+)\s*(?:hours?|hrs?)\s*$/im)  // PSNProfiles: "70 Hours" on own line
+        || text.match(/(\d+)\s*\n\s*Hours/im)  // PSNProfiles grid paste: "50\nHours"
         || text.match(/time(?:\s+to\s+platinum)?[:\s]*(\d+)\+?\s*(?:hours?|hrs?)/i)
         || text.match(/(\d+)\+?\s*(?:hours?|hrs?)/i);
     if (timeMatch) {
@@ -964,8 +967,10 @@ function parseGuideText() {
 
     // Parse playthroughs
     // PSNProfiles format: "1 Playthrough" (number BEFORE word)
-    // PowerPyx format: "Playthroughs: 2", "Minimum Playthroughs: 1" (number AFTER word, REQUIRES colon)
-    const playthroughMatch = text.match(/(\d+)\s+playthrough[s]?(?!\s*:)/i)  // PSNProfiles: "1 Playthrough" (number before, no colon after)
+    // PSNProfiles grid paste: "1\nPlaythrough" (number on line before label)
+    // PowerPyx format: "Playthroughs: 2" (number AFTER word, REQUIRES colon)
+    const playthroughMatch = text.match(/(\d+)\s+playthrough[s]?(?!\s*:)/i)  // "1 Playthrough" (number before, no colon after)
+        || text.match(/(\d+)\s*\n\s*Playthrough/im)  // Grid paste: "1\nPlaythrough"
         || text.match(/playthrough[s]?\s*:\s*(\d+)/i);  // PowerPyx: "Playthroughs: 2" (requires colon)
     if (playthroughMatch) {
         form.value.playthroughs_required = parseInt(playthroughMatch[1]);
@@ -996,7 +1001,7 @@ function parseGuideText() {
 
     // Parse online trophies
     // PowerPyx format: "Online Trophies: 5", "Online: 0"
-    // PSNProfiles format: Has an "Online" section header with trophies listed after
+    // PSNProfiles format: "Online" section header, or "Online Required", "Multiplayer Only", "Online Co-Op"
     const onlineMatch = text.match(/online\s*(?:trophies?)?[:\s]*(\d+|yes|no|none)/i)
         || text.match(/(\d+)\s*online\s*troph/i);
     if (onlineMatch) {
@@ -1010,8 +1015,11 @@ function parseGuideText() {
     } else if (textLower.includes('no online')) {
         form.value.has_online_trophies = false;
         parsed.push('online');
-    } else if (/^online\s*$/im.test(text)) {
-        // PSNProfiles: "Online" as a section header means there ARE online trophies
+    } else if (/^online\s*$/im.test(text)
+        || /online\s*required/i.test(text)
+        || /multiplayer\s*only/i.test(text)
+        || /online\s*co[\-\u2010-\u2015]?op/i.test(text)) {
+        // PSNProfiles: section headers indicating online trophies
         form.value.has_online_trophies = true;
         parsed.push('online');
     }

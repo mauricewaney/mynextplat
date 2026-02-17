@@ -47,15 +47,8 @@ class ImportIGDBGames implements ShouldQueue
     {
         Log::info("Starting IGDB import: limit={$this->limit}, offset={$this->offset}");
 
-        // Use provided excludeIds, or fetch fresh if not provided (for backward compatibility)
-        $existingIgdbIds = !empty($this->excludeIds)
-            ? $this->excludeIds
-            : Game::whereNotNull('igdb_id')->pluck('igdb_id')->toArray();
-
-        Log::info("Excluding " . count($existingIgdbIds) . " existing IGDB IDs from query");
-
-        // Fetch games from IGDB, excluding already imported games
-        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp, $existingIgdbIds);
+        // Fetch games from IGDB using created_at cursor for incremental sync
+        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp, $this->excludeIds);
 
         Log::info("Fetched " . count($igdbGames) . " games from IGDB");
 
@@ -65,15 +58,14 @@ class ImportIGDBGames implements ShouldQueue
 
         foreach ($igdbGames as $igdbGame) {
             try {
-                // Skip if already imported (by IGDB ID)
-                if (isset($igdbGame['id']) && in_array($igdbGame['id'], $existingIgdbIds)) {
+                // Skip if already imported (by IGDB ID or slug)
+                if (isset($igdbGame['id']) && Game::where('igdb_id', $igdbGame['id'])->exists()) {
                     $skipped++;
                     continue;
                 }
 
                 $gameData = $igdbService->parseGameData($igdbGame);
 
-                // Double-check by slug as well
                 if (Game::where('slug', $gameData['slug'])->exists()) {
                     $skipped++;
                     continue;

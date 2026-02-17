@@ -244,9 +244,6 @@ class IGDBService
 
         $platformFilter = implode(',', self::PLAYSTATION_PLATFORMS);
 
-        // Ensure we don't fetch pre-trophy era games (before 2008)
-        $minTimestamp = max(self::TROPHY_ERA_START, $sinceTimestamp ?? 0);
-
         // Base fields
         $fields = 'fields name,slug,summary,cover.url,screenshots.url,platforms,genres.name,'
             . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
@@ -257,11 +254,15 @@ class IGDBService
         $whereConditions = [
             'platforms = (' . $platformFilter . ')',
             'cover != null',
-            'first_release_date >= ' . $minTimestamp,
+            'first_release_date >= ' . self::TROPHY_ERA_START,
         ];
 
-        // Only exclude IDs if we have a reasonable number (for boundary games with same date)
-        // For large exclude lists, we rely on the sinceTimestamp cursor instead
+        // Use IGDB's created_at to find recently added entries (incremental sync)
+        if ($sinceTimestamp) {
+            $whereConditions[] = 'created_at >= ' . $sinceTimestamp;
+        }
+
+        // Only exclude IDs if we have a reasonable number (for boundary games)
         if (!empty($excludeIds) && count($excludeIds) <= 500) {
             $excludeIdsList = implode(',', $excludeIds);
             $whereConditions[] = 'id != (' . $excludeIdsList . ')';
@@ -269,7 +270,7 @@ class IGDBService
 
         $query = $fields
             . 'where ' . implode(' & ', $whereConditions) . '; '
-            . 'sort first_release_date asc; '
+            . 'sort created_at asc; '
             . 'limit ' . $limit . '; '
             . 'offset ' . $offset . ';';
 

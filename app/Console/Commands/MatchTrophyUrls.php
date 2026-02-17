@@ -48,60 +48,76 @@ class MatchTrophyUrls extends Command
             return Command::SUCCESS;
         }
 
-        // Get games to match against - we need these for lookup maps
-        // Only select fields we need to reduce memory
-        $gameQuery = Game::select(['id', 'title', 'slug', 'powerpyx_url', 'playstationtrophies_url', 'psnprofiles_url']);
+        // Build lookup maps from games without keeping Eloquent models in memory
+        $this->info("Building game lookup maps...");
 
+        $lookups = ['bySlug' => [], 'byNormalizedSlug' => [], 'byNormalizedTitle' => []];
+        $gameCount = 0;
+
+        $gameQuery = Game::select(['id', 'title', 'slug']);
         if ($gameId) {
             $gameQuery->where('id', $gameId);
         }
 
-        $games = $gameQuery->get();
+        $gameQuery->chunk(2000, function ($games) use (&$lookups, &$gameCount) {
+            foreach ($games as $game) {
+                $id = $game->id;
 
-        if ($games->isEmpty()) {
+                if ($game->slug) {
+                    $lookups['bySlug'][$game->slug] = $id;
+                }
+
+                $normalizedSlug = $this->normalizeSlug($game->slug ?? Str::slug($game->title));
+                $lookups['byNormalizedSlug'][$normalizedSlug] = $id;
+
+                $normalizedTitle = $this->normalizeSlug(Str::slug($game->title));
+                $lookups['byNormalizedTitle'][$normalizedTitle] = $id;
+
+                $gameCount++;
+            }
+        });
+
+        if ($gameCount === 0) {
             $this->info("No games in database to match against.");
             return Command::SUCCESS;
         }
 
-        $this->info("Matching {$unmatchedCount} unmatched URLs against {$games->count()} games...");
+        $this->info("Matching {$unmatchedCount} unmatched URLs against {$gameCount} games...");
         $this->newLine();
 
-        // Build lookup maps for faster matching
-        $lookups = $this->buildGameLookups($games);
-
         $stats = ['matched' => 0, 'unmatched' => 0];
-        $matches = [];
+        $matchSamples = [];
 
         $progressBar = $this->output->createProgressBar($unmatchedCount);
         $progressBar->start();
 
-        // Process URLs in chunks to manage memory
+        // Process URLs in chunks
         $urlQuery = TrophyGuideUrl::unmatched();
         if ($source !== 'all') {
             $urlQuery->where('source', $source);
         }
 
-        $urlQuery->chunk(500, function ($urlRecords) use ($lookups, $games, $dryRun, $showUnmatched, &$stats, &$matches, $progressBar) {
+        $urlQuery->chunk(500, function ($urlRecords) use ($lookups, $dryRun, $showUnmatched, &$stats, &$matchSamples, $progressBar) {
             foreach ($urlRecords as $urlRecord) {
-                $game = $this->findMatchingGame($urlRecord->extracted_slug, $lookups, $games);
+                $gameId = $this->findMatchingGameId($urlRecord->extracted_slug, $lookups);
 
-                if ($game) {
-                    // Only keep first 20 matches for dry-run display to save memory
-                    if (count($matches) < 20) {
-                        $matches[] = [
-                            'url' => $urlRecord,
-                            'game' => $game,
+                if ($gameId) {
+                    if (count($matchSamples) < 20) {
+                        $matchSamples[] = [
+                            'source' => $urlRecord->source,
+                            'slug' => $urlRecord->extracted_slug,
+                            'game_id' => $gameId,
                         ];
                     }
                     $stats['matched']++;
 
                     if (!$dryRun) {
-                        $urlRecord->game_id = $game->id;
+                        $urlRecord->game_id = $gameId;
                         $urlRecord->matched_at = now();
                         $urlRecord->save();
 
-                        // Also update the game's URL field for quick access
-                        $this->updateGameUrl($game, $urlRecord);
+                        // Update the game's URL field for quick access
+                        $this->updateGameUrlById($gameId, $urlRecord);
                     }
                 } else {
                     $stats['unmatched']++;
@@ -115,7 +131,6 @@ class MatchTrophyUrls extends Command
                 $progressBar->advance();
             }
 
-            // Garbage collection after each chunk
             gc_collect_cycles();
         });
 
@@ -131,15 +146,15 @@ class MatchTrophyUrls extends Command
             ]
         );
 
-        if ($dryRun && count($matches) > 0) {
+        if ($dryRun && count($matchSamples) > 0) {
             $this->newLine();
             $this->info("Sample matches (first 20):");
             $this->table(
-                ['Game Title', 'Source', 'URL Slug'],
-                collect($matches)->take(20)->map(fn($m) => [
-                    Str::limit($m['game']->title, 35),
-                    $m['url']->source,
-                    Str::limit($m['url']->extracted_slug, 35),
+                ['Game ID', 'Source', 'URL Slug'],
+                collect($matchSamples)->map(fn($m) => [
+                    $m['game_id'],
+                    $m['source'],
+                    Str::limit($m['slug'], 40),
                 ])->toArray()
             );
         }
@@ -151,40 +166,9 @@ class MatchTrophyUrls extends Command
     }
 
     /**
-     * Build lookup maps for faster game matching
+     * Find a matching game ID using lookup maps (no Eloquent models in memory)
      */
-    protected function buildGameLookups($games): array
-    {
-        $bySlug = [];
-        $byNormalizedSlug = [];
-        $byNormalizedTitle = [];
-
-        foreach ($games as $game) {
-            // By exact slug
-            if ($game->slug) {
-                $bySlug[$game->slug] = $game;
-            }
-
-            // By normalized slug
-            $normalizedSlug = $this->normalizeSlug($game->slug ?? Str::slug($game->title));
-            $byNormalizedSlug[$normalizedSlug] = $game;
-
-            // By normalized title
-            $normalizedTitle = $this->normalizeSlug(Str::slug($game->title));
-            $byNormalizedTitle[$normalizedTitle] = $game;
-        }
-
-        return [
-            'bySlug' => $bySlug,
-            'byNormalizedSlug' => $byNormalizedSlug,
-            'byNormalizedTitle' => $byNormalizedTitle,
-        ];
-    }
-
-    /**
-     * Find a matching game using various strategies
-     */
-    protected function findMatchingGame(string $extractedSlug, array $lookups, $allGames): ?Game
+    protected function findMatchingGameId(string $extractedSlug, array $lookups): ?int
     {
         // Strategy 1: Exact slug match
         if (isset($lookups['bySlug'][$extractedSlug])) {
@@ -202,35 +186,7 @@ class MatchTrophyUrls extends Command
             return $lookups['byNormalizedTitle'][$normalizedExtracted];
         }
 
-        // Strategy 3: Partial matching - check if slugs overlap significantly
-        foreach ($allGames as $game) {
-            $gameSlug = $this->normalizeSlug($game->slug ?? Str::slug($game->title));
-
-            // Check if one contains the other (for subtitles, editions, etc.)
-            if ($this->slugsMatch($normalizedExtracted, $gameSlug)) {
-                return $game;
-            }
-        }
-
         return null;
-    }
-
-    /**
-     * Check if two slugs match (accounting for variations)
-     * Conservative matching - only match on exact or very close matches
-     */
-    protected function slugsMatch(string $slug1, string $slug2): bool
-    {
-        // Exact match
-        if ($slug1 === $slug2) {
-            return true;
-        }
-
-        // Don't do partial matching - too many false positives
-        // e.g., "mass-effect" should NOT match "mass-effect-andromeda"
-        // Only exact matches after normalization are allowed
-
-        return false;
     }
 
     /**
@@ -264,9 +220,9 @@ class MatchTrophyUrls extends Command
     }
 
     /**
-     * Update the game's URL field for quick access
+     * Update the game's URL field by ID (avoids keeping model in memory)
      */
-    protected function updateGameUrl(Game $game, TrophyGuideUrl $urlRecord): void
+    protected function updateGameUrlById(int $gameId, TrophyGuideUrl $urlRecord): void
     {
         $field = match ($urlRecord->source) {
             'powerpyx' => 'powerpyx_url',
@@ -275,9 +231,10 @@ class MatchTrophyUrls extends Command
             default => null,
         };
 
-        if ($field && empty($game->$field)) {
-            $game->$field = $urlRecord->url;
-            $game->save();
+        if ($field) {
+            Game::where('id', $gameId)
+                ->whereNull($field)
+                ->update([$field => $urlRecord->url]);
         }
     }
 

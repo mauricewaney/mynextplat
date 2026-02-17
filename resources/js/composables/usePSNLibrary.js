@@ -38,6 +38,9 @@ export function usePSNLibrary() {
             const data = await response.json()
 
             if (!response.ok) {
+                if (response.status === 429 && data.retry_after) {
+                    throw new Error(`Rate limited. Please wait ${data.retry_after} seconds.`)
+                }
                 throw new Error(data.message || 'Failed to load library')
             }
 
@@ -76,6 +79,9 @@ export function usePSNLibrary() {
             const data = await response.json()
 
             if (!response.ok) {
+                if (response.status === 429 && data.retry_after) {
+                    throw new Error(`Rate limited. Please wait ${data.retry_after} seconds.`)
+                }
                 throw new Error(data.message || 'Failed to lookup user')
             }
 

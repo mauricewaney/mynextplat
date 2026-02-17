@@ -8,6 +8,8 @@ use App\Models\Platform;
 use App\Models\TrophyGuideUrl;
 use App\Services\IGDBService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class TrophyUrlImportController extends Controller
@@ -81,6 +83,11 @@ class TrophyUrlImportController extends Controller
             }
 
             $stats['new']++;
+        }
+
+        // Run URL matcher for any unmatched new URLs
+        if ($stats['new'] > 0) {
+            Artisan::call('trophy:match-urls', ['--source' => $source]);
         }
 
         // Get total counts
@@ -320,6 +327,46 @@ class TrophyUrlImportController extends Controller
     /**
      * Import a game from IGDB and match it to a trophy URL
      */
+    public function scrapePowerPyx()
+    {
+        try {
+            $exitCode = Artisan::call('ppx:scrape-guides');
+            $output = Artisan::output();
+
+            // Parse key stats from command output
+            $stats = [
+                'new' => 0,
+                'existing' => 0,
+                'matched' => 0,
+            ];
+
+            if (preg_match('/New URLs added\s*\|\s*(\d+)/i', $output, $m)) {
+                $stats['new'] = (int) $m[1];
+            }
+            if (preg_match('/Already existed\s*\|\s*(\d+)/i', $output, $m)) {
+                $stats['existing'] = (int) $m[1];
+            }
+            if (preg_match('/Auto-matched to games\s*\|\s*(\d+)/i', $output, $m)) {
+                $stats['matched'] = (int) $m[1];
+            }
+
+            return response()->json([
+                'success' => $exitCode === 0,
+                'message' => $exitCode === 0
+                    ? "PowerPyx import complete: {$stats['new']} new, {$stats['existing']} existing, {$stats['matched']} matched"
+                    : 'PowerPyx import failed',
+                'stats' => $stats,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('PowerPyx scrape failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'PowerPyx import failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function importFromIgdb(Request $request, $id, IGDBService $igdbService)
     {
         $request->validate([

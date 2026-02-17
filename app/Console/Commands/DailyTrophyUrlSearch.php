@@ -108,6 +108,13 @@ class DailyTrophyUrlSearch extends Command
         $this->newLine();
         $this->info("Done! Found {$totalFound} new URLs, matched {$totalMatched} to games.");
 
+        // Run URL matcher if new URLs were found
+        if ($totalFound > 0) {
+            $this->newLine();
+            $this->info('Running URL matcher for new guides...');
+            $this->call('trophy:match-urls');
+        }
+
         return Command::SUCCESS;
     }
 

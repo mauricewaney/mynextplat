@@ -42,6 +42,8 @@ return [
 
     'psn' => [
         'npsso' => env('PSN_NPSSO'),
+        'free_lookups' => (int) env('PSN_FREE_LOOKUPS', 3),
+        'cooldown_seconds' => (int) env('PSN_COOLDOWN_SECONDS', 60),
     ],
 
     'scraper_api' => [

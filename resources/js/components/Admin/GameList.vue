@@ -380,12 +380,6 @@
                         <span class="text-sm text-gray-600">Auto-advance to next game after save</span>
                     </label>
                     <button
-                        @click="openAllPsnpLinks"
-                        class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md text-sm font-medium"
-                    >
-                        Open all PSNP ({{ games.filter(g => g.psnprofiles_url).length }})
-                    </button>
-                    <button
                         @click="resetFilters"
                         class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium"
                     >
@@ -1144,12 +1138,6 @@ const goToPage = (page) => {
     currentPage.value = page
     fetchGames()
     selectedGames.value = [] // Clear selection when changing pages
-}
-
-// Open all PSNP links for current page
-const openAllPsnpLinks = () => {
-    const urls = games.value.filter(g => g.psnprofiles_url).map(g => g.psnprofiles_url)
-    urls.forEach(url => window.open(url, '_blank'))
 }
 
 // Reset filters

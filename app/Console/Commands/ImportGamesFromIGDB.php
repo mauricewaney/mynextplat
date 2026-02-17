@@ -13,8 +13,7 @@ class ImportGamesFromIGDB extends Command
 {
     protected $signature = 'igdb:import
                             {--limit=500 : Number of games to fetch per batch}
-                            {--queue : Run in background via queue}
-                            {--fresh : Delete all games before importing}';
+                            {--queue : Run in background via queue}';
 
     protected $description = 'Import PlayStation games from IGDB (automatically continues from where you left off)';
 
@@ -22,7 +21,6 @@ class ImportGamesFromIGDB extends Command
     {
         $limit = (int) $this->option('limit');
         $useQueue = $this->option('queue');
-        $fresh = $this->option('fresh');
 
         $this->info("IGDB Game Importer");
         $this->info("==================");
@@ -38,42 +36,21 @@ class ImportGamesFromIGDB extends Command
 
         $this->info("Connection successful!");
 
-        // Clear existing games if fresh flag is set
-        if ($fresh) {
-            if ($this->confirm('This will delete all existing games. Are you sure?')) {
-                Game::query()->delete();
-                $this->info("Cleared existing games.");
-            } else {
-                $this->info("Cancelled.");
-                return Command::SUCCESS;
-            }
-        }
-
-        // Use cursor-based pagination - find the latest release date in our DB
+        // Use created_at cursor to find recently added IGDB entries
         $existingCount = Game::whereNotNull('igdb_id')->count();
         $cursorTimestamp = null;
         $boundaryExcludeIds = [];
 
         if ($existingCount > 0) {
-            // Find the maximum first_release_date from existing games (stored as Y-m-d string)
             $latestGame = Game::whereNotNull('igdb_id')
-                ->whereNotNull('release_date')
-                ->orderBy('release_date', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->first();
 
-            if ($latestGame && $latestGame->release_date) {
-                // Convert to Unix timestamp for IGDB query
-                $cursorTimestamp = strtotime($latestGame->release_date);
+            if ($latestGame) {
+                // Subtract 1 day buffer to avoid missing edge cases
+                $cursorTimestamp = $latestGame->created_at->subDay()->timestamp;
 
-                // Get IDs of games at this exact release date to exclude (avoid duplicates at boundary)
-                $boundaryExcludeIds = Game::whereNotNull('igdb_id')
-                    ->where('release_date', $latestGame->release_date)
-                    ->pluck('igdb_id')
-                    ->toArray();
-
-                $this->info("Found {$existingCount} existing games - continuing from {$latestGame->release_date}");
-            } else {
-                $this->info("Found {$existingCount} existing games (no release dates) - starting fresh");
+                $this->info("Found {$existingCount} existing games - fetching IGDB entries added since {$latestGame->created_at->subDay()->format('Y-m-d')}");
             }
         } else {
             $this->info("No existing games found, starting fresh import.");
@@ -207,16 +184,6 @@ class ImportGamesFromIGDB extends Command
                 ['Total Platforms in DB', Platform::count()],
             ]
         );
-
-        // Auto-match trophy URLs if we imported any games and trophy URLs exist
-        if ($imported > 0 && \App\Models\TrophyGuideUrl::unmatched()->exists()) {
-            $this->newLine();
-            $this->info("Matching trophy guide URLs to newly imported games...");
-            $this->callSilently('trophy:match-urls');
-
-            $matchedCount = \App\Models\TrophyGuideUrl::matched()->count();
-            $this->info("Trophy URLs matched: {$matchedCount}");
-        }
 
         return Command::SUCCESS;
     }

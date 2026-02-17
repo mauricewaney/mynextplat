@@ -28,11 +28,11 @@ Route::prefix('games')->group(function () {
     Route::get('/{idOrSlug}/guide-votes', [GameController::class, 'guideVotes']);
 });
 
-// PSN Library Lookup (public)
-Route::get('/psn/my-library', [GameController::class, 'psnMyLibrary']);
-Route::get('/psn/my-owned-games', [GameController::class, 'psnMyOwnedGames']);
-Route::get('/psn/lookup/{username}', [GameController::class, 'psnLookup']);
-Route::get('/psn/library/{username}', [GameController::class, 'psnUserLibrary']);
+// PSN Library Lookup (public, rate limited)
+Route::get('/psn/my-library', [GameController::class, 'psnMyLibrary'])->middleware('psn.ratelimit');
+Route::get('/psn/my-owned-games', [GameController::class, 'psnMyOwnedGames'])->middleware('psn.ratelimit');
+Route::get('/psn/lookup/{username}', [GameController::class, 'psnLookup'])->middleware('psn.ratelimit');
+Route::get('/psn/library/{username}', [GameController::class, 'psnUserLibrary'])->middleware('psn.ratelimit');
 
 // Auth - Get current user (public, returns null if not authenticated)
 Route::get('/user', [AuthController::class, 'user']);
@@ -128,6 +128,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/search-igdb', [TrophyUrlImportController::class, 'searchIgdb']);
         Route::post('/{id}/match', [TrophyUrlImportController::class, 'match']);
         Route::post('/{id}/import-igdb', [TrophyUrlImportController::class, 'importFromIgdb']);
+        Route::post('/scrape-powerpyx', [TrophyUrlImportController::class, 'scrapePowerPyx']);
         Route::post('/{id}/toggle-dlc', [TrophyUrlImportController::class, 'toggleDlc']);
         Route::delete('/{id}', [TrophyUrlImportController::class, 'destroy']);
     });

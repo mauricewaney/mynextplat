@@ -67,6 +67,13 @@ class ScrapePowerPyxGuides extends Command
                 ]
             );
 
+            // Run URL matcher if new URLs were added
+            if ($stats['new'] > 0) {
+                $this->newLine();
+                $this->info('Running URL matcher for new guides...');
+                $this->call('trophy:match-urls', ['--source' => 'powerpyx']);
+            }
+
             return Command::SUCCESS;
         } catch (\Exception $e) {
             $this->error("Error: {$e->getMessage()}");

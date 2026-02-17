@@ -21,14 +21,15 @@ Artisan::command('inspire', function () {
 */
 
 Schedule::call(function () {
-    // Get the latest release date from the database for incremental sync
+    // Use created_at as cursor to catch any recently added IGDB entries
     $sinceTimestamp = null;
-    $latestGame = Game::whereNotNull('release_date')
-        ->orderBy('release_date', 'desc')
+    $latestGame = Game::whereNotNull('igdb_id')
+        ->orderBy('created_at', 'desc')
         ->first();
 
-    if ($latestGame && $latestGame->release_date) {
-        $sinceTimestamp = $latestGame->release_date->timestamp;
+    if ($latestGame) {
+        // Subtract 1 day buffer to avoid missing edge cases
+        $sinceTimestamp = $latestGame->created_at->subDay()->timestamp;
     }
 
     ImportIGDBGames::dispatch(100, 0, $sinceTimestamp);
