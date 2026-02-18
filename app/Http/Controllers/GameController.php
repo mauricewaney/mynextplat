@@ -729,6 +729,12 @@ class GameController extends Controller
             return false;
         }
 
+        // has_platinum=true is the default homepage state — allow it
+        $hasPlatinum = $request->input('has_platinum');
+        if ($hasPlatinum !== null && $hasPlatinum !== '' && $hasPlatinum !== 'true') {
+            return false;
+        }
+
         // Check sort - cache default sort (critic_score desc, matching frontend default)
         $sortBy = $request->input('sort_by', 'critic_score');
         $sortOrder = $request->input('sort_order', 'desc');
