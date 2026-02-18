@@ -8,6 +8,22 @@
                     <p class="text-gray-600 text-sm">Hover over search results to preview, click to match</p>
                 </div>
                 <div class="flex items-center gap-4">
+                    <div class="flex rounded-md shadow-sm">
+                        <button
+                            @click="showDlc = false"
+                            :class="!showDlc ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                            class="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-l-md"
+                        >
+                            Unmatched
+                        </button>
+                        <button
+                            @click="showDlc = true"
+                            :class="showDlc ? 'bg-yellow-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                            class="px-3 py-1.5 text-sm font-medium border border-l-0 border-gray-300 rounded-r-md"
+                        >
+                            DLC ({{ stats.dlc_count || 0 }})
+                        </button>
+                    </div>
                     <select v-model="sourceFilter" class="border-gray-300 rounded-md shadow-sm text-sm" @change="page = 1">
                         <option value="">All Sources</option>
                         <option value="psnprofiles">PSNP</option>
@@ -15,10 +31,7 @@
                         <option value="powerpyx">PPX</option>
                     </select>
                     <div class="text-sm text-gray-500">
-                        {{ filtered.length }} unmatched
-                    </div>
-                    <div v-if="stats.dlc_count" class="text-sm text-yellow-600">
-                        {{ stats.dlc_count }} DLC (hidden)
+                        {{ filtered.length }} {{ showDlc ? 'DLC' : 'unmatched' }}
                     </div>
                 </div>
             </div>
@@ -176,11 +189,14 @@
                                     </span>
                                     <span class="font-medium text-gray-900 text-sm truncate">{{ item.extracted_title }}</span>
                                     <button
-                                        @click="markAsDlc(item)"
-                                        class="ml-auto px-1.5 py-0.5 rounded text-xs font-medium shrink-0 bg-gray-100 text-gray-400 hover:bg-yellow-100 hover:text-yellow-700"
-                                        title="Mark as DLC (moves to DLC list)"
+                                        @click="toggleDlc(item)"
+                                        :class="showDlc
+                                            ? 'bg-yellow-100 text-yellow-700 hover:bg-gray-100 hover:text-gray-500'
+                                            : 'bg-gray-100 text-gray-400 hover:bg-yellow-100 hover:text-yellow-700'"
+                                        class="ml-auto px-1.5 py-0.5 rounded text-xs font-medium shrink-0"
+                                        :title="showDlc ? 'Unmark as DLC' : 'Mark as DLC'"
                                     >
-                                        DLC
+                                        {{ showDlc ? 'Not DLC' : 'DLC' }}
                                     </button>
                                     <button
                                         @click="skipUrl(item)"
@@ -349,6 +365,7 @@ const unmatched = ref([])
 const loading = ref(true)
 const search = ref('')
 const sourceFilter = ref('')
+const showDlc = ref(false)
 const page = ref(1)
 const perPage = 15
 const stats = ref({})
@@ -384,7 +401,12 @@ watch([search, sourceFilter], () => {
     page.value = 1
 })
 
-async function markAsDlc(item) {
+watch(showDlc, () => {
+    page.value = 1
+    loadUnmatched()
+})
+
+async function toggleDlc(item) {
     try {
         const response = await fetch(`/api/admin/trophy-urls/${item.id}/toggle-dlc`, {
             method: 'POST',
@@ -394,20 +416,23 @@ async function markAsDlc(item) {
         })
 
         const result = await response.json()
-        if (result.success && result.is_dlc) {
-            // Remove from list and update stats
+        if (result.success) {
+            // Remove from current list (it moved to the other list)
             unmatched.value = unmatched.value.filter(u => u.id !== item.id)
-            stats.value.dlc_count = (stats.value.dlc_count || 0) + 1
-            if (item.source === 'psnprofiles') {
-                stats.value.psnprofiles_unmatched--
-            } else if (item.source === 'playstationtrophies') {
-                stats.value.pst_unmatched--
-            } else if (item.source === 'powerpyx') {
-                stats.value.ppx_unmatched--
+            if (result.is_dlc) {
+                stats.value.dlc_count = (stats.value.dlc_count || 0) + 1
+                if (item.source === 'psnprofiles') stats.value.psnprofiles_unmatched--
+                else if (item.source === 'playstationtrophies') stats.value.pst_unmatched--
+                else if (item.source === 'powerpyx') stats.value.ppx_unmatched--
+            } else {
+                stats.value.dlc_count = Math.max(0, (stats.value.dlc_count || 0) - 1)
+                if (item.source === 'psnprofiles') stats.value.psnprofiles_unmatched++
+                else if (item.source === 'playstationtrophies') stats.value.pst_unmatched++
+                else if (item.source === 'powerpyx') stats.value.ppx_unmatched++
             }
         }
     } catch (e) {
-        console.error('Failed to mark as DLC:', e)
+        console.error('Failed to toggle DLC:', e)
     }
 }
 
@@ -425,7 +450,7 @@ function setActiveItem(item) {
 async function loadUnmatched() {
     loading.value = true
     try {
-        const response = await fetch('/api/admin/trophy-urls/unmatched')
+        const response = await fetch(`/api/admin/trophy-urls/unmatched${showDlc.value ? '?include_dlc=true' : ''}`)
         const data = await response.json()
         unmatched.value = data.urls.map(u => ({
             ...u,

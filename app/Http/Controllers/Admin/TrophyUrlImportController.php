@@ -224,11 +224,12 @@ class TrophyUrlImportController extends Controller
         ]);
     }
 
-    public function unmatched()
+    public function unmatched(Request $request)
     {
-        // Only return non-DLC unmatched URLs
+        $showDlc = $request->boolean('include_dlc');
+
         $urls = TrophyGuideUrl::whereNull('game_id')
-            ->where('is_dlc', false)
+            ->where('is_dlc', $showDlc)
             ->orderBy('extracted_title')
             ->get(['id', 'source', 'url', 'extracted_slug', 'extracted_title']);
 
