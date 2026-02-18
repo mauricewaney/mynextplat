@@ -17,6 +17,7 @@ class IGDBService
     protected const PLATFORM_PS3 = 9;
     protected const PLATFORM_VITA = 46;
     protected const PLATFORM_PSVR = 165;
+    protected const PLATFORM_PSVR2 = 390;
 
     protected const PLAYSTATION_PLATFORMS = [
         self::PLATFORM_PS5,
@@ -24,6 +25,7 @@ class IGDBService
         self::PLATFORM_PS3,
         self::PLATFORM_VITA,
         self::PLATFORM_PSVR,
+        self::PLATFORM_PSVR2,
     ];
 
     public function __construct()
@@ -202,7 +204,8 @@ class IGDBService
             self::PLATFORM_PS4 => 'ps4',
             self::PLATFORM_PS3 => 'ps3',
             self::PLATFORM_VITA => 'ps-vita',
-            self::PLATFORM_PSVR, 165 => 'ps-vr',
+            self::PLATFORM_PSVR => 'ps-vr',
+            self::PLATFORM_PSVR2 => 'ps-vr2',
             default => null,
         };
     }
@@ -217,7 +220,8 @@ class IGDBService
             self::PLATFORM_PS4 => ['name' => 'PlayStation 4', 'slug' => 'ps4', 'short_name' => 'PS4'],
             self::PLATFORM_PS3 => ['name' => 'PlayStation 3', 'slug' => 'ps3', 'short_name' => 'PS3'],
             self::PLATFORM_VITA => ['name' => 'PlayStation Vita', 'slug' => 'ps-vita', 'short_name' => 'Vita'],
-            self::PLATFORM_PSVR, 165 => ['name' => 'PlayStation VR', 'slug' => 'ps-vr', 'short_name' => 'PSVR'],
+            self::PLATFORM_PSVR => ['name' => 'PlayStation VR', 'slug' => 'ps-vr', 'short_name' => 'PSVR'],
+            self::PLATFORM_PSVR2 => ['name' => 'PlayStation VR2', 'slug' => 'ps-vr2', 'short_name' => 'PSVR2'],
             default => null,
         };
     }
