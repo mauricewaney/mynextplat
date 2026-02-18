@@ -678,10 +678,19 @@ class GameController extends Controller
 
         if ($isDefaultQuery) {
             // Cache the default "all games" page for 5 minutes
-            $cached = Cache::remember('games:default:page1', 300, function () use ($request) {
+            // Build a canonical request with default filters to ensure consistent cache
+            $cached = Cache::remember('games:default:page1', 300, function () {
+                $defaultRequest = Request::create('/api/games', 'GET', [
+                    'has_guide' => 'true',
+                    'has_platinum' => 'true',
+                    'sort_by' => 'critic_score',
+                    'sort_order' => 'desc',
+                    'per_page' => '24',
+                    'page' => '1',
+                ]);
                 $query = Game::with(['genres', 'tags', 'platforms']);
-                $this->filterService->applyFilters($query, $request, false);
-                return $this->filterService->paginate($query, $request, 24, 100);
+                $this->filterService->applyFilters($query, $defaultRequest, false);
+                return $this->filterService->paginate($query, $defaultRequest, 24, 100);
             });
 
             return response()->json($cached);
