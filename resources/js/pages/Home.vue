@@ -1236,6 +1236,7 @@ async function loadGames() {
         if (filters.user_score_max < 100) params.append('user_score_max', filters.user_score_max)
         if (filters.critic_score_min > 0) params.append('critic_score_min', filters.critic_score_min)
         if (filters.critic_score_max < 100) params.append('critic_score_max', filters.critic_score_max)
+        if (filters.has_platinum === true) params.append('has_platinum', 'true')
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
         if (filters.guide_psnp) params.append('guide_psnp', 'true')
