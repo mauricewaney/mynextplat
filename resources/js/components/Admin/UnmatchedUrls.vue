@@ -30,6 +30,10 @@
                         <option value="playstationtrophies">PST</option>
                         <option value="powerpyx">PPX</option>
                     </select>
+                    <label v-if="showDlc" class="flex items-center gap-1.5 text-sm text-yellow-700 cursor-pointer">
+                        <input type="checkbox" v-model="hideDlcKeyword" class="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500" />
+                        Hide "DLC" in title
+                    </label>
                     <div class="text-sm text-gray-500">
                         {{ filtered.length }} {{ showDlc ? 'DLC' : 'unmatched' }}
                     </div>
@@ -366,6 +370,7 @@ const loading = ref(true)
 const search = ref('')
 const sourceFilter = ref('')
 const showDlc = ref(false)
+const hideDlcKeyword = ref(false)
 const page = ref(1)
 const perPage = 15
 const stats = ref({})
@@ -384,6 +389,13 @@ const filtered = computed(() => {
         items = items.filter(i =>
             i.extracted_title?.toLowerCase().includes(q) ||
             i.extracted_slug?.toLowerCase().includes(q)
+        )
+    }
+
+    if (hideDlcKeyword.value) {
+        items = items.filter(i =>
+            !i.extracted_title?.toLowerCase().includes('dlc') &&
+            !i.extracted_slug?.toLowerCase().includes('dlc')
         )
     }
 
