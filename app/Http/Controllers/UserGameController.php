@@ -212,6 +212,11 @@ class UserGameController extends Controller
             });
         }
 
+        // Has platinum
+        if ($request->filled('has_platinum')) {
+            $query->where('has_platinum', $this->isTruthy($request->has_platinum));
+        }
+
         // No online trophies
         if ($request->filled('has_online_trophies') && !$this->isTruthy($request->has_online_trophies)) {
             $query->where(function ($q) {

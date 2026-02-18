@@ -623,6 +623,7 @@ async function loadGames() {
         if (filters.critic_score_max < 100) params.append('critic_score_max', filters.critic_score_max)
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
+        if (filters.has_platinum === true) params.append('has_platinum', 'true')
 
         // Sorting
         params.append('sort_by', sortBy.value)
