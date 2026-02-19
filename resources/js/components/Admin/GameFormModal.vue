@@ -77,20 +77,24 @@
                     <div class="space-y-4">
                         <h3 class="text-lg font-semibold text-gray-900 border-b pb-2">Trophy Data</h3>
 
-                        <!-- Data Source Badge -->
-                        <div v-if="form.data_source" class="flex items-center gap-2">
+                        <!-- Data Source -->
+                        <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-500">Data source:</span>
-                            <span
+                            <select
+                                v-model="form.data_source"
                                 :class="[
-                                    'inline-flex items-center px-2 py-0.5 rounded text-xs font-bold',
+                                    'text-xs font-bold rounded px-2 py-1 border-0 cursor-pointer',
                                     form.data_source === 'playstationtrophies' ? 'bg-purple-100 text-purple-700' :
                                     form.data_source === 'powerpyx' ? 'bg-orange-100 text-orange-700' :
                                     form.data_source === 'psnprofiles' ? 'bg-blue-100 text-blue-700' :
                                     'bg-gray-100 text-gray-700'
                                 ]"
                             >
-                                {{ form.data_source === 'playstationtrophies' ? 'PST' : form.data_source === 'powerpyx' ? 'PPX' : form.data_source === 'psnprofiles' ? 'PSNP' : form.data_source }}
-                            </span>
+                                <option value="">None</option>
+                                <option value="psnprofiles">PSNP</option>
+                                <option value="playstationtrophies">PST</option>
+                                <option value="powerpyx">PPX</option>
+                            </select>
                         </div>
 
                         <!-- Difficulty, Playthroughs, Hours, Online, Missable, Platinum -->
