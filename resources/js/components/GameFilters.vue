@@ -301,25 +301,25 @@
                     <div
                         class="absolute h-full bg-primary-500 rounded-full"
                         :style="{
-                            left: `${(filters.time_min / 200) * 100}%`,
-                            right: `${((200 - filters.time_max) / 200) * 100}%`
+                            left: `${(timeToIndex(filters.time_min) / timeMaxIndex) * 100}%`,
+                            right: `${((timeMaxIndex - timeToIndex(filters.time_max)) / timeMaxIndex) * 100}%`
                         }"
                     ></div>
                     <input
                         type="range"
-                        v-model.number="filters.time_min"
+                        v-model.number="timeMinIndex"
                         min="0"
-                        max="200"
-                        step="5"
+                        :max="timeMaxIndex"
+                        step="1"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @input="onTimeMinChange"
                     />
                     <input
                         type="range"
-                        v-model.number="filters.time_max"
+                        v-model.number="timeMaxIndex_"
                         min="0"
-                        max="200"
-                        step="5"
+                        :max="timeMaxIndex"
+                        step="1"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @input="onTimeMaxChange"
                     />
@@ -554,6 +554,35 @@ const genreDropdownOpen = ref(false)
 const tagDropdownOpen = ref(false)
 const genreDropdownRef = ref(null)
 const tagDropdownRef = ref(null)
+
+const timeSteps = [
+    0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+    60, 70, 80, 90, 100,
+    125, 150, 175, 200,
+]
+const timeMaxIndex = timeSteps.length - 1
+
+function timeToIndex(val) {
+    // Find closest step index
+    for (let i = timeSteps.length - 1; i >= 0; i--) {
+        if (timeSteps[i] <= val) return i
+    }
+    return 0
+}
+
+function indexToTime(idx) {
+    return timeSteps[Math.min(Math.max(0, idx), timeMaxIndex)]
+}
+
+const timeMinIndex = computed({
+    get: () => timeToIndex(filters.time_min),
+    set: (idx) => { filters.time_min = indexToTime(idx) },
+})
+
+const timeMaxIndex_ = computed({
+    get: () => timeToIndex(filters.time_max),
+    set: (idx) => { filters.time_max = indexToTime(idx) },
+})
 
 const timePresets = [
     { label: '<10h', min: 0, max: 10 },

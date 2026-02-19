@@ -167,7 +167,7 @@
                     </div>
 
                     <!-- List -->
-                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="bg-white rounded-lg shadow overflow-visible">
                         <div v-if="loading" class="p-8 text-center text-gray-500">Loading...</div>
                         <div v-else-if="filtered.length === 0" class="p-8 text-center text-gray-500">
                             No unmatched URLs found

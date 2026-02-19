@@ -230,8 +230,8 @@ class TrophyUrlImportController extends Controller
 
         $urls = TrophyGuideUrl::whereNull('game_id')
             ->where('is_dlc', $showDlc)
-            ->orderBy('extracted_title')
-            ->get(['id', 'source', 'url', 'extracted_slug', 'extracted_title']);
+            ->orderByDesc('created_at')
+            ->get(['id', 'source', 'url', 'extracted_slug', 'extracted_title', 'created_at']);
 
         return response()->json([
             'urls' => $urls,
