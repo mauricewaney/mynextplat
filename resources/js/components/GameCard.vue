@@ -116,7 +116,12 @@
                     </Transition>
                 </div>
                 <!-- Scores (always reserve space) -->
-                <div class="flex items-center gap-1 shrink-0">
+                <component
+                    :is="game.igdb_id ? 'a' : 'div'"
+                    v-bind="game.igdb_id ? { href: `https://www.igdb.com/games/${game.slug}`, target: '_blank', rel: 'noopener' } : {}"
+                    class="flex items-center gap-1 shrink-0"
+                    @click.stop
+                >
                     <!-- User Score -->
                     <div class="group/user relative inline-flex" @click.stop="toggleTooltip('user')">
                         <div
@@ -161,7 +166,7 @@
                             <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
                         </div>
                     </div>
-                </div>
+                </component>
             </div>
 
             <!-- Developer/Publisher -->

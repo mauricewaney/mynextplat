@@ -13,8 +13,8 @@
 - [X] Spot-check PSNP-only games (quick fill parsing issues)
 
 ## Frontend / UX
-- [ ] Pick domain name
-- [ ] Review robots.txt for production
+- [X] Pick domain name
+- [X] Review robots.txt for production
 - [ ] Test PSN lookup rate limiting with real users
 - [ ] Hard refresh / cache bust after deploy
 
