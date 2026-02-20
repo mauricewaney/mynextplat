@@ -467,7 +467,7 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left">
+                        <th class="px-3 py-1.5 text-left">
                             <input
                                 type="checkbox"
                                 :checked="allSelected"
@@ -475,54 +475,54 @@
                                 class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             />
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Cover
                         </th>
                         <th
                             @click="sortBy('title')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         >
                             Title
                             <span v-if="filters.sort_by === 'title'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('release_date')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         >
                             Release
                             <span v-if="filters.sort_by === 'release_date'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('critic_score')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         >
                             Score
                             <span v-if="filters.sort_by === 'critic_score'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('difficulty')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         >
                             Difficulty
                             <span v-if="filters.sort_by === 'difficulty'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Time
                         </th>
                         <th
                             @click="sortBy('user_score_count')"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                         >
                             Popularity
                             <span v-if="filters.sort_by === 'user_score_count'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Platforms
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Guides
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Actions
                         </th>
                     </tr>
@@ -534,7 +534,7 @@
                         :class="{ 'bg-primary-50': selectedGames.includes(game.id) }"
                         class="hover:bg-gray-50"
                     >
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-2 whitespace-nowrap">
                             <input
                                 type="checkbox"
                                 :checked="selectedGames.includes(game.id)"
@@ -542,7 +542,7 @@
                                 class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             />
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-2 whitespace-nowrap">
                             <img
                                 v-if="game.cover_url"
                                 :src="game.cover_url"
@@ -553,7 +553,7 @@
                                 No Image
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-3 py-2">
                             <div class="text-sm font-medium text-gray-900 flex items-center gap-1">
                                 {{ game.title }}
                                 <svg v-if="game.is_verified" class="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -562,14 +562,14 @@
                             </div>
                             <div class="text-sm text-gray-500">{{ game.developer }}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                             {{ game.release_date ? formatDate(game.release_date) : 'N/A' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                             <span v-if="game.critic_score" class="font-medium">{{ game.critic_score }}</span>
                             <span v-else class="text-gray-400">N/A</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-3 py-2 whitespace-nowrap">
               <span
                   v-if="game.difficulty"
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
@@ -579,13 +579,13 @@
               </span>
                             <span v-else class="text-gray-400 text-sm">N/A</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                             {{ game.time_range || 'N/A' }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
                             {{ game.user_score_count || '-' }}
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-3 py-2">
                             <div class="flex flex-wrap gap-1">
                                 <span
                                     v-for="platform in game.platforms"
@@ -597,7 +597,7 @@
                                 <span v-if="!game.platforms || game.platforms.length === 0" class="text-sm text-gray-400">-</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm">
                             <div class="flex items-center gap-2">
                                 <a
                                     v-if="game.psnprofiles_url"
@@ -632,7 +632,7 @@
                                 <span v-if="!game.psnprofiles_url && !game.playstationtrophies_url && !game.powerpyx_url" class="text-gray-400">-</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm font-medium">
                             <button
                                 @click="openEditModal(game, index)"
                                 class="text-primary-600 hover:text-primary-900 mr-3"
@@ -802,7 +802,7 @@
             <div class="absolute inset-y-0 right-0 max-w-lg w-full">
                 <div class="h-full bg-white shadow-xl overflow-y-auto">
                     <!-- Header -->
-                    <div class="sticky top-0 bg-primary-600 text-white px-6 py-4 flex justify-between items-center">
+                    <div class="sticky top-0 bg-primary-600 text-white px-3 py-2 flex justify-between items-center">
                         <h2 class="text-xl font-bold">Admin Instructions</h2>
                         <button @click="showInstructions = false" class="text-white hover:text-primary-200">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
