@@ -139,7 +139,7 @@
 
         <!-- Page Content -->
         <main class="py-6">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4">
                 <slot />
             </div>
         </main>

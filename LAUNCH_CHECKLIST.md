@@ -10,7 +10,7 @@
 ## Data Verification
 - [ ] Finish first verification pass (difficulty, time, playthroughs, online, missable)
 - [ ] Second pass: verify has_platinum on already-verified games
-- [ ] Spot-check PSNP-only games (quick fill parsing issues)
+- [X] Spot-check PSNP-only games (quick fill parsing issues)
 
 ## Frontend / UX
 - [ ] Pick domain name
