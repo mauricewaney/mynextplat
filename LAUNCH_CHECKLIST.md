@@ -1,11 +1,11 @@
 # Launch Checklist
 
 ## Infrastructure (Forge)
-- [ ] Add Laravel scheduler cron: `php /path/to/artisan schedule:run` (every minute)
-- [ ] Add queue worker daemon: `php artisan queue:work --sleep=3 --tries=3`
-- [ ] Set up mail provider (Mailgun/Resend free tier) + configure `.env` mail settings
-- [ ] Test notifications: `php artisan notifications:new-guides --dry-run`
-- [ ] Register and point domain name
+- [X] Add Laravel scheduler cron: `php /path/to/artisan schedule:run` (every minute)
+- [X] Add queue worker daemon: `php artisan queue:work --sleep=3 --tries=3`
+- [-] Set up mail provider (Mailgun/Resend free tier) + configure `.env` mail settings
+- [-] Test notifications: `php artisan notifications:new-guides --dry-run`
+- [-] Register and point domain name
 
 ## Data Verification
 - [ ] Finish first verification pass (difficulty, time, playthroughs, online, missable)

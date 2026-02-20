@@ -100,7 +100,7 @@
                 </div>
 
                 <!-- Email Notifications -->
-                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+                <div v-if="settings.mail_enabled" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Email Notifications</h2>

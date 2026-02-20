@@ -146,6 +146,7 @@ class ProfileController extends Controller
             'profile_name' => $user->profile_name,
             'profile_url' => url('/u/' . $user->getProfileIdentifier()),
             'notify_new_guides' => $user->notify_new_guides,
+            'mail_enabled' => !in_array(config('mail.default'), ['log', 'array', null]),
             'email' => $user->email,
             'name' => $user->name,
         ]);
