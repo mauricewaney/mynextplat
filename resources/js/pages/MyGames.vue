@@ -1,8 +1,7 @@
 <template>
     <AppLayout title="My Games">
-        <!-- Navigation Tabs Header -->
-        <template #header-left>
-            <!-- View Mode Tabs - Desktop -->
+        <template #nav-tabs>
+            <!-- Desktop Nav Tabs -->
             <div class="hidden sm:flex items-center gap-2">
                 <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                     <router-link
@@ -16,60 +15,34 @@
                         to="/?view=psn"
                         class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
                     >
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                        </svg>
                         PSN: {{ psnUser?.username }}
                     </router-link>
-                    <span
-                        class="px-3 py-1.5 rounded-md text-sm font-medium bg-primary-600 text-white shadow-sm"
-                    >
+                    <span class="px-3 py-1.5 rounded-md text-sm font-medium bg-primary-600 text-white shadow-sm">
                         My Games
                     </span>
                 </div>
+                <router-link to="/?view=psn" class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
+                    PSN
+                </router-link>
             </div>
+            <!-- Mobile Nav Tabs -->
+            <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
+                <router-link to="/" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
+                    All Games
+                </router-link>
+                <router-link v-if="isPsnLoaded" to="/?view=psn" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
+                    PSN
+                </router-link>
+                <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-primary-600 text-white shadow-sm">
+                    My Games
+                </span>
+            </div>
+        </template>
 
-            <!-- View Mode Dropdown - Mobile -->
-            <div class="sm:hidden relative view-mode-menu-container">
-                <button
-                    @click="showViewModeMenu = !showViewModeMenu"
-                    class="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-600 rounded-lg text-sm font-medium text-white"
-                >
-                    <span>My Games</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                </button>
-                <!-- Dropdown Menu -->
-                <div
-                    v-if="showViewModeMenu"
-                    class="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 min-w-[140px] z-50"
-                >
-                    <router-link
-                        to="/"
-                        class="block w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-                        @click="showViewModeMenu = false"
-                    >
-                        All Games
-                    </router-link>
-                    <router-link
-                        v-if="isPsnLoaded"
-                        to="/?view=psn"
-                        class="block w-full px-3 py-2 text-left text-sm flex items-center gap-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
-                        @click="showViewModeMenu = false"
-                    >
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M9.5 6.5v3h-3v-3h3M11 5H5v6h6V5m-1.5 9.5v3h-3v-3h3M11 13H5v6h6v-6m6.5-6.5v3h-3v-3h3M19 5h-6v6h6V5m-6 8h1.5v1.5H13V13m1.5 1.5H16V16h-1.5v-1.5M16 13h1.5v1.5H16V13m-3 3h1.5v1.5H13V16m1.5 1.5H16V19h-1.5v-1.5M16 16h1.5v1.5H16V16m1.5-1.5H19V16h-1.5v-1.5m0 3H19V19h-1.5v-1.5M19 13h-1.5v1.5H19V13"/>
-                        </svg>
-                        PSN: {{ psnUser?.username }}
-                    </router-link>
-                    <span
-                        class="block w-full px-3 py-2 text-left text-sm bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
-                    >
-                        My Games
-                    </span>
-                </div>
-            </div>
+        <template #header-mobile>
+            <router-link to="/?view=psn" class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
+                PSN
+            </router-link>
         </template>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -406,7 +379,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
@@ -444,7 +417,6 @@ const currentStatus = ref(sessionStorage.getItem('myGamesStatus') || 'all')
 const sortBy = ref(sessionStorage.getItem('sortBy') || 'critic_score')
 const sortOrder = ref(sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
-const showViewModeMenu = ref(false)
 const updatingNotifications = ref(false)
 
 // Load saved filters from sessionStorage
@@ -751,25 +723,13 @@ async function copyShareLink() {
     }
 }
 
-// Close dropdown when clicking outside
-function handleClickOutside(e) {
-    if (showViewModeMenu.value && !e.target.closest('.view-mode-menu-container')) {
-        showViewModeMenu.value = false
-    }
-}
-
 onMounted(() => {
     loadGames()
-    document.addEventListener('click', handleClickOutside)
 
     // Handle unsubscribe from email link
     if (route.query.notifications === 'off') {
         updatePreferences({ notify_new_guides: false })
     }
-})
-
-onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside)
 })
 </script>
 

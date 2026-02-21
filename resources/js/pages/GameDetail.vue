@@ -163,7 +163,7 @@
                             <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Runs</div>
                         </div>
                         <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
-                            <div class="text-lg sm:text-2xl font-bold" :class="game.missable_trophies ? 'text-orange-500' : 'text-green-500'">
+                            <div class="text-lg sm:text-2xl font-bold" :class="game.missable_trophies ? 'text-red-500' : 'text-green-500'">
                                 {{ game.missable_trophies ? 'Yes' : 'No' }}
                             </div>
                             <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Missables</div>
@@ -197,8 +197,8 @@
                     </div>
 
                     <!-- Online Trophies Status -->
-                    <div v-if="game.has_online_trophies" class="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3 mb-4">
-                        <span class="text-orange-700 dark:text-orange-300 text-sm font-medium">
+                    <div v-if="game.has_online_trophies" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+                        <span class="text-red-700 dark:text-red-300 text-sm font-medium">
                             This game has online trophies
                         </span>
                     </div>

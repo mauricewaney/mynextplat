@@ -195,13 +195,13 @@
                     </div>
                     <div>
                         <div v-if="game.missable_trophies === false" class="font-bold text-primary-600 dark:text-primary-400">No</div>
-                        <div v-else-if="game.missable_trophies === true" class="font-bold text-orange-600 dark:text-orange-400">Yes</div>
+                        <div v-else-if="game.missable_trophies === true" class="font-bold text-red-600 dark:text-red-400">Yes</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Missables</div>
                     </div>
                     <div>
                         <div v-if="game.has_online_trophies === false" class="font-bold text-primary-600 dark:text-primary-400">No</div>
-                        <div v-else-if="game.has_online_trophies === true" class="font-bold text-orange-600 dark:text-orange-400">Yes</div>
+                        <div v-else-if="game.has_online_trophies === true" class="font-bold text-red-600 dark:text-red-400">Yes</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Online</div>
                     </div>
@@ -231,7 +231,7 @@
                     <div class="flex items-center gap-2">
                         <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Missables</span>
                         <span v-if="game.missable_trophies === false" class="text-primary-600 dark:text-primary-400 font-medium">None</span>
-                        <span v-else-if="game.missable_trophies === true" class="text-orange-600 dark:text-orange-400 font-medium">Yes</span>
+                        <span v-else-if="game.missable_trophies === true" class="text-red-600 dark:text-red-400 font-medium">Yes</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
                     </div>
 
@@ -253,7 +253,7 @@
                     <div class="flex items-center gap-2">
                         <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Online</span>
                         <span v-if="game.has_online_trophies === false" class="text-primary-600 dark:text-primary-400 font-medium">No</span>
-                        <span v-else-if="game.has_online_trophies === true" class="text-orange-600 dark:text-orange-400 font-medium">Yes</span>
+                        <span v-else-if="game.has_online_trophies === true" class="text-red-600 dark:text-red-400 font-medium">Yes</span>
                         <span v-else class="text-gray-300 dark:text-gray-600">--</span>
                     </div>
 
