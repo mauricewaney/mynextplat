@@ -42,6 +42,29 @@ Schedule::call(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Import Recently Released Games
+|--------------------------------------------------------------------------
+|
+| Catch games that were added to IGDB long ago but released recently.
+| The main import above uses IGDB's created_at cursor, which misses
+| games added to IGDB months before their release date.
+|
+*/
+
+Schedule::call(function () {
+    // Look for games released in the last 30 days
+    $releasedSince = now()->subDays(30)->timestamp;
+
+    ImportIGDBGames::dispatch(100, 0, null, [], $releasedSince);
+})
+    ->daily()
+    ->at('03:15')
+    ->name('igdb-import-recently-released')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
 | Trophy Data Scraping
 |--------------------------------------------------------------------------
 |

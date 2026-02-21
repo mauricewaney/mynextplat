@@ -238,7 +238,7 @@ class IGDBService
      * @param int|null $sinceTimestamp Continue from this Unix timestamp (cursor-based)
      * @param array $excludeIds IGDB IDs to exclude (only for games at cursor boundary)
      */
-    public function fetchPlayStationGames(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = []): array
+    public function fetchPlayStationGames(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = [], ?int $releasedSinceTimestamp = null): array
     {
         $accessToken = $this->getAccessToken();
 
@@ -264,6 +264,11 @@ class IGDBService
         // Use IGDB's created_at to find recently added entries (incremental sync)
         if ($sinceTimestamp) {
             $whereConditions[] = 'created_at >= ' . $sinceTimestamp;
+        }
+
+        // Filter by release date to catch games that were added to IGDB long ago but released recently
+        if ($releasedSinceTimestamp) {
+            $whereConditions[] = 'first_release_date >= ' . $releasedSinceTimestamp;
         }
 
         // Only exclude IDs if we have a reasonable number (for boundary games)
