@@ -18,6 +18,7 @@ class ImportIGDBGames implements ShouldQueue
     protected int $offset;
     protected ?int $sinceTimestamp;
     protected array $excludeIds;
+    protected ?int $releasedSinceTimestamp;
 
     /**
      * The number of seconds the job can run before timing out.
@@ -29,15 +30,17 @@ class ImportIGDBGames implements ShouldQueue
      *
      * @param int $limit Number of games to fetch
      * @param int $offset Offset for pagination
-     * @param int|null $sinceTimestamp Only fetch games released on or after this Unix timestamp
+     * @param int|null $sinceTimestamp Only fetch games created on IGDB on or after this Unix timestamp
      * @param array $excludeIds IGDB IDs to exclude (for reliable continuation)
+     * @param int|null $releasedSinceTimestamp Only fetch games released on or after this Unix timestamp
      */
-    public function __construct(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = [])
+    public function __construct(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = [], ?int $releasedSinceTimestamp = null)
     {
         $this->limit = $limit;
         $this->offset = $offset;
         $this->sinceTimestamp = $sinceTimestamp;
         $this->excludeIds = $excludeIds;
+        $this->releasedSinceTimestamp = $releasedSinceTimestamp;
     }
 
     /**
@@ -48,7 +51,7 @@ class ImportIGDBGames implements ShouldQueue
         Log::info("Starting IGDB import: limit={$this->limit}, offset={$this->offset}");
 
         // Fetch games from IGDB using created_at cursor for incremental sync
-        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp, $this->excludeIds);
+        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp, $this->excludeIds, $this->releasedSinceTimestamp);
 
         Log::info("Fetched " . count($igdbGames) . " games from IGDB");
 
