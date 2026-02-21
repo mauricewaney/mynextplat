@@ -267,7 +267,7 @@
                                 class="sr-only peer"
                                 @change="emitFilters"
                             />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-red-500 transition-colors"></div>
+                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
                             <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
                         </div>
                         <span class="text-sm text-gray-700 dark:text-gray-300">No unobtainable</span>

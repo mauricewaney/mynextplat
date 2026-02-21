@@ -221,6 +221,11 @@ class UserGameController extends Controller
             });
         }
 
+        // Exclude unobtainable
+        if ($request->filled('exclude_unobtainable') && $this->isTruthy($request->exclude_unobtainable)) {
+            $query->where('is_unobtainable', false);
+        }
+
         // Guide source filters
         if ($request->filled('guide_psnp') && $this->isTruthy($request->guide_psnp)) {
             $query->whereNotNull('psnprofiles_url');

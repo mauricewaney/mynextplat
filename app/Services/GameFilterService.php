@@ -223,14 +223,9 @@ class GameFilterService
             $query->where('has_guide', $this->isTruthy($request->has_guide));
         }
 
-        // Exclude unobtainable filter (online trophies + server shutdown date has passed)
+        // Exclude unobtainable filter
         if ($request->filled('exclude_unobtainable') && $this->isTruthy($request->exclude_unobtainable)) {
-            $query->where(function ($q) {
-                $q->where('has_online_trophies', false)
-                  ->orWhereNull('has_online_trophies')
-                  ->orWhereNull('server_shutdown_date')
-                  ->orWhere('server_shutdown_date', '>', now());
-            });
+            $query->where('is_unobtainable', false);
         }
 
         // Guide source filters (available to public)
