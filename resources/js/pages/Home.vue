@@ -1149,6 +1149,8 @@ const hasMore = computed(() => currentPage.value < lastPage.value)
 
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
+    // During mount, just sync filter values — parent onMounted will call loadGames()
+    if (isMounting) return
     // Save filters to sessionStorage (exclude game_ids as they're from PSN lookup)
     const filtersToSave = { ...newFilters }
     delete filtersToSave.game_ids
@@ -1187,6 +1189,7 @@ function switchViewMode(mode) {
 }
 
 let loadGamesController = null
+let isMounting = true
 
 async function loadGames() {
     // Cancel any in-flight request
@@ -1320,7 +1323,9 @@ onMounted(() => {
         }
     }
 
-    // Load games with saved filters
+    // GameFilters.onMounted already synced saved filters via emitFilters → onFilterChange
+    // Now that viewMode is set, do the single initial load
+    isMounting = false
     loadGames()
 })
 </script>

@@ -687,10 +687,11 @@ async function fetchGame() {
             throw new Error('Game not found')
         }
         game.value = await response.json()
-        // Fetch recommendations, guide votes, and check list status after game loads
-        fetchRecommendations()
+        // Fetch secondary data after a short delay to avoid flooding 1 vCPU server
         fetchGuideVotes()
         checkListStatus()
+        // Recommendations are heavy (JOIN + GROUP BY) — load after main content renders
+        setTimeout(fetchRecommendations, 100)
     } catch (e) {
         error.value = e.message
     } finally {

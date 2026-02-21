@@ -720,16 +720,22 @@ class GameController extends Controller
      */
     public function show($idOrSlug)
     {
-        $query = Game::with(['genres', 'tags', 'platforms']);
+        $version = Cache::get('games:cache_version', 1);
+        $cacheKey = "game:v{$version}:{$idOrSlug}";
 
-        // Only search by ID if the input is purely numeric
-        if (ctype_digit((string) $idOrSlug)) {
-            $query->where('id', $idOrSlug);
-        } else {
-            $query->where('slug', $idOrSlug);
-        }
+        $game = Cache::remember($cacheKey, 86400, function () use ($idOrSlug) {
+            $query = Game::with(['genres', 'tags', 'platforms']);
 
-        return response()->json($query->firstOrFail());
+            if (ctype_digit((string) $idOrSlug)) {
+                $query->where('id', $idOrSlug);
+            } else {
+                $query->where('slug', $idOrSlug);
+            }
+
+            return $query->firstOrFail();
+        });
+
+        return response()->json($game);
     }
 
     /**
@@ -760,11 +766,17 @@ class GameController extends Controller
      */
     public function filterOptions()
     {
-        return response()->json([
-            'genres' => Genre::orderBy('name')->get(['id', 'name', 'slug']),
-            'tags' => Tag::orderBy('name')->get(['id', 'name', 'slug']),
-            'platforms' => Platform::orderBy('name')->get(['id', 'name', 'slug', 'short_name']),
-        ]);
+        $version = Cache::get('games:cache_version', 1);
+
+        $data = Cache::remember("filters:v{$version}", 86400, function () {
+            return [
+                'genres' => Genre::orderBy('name')->get(['id', 'name', 'slug']),
+                'tags' => Tag::orderBy('name')->get(['id', 'name', 'slug']),
+                'platforms' => Platform::orderBy('name')->get(['id', 'name', 'slug', 'short_name']),
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**
