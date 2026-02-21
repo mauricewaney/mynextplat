@@ -536,7 +536,7 @@ Online Trophies: None"
                                             @click="applyGuide('playstationtrophies_url', result.playstationtrophies_url)"
                                             type="button"
                                             class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/70"
-                                            title="Use this PS Trophies guide"
+                                            title="Use this PlayStationTrophies guide"
                                         >
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>

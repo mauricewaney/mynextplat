@@ -178,7 +178,7 @@
                                     'text-gray-600 dark:text-gray-400'
                                 "
                             >
-                                {{ game.data_source === 'playstationtrophies' ? 'ps trophies' : game.data_source === 'powerpyx' ? 'powerpyx' : game.data_source === 'psnprofiles' ? 'psnprofiles' : game.data_source }}
+                                {{ game.data_source === 'playstationtrophies' ? 'PlayStationTrophies' : game.data_source === 'powerpyx' ? 'PowerPyx' : game.data_source === 'psnprofiles' ? 'PSNProfiles' : game.data_source }}
                             </div>
                             <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Source</div>
                         </div>

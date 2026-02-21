@@ -18,36 +18,23 @@
                     PSN
                 </button>
             </div>
-            <!-- Mobile View Mode Dropdown -->
-            <div class="sm:hidden relative view-mode-menu-container">
-                <button @click="showViewModeMenu = !showViewModeMenu" class="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary-600 rounded-lg text-sm font-medium text-white">
-                    <span>{{ viewMode === 'all' ? 'All Games' : `PSN: ${psnUser?.username}` }}</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                    </svg>
+            <!-- Mobile View Mode Tabs -->
+            <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
+                <button @click="switchViewMode('all')" :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-colors', viewMode === 'all' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400']">
+                    All Games
                 </button>
-                <div v-if="showViewModeMenu" class="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 py-1 min-w-[140px] z-50">
-                    <button @click="switchViewMode('all'); showViewModeMenu = false" :class="['w-full px-3 py-2 text-left text-sm', viewMode === 'all' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700']">
-                        All Games
-                    </button>
-                    <button v-if="isPsnLoaded" @click="switchViewMode('psn'); showViewModeMenu = false" :class="['w-full px-3 py-2 text-left text-sm flex items-center gap-2', viewMode === 'psn' ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700']">
-                        PSN: {{ psnUser?.username }}
-                    </button>
-                    <router-link v-if="isAuthenticated" to="/my-games" @click="showViewModeMenu = false" class="block w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700">
-                        My Games
-                    </router-link>
-                </div>
+                <button v-if="isPsnLoaded" @click="switchViewMode('psn')" :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-colors', viewMode === 'psn' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400']">
+                    PSN
+                </button>
+                <router-link v-if="isAuthenticated" to="/my-games" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
+                    My Games
+                </router-link>
             </div>
         </template>
 
         <template #header-mobile>
             <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
                 PSN
-            </button>
-            <button @click="showMobileFilters = true" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                </svg>
             </button>
         </template>
 
@@ -156,9 +143,20 @@
 
                     <!-- Sort Bar (All screen sizes) -->
                     <div class="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                            <span class="font-semibold text-gray-900 dark:text-white">{{ total.toLocaleString() }}</span> games
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <!-- Filter Button (Mobile) -->
+                            <button
+                                @click="showMobileFilters = true"
+                                class="lg:hidden flex items-center justify-center p-2 rounded-full transition-all ring-1 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                </svg>
+                            </button>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ total.toLocaleString() }}</span> games
+                            </span>
+                        </div>
                         <div class="flex items-center gap-2">
                             <label class="hidden sm:block text-sm text-gray-500 dark:text-gray-400">Sort:</label>
                             <select
@@ -690,7 +688,6 @@ const showPsnSearchModal = ref(false)
 const showUnmatchedModal = ref(false)
 const unmatchedSearch = ref('')
 const showLoginPrompt = ref(false)
-const showViewModeMenu = ref(false)
 const viewMode = ref(sessionStorage.getItem('viewMode') || 'all') // 'all' | 'psn'
 const bulkAddLoading = ref(false)
 const showBulkAddConfirm = ref(false)
@@ -741,12 +738,6 @@ const filteredUnmatchedTitles = computed(() => {
     )
 })
 
-// Close menus when clicking outside
-function closeMenus(e) {
-    if (!e.target.closest('.view-mode-menu-container')) {
-        showViewModeMenu.value = false
-    }
-}
 
 
 
@@ -1055,8 +1046,6 @@ async function updateGameStatus(gameId, status) {
 }
 
 onMounted(() => {
-    document.addEventListener('click', closeMenus)
-
     // Handle view query parameter (e.g., from My Games navigation tabs)
     if (route.query.view === 'psn') {
         if (isPsnLoaded.value) {

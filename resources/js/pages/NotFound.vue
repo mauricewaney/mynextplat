@@ -24,7 +24,7 @@
                     to="/profiles"
                     class="px-6 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg shadow-sm hover:shadow-md transition-all"
                 >
-                    View Profiles
+                    View Libraries
                 </router-link>
             </div>
         </div>
