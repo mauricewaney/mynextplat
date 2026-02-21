@@ -128,5 +128,9 @@ class ImportIGDBGames implements ShouldQueue
         }
 
         Log::info("IGDB import complete: imported={$imported}, skipped={$skipped}, errors={$errors}");
+
+        if ($imported > 0) {
+            \App\Http\Controllers\GameController::bustGameCache();
+        }
     }
 }

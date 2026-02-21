@@ -162,6 +162,8 @@ class MatchTrophyUrls extends Command
         $this->newLine();
         $this->showStats();
 
+        \App\Http\Controllers\GameController::bustGameCache();
+
         return Command::SUCCESS;
     }
 

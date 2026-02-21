@@ -10,7 +10,7 @@ use App\Models\Platform;
 use App\Services\IGDBService;
 use App\Services\GameFilterService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+
 use Illuminate\Support\Str;
 
 class GameController extends Controller
@@ -68,7 +68,7 @@ class GameController extends Controller
         }
 
         // Clear games cache
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
 
         return response()->json($game->load('genres', 'tags', 'platforms'), 201);
     }
@@ -110,7 +110,7 @@ class GameController extends Controller
         }
 
         // Clear games cache
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
 
         return response()->json($game->load('genres', 'tags', 'platforms'));
     }
@@ -121,7 +121,7 @@ class GameController extends Controller
         $game->delete();
 
         // Clear games cache
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
 
         return response()->json(['message' => 'Game deleted successfully']);
     }
@@ -324,7 +324,7 @@ class GameController extends Controller
         ]);
 
         Game::whereIn('id', $request->game_ids)->delete();
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
 
         return response()->json(['message' => 'Games deleted successfully']);
     }
@@ -343,7 +343,7 @@ class GameController extends Controller
             $game->genres()->syncWithoutDetaching($request->genre_ids);
         }
 
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
         return response()->json(['message' => 'Genres added successfully']);
     }
 
@@ -361,7 +361,7 @@ class GameController extends Controller
             $game->genres()->detach($request->genre_ids);
         }
 
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
         return response()->json(['message' => 'Genres removed successfully']);
     }
 
@@ -379,7 +379,7 @@ class GameController extends Controller
             $game->tags()->syncWithoutDetaching($request->tag_ids);
         }
 
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
         return response()->json(['message' => 'Tags added successfully']);
     }
 
@@ -397,7 +397,7 @@ class GameController extends Controller
             $game->tags()->detach($request->tag_ids);
         }
 
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
         return response()->json(['message' => 'Tags removed successfully']);
     }
 
@@ -415,7 +415,7 @@ class GameController extends Controller
             $game->platforms()->syncWithoutDetaching($request->platform_ids);
         }
 
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
         return response()->json(['message' => 'Platforms added successfully']);
     }
 
@@ -433,7 +433,7 @@ class GameController extends Controller
             $game->platforms()->detach($request->platform_ids);
         }
 
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
         return response()->json(['message' => 'Platforms removed successfully']);
     }
 
@@ -550,7 +550,7 @@ class GameController extends Controller
         $duplicate->delete();
 
         // Clear games cache
-        Cache::forget('games:default:page1');
+        \App\Http\Controllers\GameController::bustGameCache();
 
         return response()->json([
             'success' => true,

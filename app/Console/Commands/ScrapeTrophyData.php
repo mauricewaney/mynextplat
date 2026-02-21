@@ -214,6 +214,8 @@ class ScrapeTrophyData extends Command
             ]
         );
 
+        \App\Http\Controllers\GameController::bustGameCache();
+
         return Command::SUCCESS;
     }
 

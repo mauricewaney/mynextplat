@@ -673,86 +673,26 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
-        // Check if this is the default query (no filters, first page, default sort)
-        $isDefaultQuery = $this->isDefaultQuery($request);
+        // Version-based cache: all queries cached for 24h, invalidated when data changes
+        $version = Cache::get('games:cache_version', 1);
+        $cacheKey = "games:v{$version}:" . md5($request->getQueryString() ?? 'default');
 
-        if ($isDefaultQuery) {
-            // Cache the default "all games" page for 5 minutes
-            // Build a canonical request with default filters to ensure consistent cache
-            $cached = Cache::remember('games:default:page1', 300, function () {
-                $defaultRequest = Request::create('/api/games', 'GET', [
-                    'has_guide' => 'true',
-                    'has_platinum' => 'true',
-                    'sort_by' => 'critic_score',
-                    'sort_order' => 'desc',
-                    'per_page' => '24',
-                    'page' => '1',
-                ]);
-                $query = Game::with(['genres', 'tags', 'platforms']);
-                $this->filterService->applyFilters($query, $defaultRequest, false);
-                return $this->filterService->paginate($query, $defaultRequest, 24, 100);
-            });
+        $result = Cache::remember($cacheKey, 86400, function () use ($request) {
+            $query = Game::with(['genres', 'tags', 'platforms']);
+            $this->filterService->applyFilters($query, $request, false);
+            return $this->filterService->paginate($query, $request, 24, 100);
+        });
 
-            return response()->json($cached);
-        }
-
-        // For filtered queries, run normally without cache
-        $query = Game::with(['genres', 'tags', 'platforms']);
-        $this->filterService->applyFilters($query, $request, false);
-
-        return response()->json(
-            $this->filterService->paginate($query, $request, 24, 100)
-        );
+        return response()->json($result);
     }
 
     /**
-     * Check if request is for the default unfiltered games list
+     * Bump the cache version, invalidating all cached game queries.
+     * Call this after imports or admin edits.
      */
-    private function isDefaultQuery(Request $request): bool
+    public static function bustGameCache(): void
     {
-        // Only cache page 1 with no filters
-        if ($request->input('page', 1) != 1) {
-            return false;
-        }
-
-        // Check for any active filters beyond the default has_guide=true
-        $filterParams = [
-            'search', 'platform_ids', 'genre_ids', 'tag_ids',
-            'difficulty_min', 'difficulty_max', 'time_min', 'time_max',
-            'has_online_trophies', 'missable_trophies',
-            'max_playthroughs', 'min_score', 'game_ids',
-            'guide_psnp', 'guide_pst', 'guide_ppx',
-            'user_score_min', 'user_score_max',
-            'critic_score_min', 'critic_score_max',
-        ];
-
-        foreach ($filterParams as $param) {
-            if ($request->has($param) && $request->input($param) !== null && $request->input($param) !== '') {
-                return false;
-            }
-        }
-
-        // has_guide=true is the default homepage state — allow it
-        $hasGuide = $request->input('has_guide');
-        if ($hasGuide !== null && $hasGuide !== '' && $hasGuide !== 'true') {
-            return false;
-        }
-
-        // has_platinum=true is the default homepage state — allow it
-        $hasPlatinum = $request->input('has_platinum');
-        if ($hasPlatinum !== null && $hasPlatinum !== '' && $hasPlatinum !== 'true') {
-            return false;
-        }
-
-        // Check sort - cache default sort (critic_score desc, matching frontend default)
-        $sortBy = $request->input('sort_by', 'critic_score');
-        $sortOrder = $request->input('sort_order', 'desc');
-
-        if ($sortBy !== 'critic_score' || $sortOrder !== 'desc') {
-            return false;
-        }
-
-        return true;
+        Cache::increment('games:cache_version');
     }
 
     /**
