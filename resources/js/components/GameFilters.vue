@@ -208,9 +208,9 @@
 
             <!-- Trophy toggles -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <div class="flex gap-4">
-                    <label class="flex items-center gap-2 cursor-pointer group flex-1">
-                        <div class="relative">
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <div class="relative shrink-0">
                             <input
                                 type="checkbox"
                                 v-model="filters.has_platinum"
@@ -225,8 +225,8 @@
                         <span class="text-sm text-gray-700 dark:text-gray-300">Has platinum</span>
                     </label>
 
-                    <label class="flex items-center gap-2 cursor-pointer group flex-1">
-                        <div class="relative">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <div class="relative shrink-0">
                             <input
                                 type="checkbox"
                                 v-model="filters.has_online_trophies"
@@ -241,8 +241,8 @@
                         <span class="text-sm text-gray-700 dark:text-gray-300">No online</span>
                     </label>
 
-                    <label class="flex items-center gap-2 cursor-pointer group flex-1">
-                        <div class="relative">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <div class="relative shrink-0">
                             <input
                                 type="checkbox"
                                 v-model="filters.missable_trophies"
@@ -255,6 +255,22 @@
                             <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
                         </div>
                         <span class="text-sm text-gray-700 dark:text-gray-300">No missables</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <div class="relative shrink-0">
+                            <input
+                                type="checkbox"
+                                v-model="filters.exclude_unobtainable"
+                                :true-value="true"
+                                :false-value="null"
+                                class="sr-only peer"
+                                @change="emitFilters"
+                            />
+                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-red-500 transition-colors"></div>
+                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                        </div>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">No unobtainable</span>
                     </label>
                 </div>
             </div>
@@ -529,6 +545,7 @@ const filters = reactive({
     has_online_trophies: null,
     missable_trophies: null,
     has_guide: null, // null = any, true = only with guides, false = only without guides
+    exclude_unobtainable: null,
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
@@ -605,6 +622,7 @@ const activeFilterCount = computed(() => {
     if (filters.has_platinum === true) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
+    if (filters.exclude_unobtainable === true) count++
     if (filters.has_guide !== null) count++
     if (filters.guide_psnp || filters.guide_pst || filters.guide_ppx) count++
     return count
@@ -729,6 +747,7 @@ function clearAllFilters() {
     filters.has_platinum = null
     filters.has_online_trophies = null
     filters.missable_trophies = null
+    filters.exclude_unobtainable = null
     filters.has_guide = null
     filters.guide_psnp = false
     filters.guide_pst = false

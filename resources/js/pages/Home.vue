@@ -1006,6 +1006,7 @@ async function loadGames() {
         if (filters.has_platinum === true) params.append('has_platinum', 'true')
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
+        if (filters.exclude_unobtainable === true) params.append('exclude_unobtainable', 'true')
         if (filters.guide_psnp) params.append('guide_psnp', 'true')
         if (filters.guide_pst) params.append('guide_pst', 'true')
         if (filters.guide_ppx) params.append('guide_ppx', 'true')

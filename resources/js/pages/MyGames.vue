@@ -474,6 +474,7 @@ const activeFilterCount = computed(() => {
     if (filters.has_guide === true || filters.has_guide === false) count++
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
+    if (filters.exclude_unobtainable === true) count++
     return count
 })
 
@@ -489,6 +490,7 @@ const activeFiltersList = computed(() => {
     if (filters.has_guide === false) list.push({ key: 'has_guide', label: 'No guide' })
     if (filters.has_online_trophies === false) list.push({ key: 'has_online_trophies', label: 'No online' })
     if (filters.missable_trophies === false) list.push({ key: 'missable_trophies', label: 'No missables' })
+    if (filters.exclude_unobtainable === true) list.push({ key: 'exclude_unobtainable', label: 'No unobtainable' })
     return list
 })
 
@@ -501,6 +503,7 @@ function clearFilter(key) {
     else if (key === 'has_guide') filters.has_guide = null
     else if (key === 'has_online_trophies') filters.has_online_trophies = null
     else if (key === 'missable_trophies') filters.missable_trophies = null
+    else if (key === 'exclude_unobtainable') filters.exclude_unobtainable = null
 
     currentPage.value = 1
     games.value = []
@@ -603,6 +606,7 @@ async function loadGames() {
         if (filters.critic_score_max < 100) params.append('critic_score_max', filters.critic_score_max)
         if (filters.has_online_trophies === false) params.append('has_online_trophies', 'false')
         if (filters.missable_trophies === false) params.append('missable_trophies', 'false')
+        if (filters.exclude_unobtainable === true) params.append('exclude_unobtainable', 'true')
         if (filters.has_platinum === true) params.append('has_platinum', 'true')
 
         // Sorting
