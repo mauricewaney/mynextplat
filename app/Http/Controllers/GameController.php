@@ -669,6 +669,18 @@ class GameController extends Controller
     }
 
     /**
+     * Columns needed for the public game list (GameCard component)
+     */
+    private const LIST_COLUMNS = [
+        'id', 'igdb_id', 'title', 'slug', 'cover_url', 'is_unobtainable',
+        'developer', 'publisher', 'difficulty', 'time_min', 'time_max',
+        'playthroughs_required', 'has_online_trophies', 'missable_trophies',
+        'data_source', 'user_score', 'user_score_count', 'critic_score',
+        'critic_score_count', 'psnprofiles_url', 'playstationtrophies_url',
+        'powerpyx_url', 'has_guide', 'has_platinum', 'release_date', 'created_at',
+    ];
+
+    /**
      * List games with public filters
      */
     public function index(Request $request)
@@ -678,9 +690,17 @@ class GameController extends Controller
         $cacheKey = "games:v{$version}:" . md5($request->getQueryString() ?? 'default');
 
         $result = Cache::remember($cacheKey, 86400, function () use ($request) {
-            $query = Game::with(['genres', 'tags', 'platforms']);
+            $query = Game::select(self::LIST_COLUMNS)
+                ->with(['genres:id,name,slug', 'platforms:id,name,slug,short_name']);
             $this->filterService->applyFilters($query, $request, false);
-            return $this->filterService->paginate($query, $request, 24, 100);
+            $paginated = $this->filterService->paginate($query, $request, 24, 100);
+
+            // Strip appended attributes not needed in list view
+            foreach ($paginated['data'] as $game) {
+                $game->setAppends([]);
+            }
+
+            return $paginated;
         });
 
         return response()->json($result);
