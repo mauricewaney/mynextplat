@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
+import { loadUserGameIds } from '../composables/useUserGames'
 
 // Public pages
 import Home from '../pages/Home.vue'
@@ -140,6 +141,10 @@ router.beforeEach(async (to, from, next) => {
     // Ensure auth state is initialized
     if (!initialized.value) {
         await initAuth()
+        // Pre-load user's game IDs into shared cache (non-blocking)
+        if (isAuthenticated.value) {
+            loadUserGameIds()
+        }
     }
 
     // Check if route requires auth

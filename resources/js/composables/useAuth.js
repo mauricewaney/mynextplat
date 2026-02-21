@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { apiGet, apiPost, apiPut } from '../utils/api'
+import { resetUserGameMap } from './useUserGames'
 
 // Shared auth state (singleton)
 const user = ref(null)
@@ -53,12 +54,11 @@ export function useAuth() {
     async function logout() {
         try {
             await apiPost('/logout')
-            user.value = null
         } catch (error) {
             console.error('Failed to logout:', error)
-            // Still clear local state even if request fails
-            user.value = null
         }
+        user.value = null
+        resetUserGameMap()
     }
 
     /**

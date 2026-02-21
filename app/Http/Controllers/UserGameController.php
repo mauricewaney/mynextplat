@@ -293,6 +293,27 @@ class UserGameController extends Controller
     }
 
     /**
+     * Get all game IDs in the user's list (single request replaces N individual /check calls).
+     */
+    public function listIds(Request $request): JsonResponse
+    {
+        $userGames = $request->user()->games()
+            ->select('games.id')
+            ->withPivot(['status', 'preferred_guide'])
+            ->get();
+
+        $map = [];
+        foreach ($userGames as $game) {
+            $map[$game->id] = [
+                'status' => $game->pivot->status,
+                'preferred_guide' => $game->pivot->preferred_guide,
+            ];
+        }
+
+        return response()->json($map);
+    }
+
+    /**
      * Update a game's status/notes in the user's list.
      */
     public function update(Request $request, int $gameId): JsonResponse

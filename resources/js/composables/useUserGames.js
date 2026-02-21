@@ -1,5 +1,45 @@
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api'
+
+// Shared state across all components — loaded once, updated locally
+const userGameMap = reactive({}) // { gameId: { status, preferred_guide } }
+let mapLoaded = false
+let mapLoading = null // Promise to avoid duplicate fetches
+
+/**
+ * Load all user's game IDs in one request (replaces N individual /check calls)
+ */
+async function loadUserGameIds() {
+    if (mapLoaded) return
+    if (mapLoading) return mapLoading
+
+    mapLoading = (async () => {
+        try {
+            const data = await apiGet('/my-games/ids')
+            Object.keys(userGameMap).forEach(k => delete userGameMap[k])
+            Object.assign(userGameMap, data)
+            mapLoaded = true
+        } catch (e) {
+            // Not authenticated or error — map stays empty
+        } finally {
+            mapLoading = null
+        }
+    })()
+
+    return mapLoading
+}
+
+/**
+ * Reset the shared cache (e.g., on logout)
+ */
+function resetUserGameMap() {
+    Object.keys(userGameMap).forEach(k => delete userGameMap[k])
+    mapLoaded = false
+    mapLoading = null
+}
+
+// Direct exports for use outside composable pattern (router, auth)
+export { loadUserGameIds, resetUserGameMap }
 
 export function useUserGames() {
     const games = ref([])
@@ -38,6 +78,8 @@ export function useUserGames() {
                 const data = await response.json()
                 throw new Error(data.message || 'Failed to add game')
             }
+            // Update local cache
+            userGameMap[gameId] = { status, preferred_guide: null }
             return true
         } catch (e) {
             console.error('Failed to add game:', e)
@@ -57,6 +99,7 @@ export function useUserGames() {
             }
             // Update local state
             games.value = games.value.filter(g => g.id !== gameId)
+            delete userGameMap[gameId]
             return true
         } catch (e) {
             console.error('Failed to remove game:', e)
@@ -83,6 +126,10 @@ export function useUserGames() {
                     game.notes = notes
                 }
             }
+            // Update shared cache
+            if (userGameMap[gameId]) {
+                userGameMap[gameId].status = status
+            }
             return true
         } catch (e) {
             console.error('Failed to update game:', e)
@@ -91,14 +138,17 @@ export function useUserGames() {
     }
 
     /**
-     * Check if a game is in the user's list
+     * Check if a game is in the user's list (reads from local cache, no API call)
      */
-    async function checkInList(gameId) {
-        try {
-            return await apiGet(`/my-games/${gameId}/check`)
-        } catch (e) {
-            console.error('Failed to check game:', e)
+    function checkInList(gameId) {
+        const entry = userGameMap[gameId]
+        if (!entry) {
             return { in_list: false }
+        }
+        return {
+            in_list: true,
+            status: entry.status,
+            preferred_guide: entry.preferred_guide,
         }
     }
 
@@ -107,7 +157,11 @@ export function useUserGames() {
      */
     async function updatePreferredGuide(gameId, guide) {
         try {
-            return await apiPut(`/my-games/${gameId}`, { preferred_guide: guide })
+            const result = await apiPut(`/my-games/${gameId}`, { preferred_guide: guide })
+            if (userGameMap[gameId]) {
+                userGameMap[gameId].preferred_guide = guide
+            }
+            return result
         } catch (e) {
             console.error('Failed to update preferred guide:', e)
             throw e
@@ -124,6 +178,10 @@ export function useUserGames() {
                 const data = await response.json()
                 throw new Error(data.message || 'Failed to add games')
             }
+            // Update local cache
+            gameIds.forEach(id => {
+                userGameMap[id] = { status, preferred_guide: null }
+            })
             return await response.json()
         } catch (e) {
             console.error('Failed to bulk add games:', e)
@@ -135,7 +193,10 @@ export function useUserGames() {
         games,
         loading,
         error,
+        userGameMap,
         getMyGames,
+        loadUserGameIds,
+        resetUserGameMap,
         addToList,
         removeFromList,
         updateStatus,

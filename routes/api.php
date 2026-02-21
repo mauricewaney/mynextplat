@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User's game list
     Route::prefix('my-games')->group(function () {
+        Route::get('/ids', [UserGameController::class, 'listIds']);
         Route::get('/', [UserGameController::class, 'index']);
         Route::post('/', [UserGameController::class, 'store']);
         Route::post('/bulk', [UserGameController::class, 'bulkStore']);
