@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { useUserGames } from '../composables/useUserGames'
 
@@ -43,21 +43,11 @@ const props = defineProps({
 const emit = defineEmits(['added', 'removed'])
 
 const { isAuthenticated } = useAuth()
-const { addToList, removeFromList, checkInList } = useUserGames()
+const { addToList, removeFromList, userGameMap } = useUserGames()
 
-const inList = ref(false)
+// Reactive — auto-updates when userGameMap is populated or modified
+const inList = computed(() => !!userGameMap[props.gameId])
 const loading = ref(false)
-
-async function checkStatus() {
-    if (!isAuthenticated.value) return
-
-    try {
-        const result = await checkInList(props.gameId)
-        inList.value = result.in_list
-    } catch (e) {
-        console.error('Failed to check list status:', e)
-    }
-}
 
 async function toggle() {
     if (loading.value) return
@@ -67,11 +57,9 @@ async function toggle() {
     try {
         if (inList.value) {
             await removeFromList(props.gameId)
-            inList.value = false
             emit('removed', props.gameId)
         } else {
             await addToList(props.gameId)
-            inList.value = true
             emit('added', props.gameId)
         }
     } catch (e) {
@@ -80,20 +68,4 @@ async function toggle() {
         loading.value = false
     }
 }
-
-// Check status when authenticated state changes
-watch(isAuthenticated, (newVal) => {
-    if (newVal) {
-        checkStatus()
-    } else {
-        inList.value = false
-    }
-})
-
-// Check status on mount if authenticated
-onMounted(() => {
-    if (isAuthenticated.value) {
-        checkStatus()
-    }
-})
 </script>

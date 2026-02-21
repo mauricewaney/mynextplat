@@ -699,16 +699,12 @@ async function fetchGame() {
     }
 }
 
-async function checkListStatus() {
+function checkListStatus() {
     if (!isAuthenticated.value || !game.value) return
 
-    try {
-        const result = await checkInList(game.value.id)
-        inList.value = result.in_list
-        userVote.value = result.preferred_guide || null
-    } catch (e) {
-        console.error('Failed to check list status:', e)
-    }
+    const result = checkInList(game.value.id)
+    inList.value = result.in_list
+    userVote.value = result.preferred_guide || null
 }
 
 async function fetchGuideVotes() {
