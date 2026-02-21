@@ -4,15 +4,15 @@
             <!-- Header -->
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">NP ID Management</h1>
-                    <p class="mt-1 text-sm text-gray-600">
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">NP ID Management</h1>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                         Link PSN NP Communication IDs to games for reliable matching
                     </p>
                 </div>
                 <button
                     @click="loadData"
                     :disabled="loading"
-                    class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors dark:hover:bg-primary-500"
                 >
                     <span v-if="loading">Loading...</span>
                     <span v-else>Refresh</span>
@@ -20,15 +20,15 @@
             </div>
 
             <!-- Collect from PSN User -->
-            <div class="bg-white rounded-lg shadow p-4">
-                <h3 class="text-sm font-medium text-gray-700 mb-3">Collect NP IDs from PSN User</h3>
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Collect NP IDs from PSN User</h3>
                 <div class="flex gap-2">
                     <input
                         v-model="collectUsername"
                         @keyup.enter="collectFromUser"
                         type="text"
                         placeholder="Enter PSN username..."
-                        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         :disabled="collecting"
                     />
                     <button
@@ -55,29 +55,29 @@
 
             <!-- Stats -->
             <div v-if="stats" class="grid grid-cols-4 gap-4">
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="text-2xl font-bold text-gray-900">{{ stats.total_titles }}</div>
-                    <div class="text-sm text-gray-500">Total PSN titles</div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
+                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_titles }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Total PSN titles</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                     <div class="text-2xl font-bold text-green-600">{{ stats.matched_titles }}</div>
-                    <div class="text-sm text-gray-500">Matched</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Matched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                     <div class="text-2xl font-bold text-orange-600">{{ stats.unmatched_titles }}</div>
-                    <div class="text-sm text-gray-500">Unmatched</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Unmatched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-4">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                     <div class="text-2xl font-bold text-primary-600">
                         {{ stats.total_titles > 0 ? Math.round((stats.matched_titles / stats.total_titles) * 100) : 0 }}%
                     </div>
-                    <div class="text-sm text-gray-500">Match rate</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Match rate</div>
                 </div>
             </div>
 
             <!-- Skipped indicator -->
-            <div v-if="skipCount > 0" class="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 flex items-center justify-between">
-                <span class="text-sm text-gray-600">
+            <div v-if="skipCount > 0" class="bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 flex items-center justify-between">
+                <span class="text-sm text-gray-600 dark:text-gray-400">
                     {{ skipCount }} item{{ skipCount === 1 ? '' : 's' }} skipped (shown at bottom)
                 </span>
                 <button
@@ -89,7 +89,7 @@
             </div>
 
             <!-- Filters -->
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                 <div class="flex flex-wrap gap-4 items-center">
                     <div class="flex-1 min-w-[200px]">
                         <input
@@ -97,13 +97,13 @@
                             @input="debouncedLoad"
                             type="text"
                             placeholder="Search PSN titles..."
-                            class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
                     </div>
                     <select
                         v-model="selectedPlatform"
                         @change="loadUnmatched"
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        class="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
                         <option value="">All Platforms</option>
                         <option value="PS5">PS5</option>
@@ -114,7 +114,7 @@
                     <select
                         v-model="sortBy"
                         @change="loadUnmatched"
-                        class="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        class="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
                         <option value="times_seen">Most Popular</option>
                         <option value="title">Title A-Z</option>
@@ -124,12 +124,12 @@
             </div>
 
             <!-- Empty State -->
-            <div v-if="!loading && unmatched.length === 0" class="bg-white rounded-lg shadow p-8 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div v-if="!loading && unmatched.length === 0" class="bg-white dark:bg-slate-800 rounded-lg shadow p-8 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <h3 class="mt-2 text-sm font-medium text-gray-900">No unmatched titles</h3>
-                <p class="mt-1 text-sm text-gray-500">
+                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No unmatched titles</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     Use the input above to collect NP IDs from PSN users
                 </p>
             </div>
@@ -140,14 +140,14 @@
                     v-for="item in unmatched"
                     :key="item.id"
                     class="rounded-lg shadow p-4 transition-all"
-                    :class="item.is_skipped ? 'bg-gray-100 opacity-60' : 'bg-white'"
+                    :class="item.is_skipped ? 'bg-gray-100 dark:bg-slate-800/50 opacity-60' : 'bg-white dark:bg-slate-800'"
                 >
                     <div class="flex items-start gap-4">
                         <!-- Skip/Unskip button -->
                         <button
                             v-if="item.is_skipped"
                             @click="unskipItem(item)"
-                            class="text-xs text-primary-500 hover:text-primary-700 px-2 py-1 hover:bg-primary-50 rounded transition-colors shrink-0"
+                            class="text-xs text-primary-500 hover:text-primary-700 px-2 py-1 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded transition-colors shrink-0"
                             title="Move back to top"
                         >
                             Unskip
@@ -155,7 +155,7 @@
                         <button
                             v-else
                             @click="skipItem(item)"
-                            class="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 hover:bg-gray-100 rounded transition-colors shrink-0"
+                            class="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors shrink-0"
                             title="Move to bottom of list"
                         >
                             Skip
@@ -168,7 +168,7 @@
                             class="w-12 h-12 rounded object-cover bg-gray-100"
                             @error="$event.target.style.display = 'none'"
                         />
-                        <div v-else class="w-12 h-12 rounded bg-gray-100 flex items-center justify-center">
+                        <div v-else class="w-12 h-12 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
                             <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -177,17 +177,17 @@
 
                         <div class="flex-1">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <span class="font-medium text-gray-900">{{ item.psn_title || '(Empty title)' }}</span>
-                                <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-mono rounded">
+                                <span class="font-medium text-gray-900 dark:text-white">{{ item.psn_title || '(Empty title)' }}</span>
+                                <span class="px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-mono rounded">
                                     {{ item.np_communication_id }}
                                 </span>
-                                <span v-if="item.platform" class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                                <span v-if="item.platform" class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded">
                                     {{ item.platform }}
                                 </span>
                             </div>
 
                             <!-- Trophy info -->
-                            <div v-if="item.has_platinum || item.bronze_count" class="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                            <div v-if="item.has_platinum || item.bronze_count" class="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                 <span v-if="item.has_platinum" class="text-yellow-600">Platinum</span>
                                 <span v-if="item.gold_count">{{ item.gold_count }} Gold</span>
                                 <span v-if="item.silver_count">{{ item.silver_count }} Silver</span>
@@ -195,7 +195,7 @@
                             </div>
 
                             <!-- Discovered from -->
-                            <div v-if="item.discovered_from" class="mt-1 text-xs text-gray-400">
+                            <div v-if="item.discovered_from" class="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                 First seen: {{ item.discovered_from }}
                             </div>
 
@@ -203,7 +203,7 @@
                             <div class="mt-3 space-y-3">
                                 <!-- Auto Suggestions (preloaded) -->
                                 <div v-if="item.suggestions?.length" class="mb-3">
-                                    <div class="text-xs font-medium text-green-600 mb-2">Suggested matches:</div>
+                                    <div class="text-xs font-medium text-green-600 dark:text-green-400 mb-2">Suggested matches:</div>
                                     <div class="flex flex-wrap gap-2">
                                         <button
                                             v-for="suggestion in item.suggestions"
@@ -233,14 +233,14 @@
 
                                 <!-- Local DB Search -->
                                 <div>
-                                    <label class="text-xs font-medium text-gray-500 mb-1 block">Search Local Database</label>
+                                    <label class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 block">Search Local Database</label>
                                     <div class="flex items-center gap-2">
                                         <input
                                             v-model="item.searchQuery"
                                             @input="searchGame(item)"
                                             type="text"
                                             placeholder="Search your games..."
-                                            class="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                            class="flex-1 px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                         />
                                     </div>
 
@@ -260,14 +260,14 @@
 
                                 <!-- IGDB Search -->
                                 <div>
-                                    <label class="text-xs font-medium text-purple-600 mb-1 block">Search IGDB (import new game)</label>
+                                    <label class="text-xs font-medium text-purple-600 dark:text-purple-400 mb-1 block">Search IGDB (import new game)</label>
                                     <div class="flex items-center gap-2">
                                         <input
                                             v-model="item.igdbQuery"
                                             @input="searchIgdb(item)"
                                             type="text"
                                             :placeholder="'Search IGDB for ' + (item.psn_title || 'game') + '...'"
-                                            class="flex-1 px-3 py-1.5 text-sm border border-purple-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                            class="flex-1 px-3 py-1.5 text-sm border border-purple-300 dark:border-purple-700 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                                         />
                                         <span v-if="item.igdbLoading" class="text-xs text-gray-400">Searching...</span>
                                     </div>
@@ -294,7 +294,7 @@
                                 </div>
 
                                 <!-- Create New Game -->
-                                <div class="pt-2 border-t border-gray-200">
+                                <div class="pt-2 border-t border-gray-200 dark:border-slate-700">
                                     <div class="flex items-center gap-2">
                                         <button
                                             v-if="!item.showCreateForm"
@@ -308,7 +308,7 @@
                                                 v-model="item.newGameTitle"
                                                 type="text"
                                                 placeholder="Game title..."
-                                                class="flex-1 px-3 py-1.5 text-sm border border-orange-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                class="flex-1 px-3 py-1.5 text-sm border border-orange-300 dark:border-orange-700 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                                 @keyup.enter="createGame(item)"
                                             />
                                             <button
@@ -320,7 +320,7 @@
                                             </button>
                                             <button
                                                 @click="item.showCreateForm = false"
-                                                class="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700"
+                                                class="px-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                                             >
                                                 Cancel
                                             </button>
@@ -337,17 +337,17 @@
                     <button
                         @click="goToPage(pagination.current_page - 1)"
                         :disabled="pagination.current_page === 1"
-                        class="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-3 py-1 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
                     >
                         Previous
                     </button>
-                    <span class="px-3 py-1 text-sm text-gray-600">
+                    <span class="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
                         Page {{ pagination.current_page }} of {{ pagination.last_page }}
                     </span>
                     <button
                         @click="goToPage(pagination.current_page + 1)"
                         :disabled="pagination.current_page === pagination.last_page"
-                        class="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+                        class="px-3 py-1 text-sm bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
                     >
                         Next
                     </button>

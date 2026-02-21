@@ -4,32 +4,32 @@
             <!-- Header -->
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Games</h1>
-                    <p class="text-gray-600 mt-1">Manage your PlayStation trophy database</p>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Games</h1>
+                    <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your PlayStation trophy database</p>
                 </div>
 
                 <!-- Progress Stats -->
-                <div v-if="stats" class="flex items-center gap-6 bg-white rounded-lg shadow px-4 py-3">
+                <div v-if="stats" class="flex items-center gap-6 bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3">
                     <div class="text-center">
-                        <div class="text-2xl font-bold text-gray-900">{{ stats.with_guide - stats.needs_data }}</div>
-                        <div class="text-xs text-gray-500">Completed</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.with_guide - stats.needs_data }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Completed</div>
                     </div>
                     <div class="text-center">
                         <div class="text-2xl font-bold text-orange-600">{{ stats.needs_data }}</div>
-                        <div class="text-xs text-gray-500">Need Data</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Need Data</div>
                     </div>
                     <div class="text-center">
                         <div class="text-2xl font-bold text-green-600">{{ stats.verified }}</div>
-                        <div class="text-xs text-gray-500">Verified</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Verified</div>
                     </div>
                     <div class="flex flex-col items-center">
-                        <div class="w-32 bg-gray-200 rounded-full h-2.5">
+                        <div class="w-32 bg-gray-200 dark:bg-slate-600 rounded-full h-2.5">
                             <div
                                 class="bg-green-600 h-2.5 rounded-full transition-all duration-300"
                                 :style="{ width: stats.completion_percent + '%' }"
                             ></div>
                         </div>
-                        <div class="text-xs text-gray-500 mt-1">{{ stats.completion_percent }}% complete</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ stats.completion_percent }}% complete</div>
                     </div>
                 </div>
 
@@ -56,7 +56,7 @@
                     </button>
                     <button
                         @click="showInstructions = true"
-                        class="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center space-x-2"
+                        class="px-3 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 flex items-center space-x-2"
                         title="Admin Instructions"
                     >
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,25 +77,25 @@
             </div>
 
             <!-- Filters -->
-            <div class="bg-white shadow rounded-lg p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
+            <div class="bg-white dark:bg-slate-800 shadow rounded-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filters</h2>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Search -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
                         <input
                             v-model="filters.search"
                             type="text"
                             placeholder="Search games..."
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
+                            class="w-full border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500"
                             @input="debouncedFetch"
                         />
                     </div>
 
                     <!-- Difficulty Range -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Difficulty ({{ filters.difficulty_min }} - {{ filters.difficulty_max }})
                         </label>
                         <div class="flex gap-2">
@@ -120,7 +120,7 @@
 
                     <!-- Time Range -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Time ({{ filters.time_min }}h - {{ filters.time_max }}h)
                         </label>
                         <div class="flex gap-2">
@@ -147,53 +147,53 @@
 
                     <!-- Max Playthroughs -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Playthroughs</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Playthroughs</label>
                         <input
                             v-model.number="filters.max_playthroughs"
                             type="number"
                             min="1"
                             placeholder="e.g., 1"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                     </div>
 
                     <!-- Min Score -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Score</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Min Score</label>
                         <input
                             v-model.number="filters.min_score"
                             type="number"
                             min="0"
                             max="100"
                             placeholder="e.g., 80"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                             @change="onFilterChange"
                         />
                     </div>
 
                     <!-- Genre Filter -->
                     <div class="relative" ref="genreDropdownRef">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Genres</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Genres</label>
                         <button
                             type="button"
                             @click="showGenreDropdown = !showGenreDropdown"
-                            class="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            class="w-full px-3 py-2 text-left bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
-                            <span v-if="filters.genre_ids.length === 0" class="text-gray-500">Select genres...</span>
-                            <span v-else class="text-gray-900">{{ filters.genre_ids.length }} selected</span>
-                            <svg class="absolute right-3 top-9 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span v-if="filters.genre_ids.length === 0" class="text-gray-500 dark:text-gray-400">Select genres...</span>
+                            <span v-else class="text-gray-900 dark:text-white">{{ filters.genre_ids.length }} selected</span>
+                            <svg class="absolute right-3 top-9 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
                         <div
                             v-if="showGenreDropdown"
-                            class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                            class="absolute z-10 mt-1 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto"
                         >
                             <label
                                 v-for="genre in formData.genres"
                                 :key="genre.id"
-                                class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                class="flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
                             >
                                 <input
                                     type="checkbox"
@@ -202,33 +202,33 @@
                                     @change="onFilterChange"
                                     class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
-                                <span class="ml-2 text-sm text-gray-700">{{ genre.name }}</span>
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ genre.name }}</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Platform Filter -->
                     <div class="relative" ref="platformDropdownRef">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Platforms</label>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Platforms</label>
                         <button
                             type="button"
                             @click="showPlatformDropdown = !showPlatformDropdown"
-                            class="w-full px-3 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            class="w-full px-3 py-2 text-left bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
-                            <span v-if="filters.platform_ids.length === 0" class="text-gray-500">Select platforms...</span>
-                            <span v-else class="text-gray-900">{{ filters.platform_ids.length }} selected</span>
-                            <svg class="absolute right-3 top-9 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span v-if="filters.platform_ids.length === 0" class="text-gray-500 dark:text-gray-400">Select platforms...</span>
+                            <span v-else class="text-gray-900 dark:text-white">{{ filters.platform_ids.length }} selected</span>
+                            <svg class="absolute right-3 top-9 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </button>
                         <div
                             v-if="showPlatformDropdown"
-                            class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                            class="absolute z-10 mt-1 w-full bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-md shadow-lg max-h-60 overflow-auto"
                         >
                             <label
                                 v-for="platform in formData.platforms"
                                 :key="platform.id"
-                                class="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                class="flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-slate-700 cursor-pointer"
                             >
                                 <input
                                     type="checkbox"
@@ -237,7 +237,7 @@
                                     @change="onFilterChange"
                                     class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                                 />
-                                <span class="ml-2 text-sm text-gray-700">{{ platform.name }}</span>
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">{{ platform.name }}</span>
                             </label>
                         </div>
                     </div>
@@ -292,8 +292,8 @@
                     </label>
 
                     <!-- Guide Source Filters -->
-                    <div class="flex items-center gap-1 border-l pl-4 ml-2">
-                        <span class="text-xs text-gray-500 mr-1">Guide:</span>
+                    <div class="flex items-center gap-1 border-l dark:border-slate-600 pl-4 ml-2">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 mr-1">Guide:</span>
                         <label class="flex items-center space-x-1 cursor-pointer">
                             <input
                                 v-model="filters.guide_psnp"
@@ -377,11 +377,11 @@
                             type="checkbox"
                             class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span class="text-sm text-gray-600">Auto-advance to next game after save</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Auto-advance to next game after save</span>
                     </label>
                     <button
                         @click="resetFilters"
-                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md text-sm font-medium"
+                        class="px-4 py-2 bg-gray-200 dark:bg-slate-600 hover:bg-gray-300 dark:hover:bg-slate-500 text-gray-700 dark:text-gray-300 rounded-md text-sm font-medium"
                     >
                         Reset Filters
                     </button>
@@ -412,37 +412,37 @@
                         </button>
                         <button
                             @click="openGenreModal('add')"
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                            class="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         >
                             Add Genres
                         </button>
                         <button
                             @click="openGenreModal('remove')"
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                            class="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         >
                             Remove Genres
                         </button>
                         <button
                             @click="openTagModal('add')"
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                            class="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         >
                             Add Tags
                         </button>
                         <button
                             @click="openTagModal('remove')"
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                            class="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         >
                             Remove Tags
                         </button>
                         <button
                             @click="openPlatformModal('add')"
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                            class="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         >
                             Add Platforms
                         </button>
                         <button
                             @click="openPlatformModal('remove')"
-                            class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50"
+                            class="bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         >
                             Remove Platforms
                         </button>
@@ -459,13 +459,13 @@
             <!-- Loading State -->
             <div v-if="loading" class="text-center py-12">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-                <p class="mt-2 text-gray-600">Loading games...</p>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Loading games...</p>
             </div>
 
             <!-- Games Table -->
-            <div v-else-if="games.length > 0" class="bg-white shadow rounded-lg overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+            <div v-else-if="games.length > 0" class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                    <thead class="bg-gray-50 dark:bg-slate-700">
                     <tr>
                         <th class="px-3 py-1.5 text-left">
                             <input
@@ -475,64 +475,64 @@
                                 class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                             />
                         </th>
-                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Cover
                         </th>
                         <th
                             @click="sortBy('title')"
-                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
                             Title
                             <span v-if="filters.sort_by === 'title'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('release_date')"
-                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
                             Release
                             <span v-if="filters.sort_by === 'release_date'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('critic_score')"
-                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
                             Score
                             <span v-if="filters.sort_by === 'critic_score'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
                         <th
                             @click="sortBy('difficulty')"
-                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
                             Difficulty
                             <span v-if="filters.sort_by === 'difficulty'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
-                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Time
                         </th>
                         <th
                             @click="sortBy('user_score_count')"
-                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                            class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700"
                         >
                             Popularity
                             <span v-if="filters.sort_by === 'user_score_count'">{{ filters.sort_order === 'asc' ? '↑' : '↓' }}</span>
                         </th>
-                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Platforms
                         </th>
-                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Guides
                         </th>
-                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                             Actions
                         </th>
                     </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
                     <tr
                         v-for="(game, index) in games"
                         :key="game.id"
                         :class="{ 'bg-primary-50': selectedGames.includes(game.id) }"
-                        class="hover:bg-gray-50"
+                        class="hover:bg-gray-50 dark:hover:bg-slate-700/50"
                     >
                         <td class="px-3 py-2 whitespace-nowrap">
                             <input
@@ -549,25 +549,25 @@
                                 :alt="game.title"
                                 class="w-12 h-16 object-cover rounded shadow-sm"
                             />
-                            <div v-else class="w-12 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                            <div v-else class="w-12 h-16 bg-gray-200 dark:bg-slate-600 rounded flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
                                 No Image
                             </div>
                         </td>
                         <td class="px-3 py-2">
-                            <div class="text-sm font-medium text-gray-900 flex items-center gap-1">
+                            <div class="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
                                 {{ game.title }}
                                 <svg v-if="game.is_verified" class="w-4 h-4 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                                 </svg>
                             </div>
-                            <div class="text-sm text-gray-500">{{ game.developer }}</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ game.developer }}</div>
                         </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ game.release_date ? formatDate(game.release_date) : 'N/A' }}
                         </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             <span v-if="game.critic_score" class="font-medium">{{ game.critic_score }}</span>
-                            <span v-else class="text-gray-400">N/A</span>
+                            <span v-else class="text-gray-400 dark:text-gray-500">N/A</span>
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap">
               <span
@@ -577,12 +577,12 @@
               >
                 {{ game.difficulty }}/10
               </span>
-                            <span v-else class="text-gray-400 text-sm">N/A</span>
+                            <span v-else class="text-gray-400 dark:text-gray-500 text-sm">N/A</span>
                         </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ game.time_range || 'N/A' }}
                         </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ game.user_score_count || '-' }}
                         </td>
                         <td class="px-3 py-2">
@@ -590,11 +590,11 @@
                                 <span
                                     v-for="platform in game.platforms"
                                     :key="platform.id"
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-gray-200"
                                 >
                                     {{ platform.short_name || platform.name }}
                                 </span>
-                                <span v-if="!game.platforms || game.platforms.length === 0" class="text-sm text-gray-400">-</span>
+                                <span v-if="!game.platforms || game.platforms.length === 0" class="text-sm text-gray-400 dark:text-gray-500">-</span>
                             </div>
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-sm">
@@ -629,7 +629,7 @@
                                 >
                                     PPX
                                 </a>
-                                <span v-if="!game.psnprofiles_url && !game.playstationtrophies_url && !game.powerpyx_url" class="text-gray-400">-</span>
+                                <span v-if="!game.psnprofiles_url && !game.playstationtrophies_url && !game.powerpyx_url" class="text-gray-400 dark:text-gray-500">-</span>
                             </div>
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-sm font-medium">
@@ -661,44 +661,44 @@
             </div>
 
             <!-- Empty State -->
-            <div v-else class="bg-white shadow rounded-lg p-12 text-center">
-                <p class="text-gray-500">No games found. Try adjusting your filters or add your first game!</p>
+            <div v-else class="bg-white dark:bg-slate-800 shadow rounded-lg p-12 text-center">
+                <p class="text-gray-500 dark:text-gray-400">No games found. Try adjusting your filters or add your first game!</p>
             </div>
 
             <!-- Pagination -->
             <div v-if="games.length > 0" class="flex items-center justify-between">
-                <div class="text-sm text-gray-600">
+                <div class="text-sm text-gray-600 dark:text-gray-400">
                     Showing {{ (currentPage - 1) * perPage + 1 }} - {{ Math.min(currentPage * perPage, total) }} of {{ total }} games
                 </div>
                 <div class="flex items-center space-x-2">
                     <button
                         @click="goToPage(1)"
                         :disabled="currentPage === 1"
-                        class="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        class="px-3 py-1 border dark:border-slate-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300"
                     >
                         First
                     </button>
                     <button
                         @click="goToPage(currentPage - 1)"
                         :disabled="currentPage === 1"
-                        class="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        class="px-3 py-1 border dark:border-slate-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300"
                     >
                         Previous
                     </button>
-                    <span class="px-3 py-1 text-sm">
+                    <span class="px-3 py-1 text-sm dark:text-gray-300">
                         Page {{ currentPage }} of {{ lastPage }}
                     </span>
                     <button
                         @click="goToPage(currentPage + 1)"
                         :disabled="currentPage === lastPage"
-                        class="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        class="px-3 py-1 border dark:border-slate-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300"
                     >
                         Next
                     </button>
                     <button
                         @click="goToPage(lastPage)"
                         :disabled="currentPage === lastPage"
-                        class="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        class="px-3 py-1 border dark:border-slate-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-slate-700/50 dark:text-gray-300"
                     >
                         Last
                     </button>
@@ -800,7 +800,7 @@
 
             <!-- Panel -->
             <div class="absolute inset-y-0 right-0 max-w-lg w-full">
-                <div class="h-full bg-white shadow-xl overflow-y-auto">
+                <div class="h-full bg-white dark:bg-slate-800 shadow-xl overflow-y-auto">
                     <!-- Header -->
                     <div class="sticky top-0 bg-primary-600 text-white px-3 py-2 flex justify-between items-center">
                         <h2 class="text-xl font-bold">Admin Instructions</h2>
@@ -815,24 +815,24 @@
                     <div class="p-6 space-y-6">
                         <!-- GUIDE SOURCES -->
                         <section>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                                 <span class="bg-blue-600 text-white px-2 py-1 rounded text-sm mr-2">1</span>
                                 Trophy Guide Sources
                             </h3>
                             <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                                <p class="text-sm text-gray-700 mb-3">Three sources for trophy guide URLs:</p>
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">Three sources for trophy guide URLs:</p>
                                 <div class="space-y-2 text-sm">
                                     <div class="flex items-center gap-2">
                                         <span class="bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold">PSNP</span>
-                                        <span class="text-gray-700">PSNProfiles - <a href="/admin/trophy-import" class="text-blue-600 underline">Manual HTML import</a> (304 pages)</span>
+                                        <span class="text-gray-700 dark:text-gray-300">PSNProfiles - <a href="/admin/trophy-import" class="text-blue-600 underline">Manual HTML import</a> (304 pages)</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="bg-purple-600 text-white px-2 py-0.5 rounded text-xs font-bold">PST</span>
-                                        <span class="text-gray-700">PlayStationTrophies - <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-purple-600 underline">Manual sitemap</a> (Cloudflare protected)</span>
+                                        <span class="text-gray-700 dark:text-gray-300">PlayStationTrophies - <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-purple-600 underline">Manual sitemap</a> (Cloudflare protected)</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="bg-orange-500 text-white px-2 py-0.5 rounded text-xs font-bold">PPX</span>
-                                        <span class="text-gray-700">PowerPyx - Included in initial import</span>
+                                        <span class="text-gray-700 dark:text-gray-300">PowerPyx - Included in initial import</span>
                                     </div>
                                 </div>
                             </div>
@@ -840,7 +840,7 @@
 
                         <!-- INITIAL SETUP -->
                         <section>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                                 <span class="bg-primary-600 text-white px-2 py-1 rounded text-sm mr-2">2</span>
                                 Initial Setup (One Time)
                             </h3>
@@ -850,28 +850,28 @@
                                         <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">1</span>
                                         <div>
                                             <code class="bg-gray-800 text-green-400 px-2 py-1 rounded text-xs">php artisan import:all --full</code>
-                                            <p class="text-gray-600 text-xs mt-1">Import all PlayStation games from IGDB + PPX URLs</p>
+                                            <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">Import all PlayStation games from IGDB + PPX URLs</p>
                                         </div>
                                     </li>
                                     <li class="flex items-start gap-3">
                                         <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">2</span>
                                         <div>
-                                            <span class="text-gray-700">Use <a href="/admin/trophy-import" class="text-primary-600 underline">Trophy URL Importer</a> for PSNP</span>
-                                            <p class="text-gray-600 text-xs mt-1">Manually paste HTML from 304 PSNProfiles guide pages</p>
+                                            <span class="text-gray-700 dark:text-gray-300">Use <a href="/admin/trophy-import" class="text-primary-600 underline">Trophy URL Importer</a> for PSNP</span>
+                                            <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">Manually paste HTML from 304 PSNProfiles guide pages</p>
                                         </div>
                                     </li>
                                     <li class="flex items-start gap-3">
                                         <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">3</span>
                                         <div>
-                                            <span class="text-gray-700">Import PST from <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-primary-600 underline">their guide pages</a></span>
-                                            <p class="text-gray-600 text-xs mt-1">Cloudflare protected - use Trophy URL Importer manually</p>
+                                            <span class="text-gray-700 dark:text-gray-300">Import PST from <a href="https://www.playstationtrophies.org/guides/" target="_blank" class="text-primary-600 underline">their guide pages</a></span>
+                                            <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">Cloudflare protected - use Trophy URL Importer manually</p>
                                         </div>
                                     </li>
                                     <li class="flex items-start gap-3">
                                         <span class="bg-primary-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0">4</span>
                                         <div>
-                                            <span class="text-gray-700">Match <a href="/admin/trophy-urls/unmatched" class="text-primary-600 underline">Unmatched URLs</a> to games</span>
-                                            <p class="text-gray-600 text-xs mt-1">Manual matching for URLs that didn't auto-match</p>
+                                            <span class="text-gray-700 dark:text-gray-300">Match <a href="/admin/trophy-urls/unmatched" class="text-primary-600 underline">Unmatched URLs</a> to games</span>
+                                            <p class="text-gray-600 dark:text-gray-400 text-xs mt-1">Manual matching for URLs that didn't auto-match</p>
                                         </div>
                                     </li>
                                 </ol>
@@ -880,7 +880,7 @@
 
                         <!-- AUTOMATED DAILY -->
                         <section>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                                 <span class="bg-green-600 text-white px-2 py-1 rounded text-sm mr-2">3</span>
                                 Automated (Daily)
                             </h3>
@@ -908,7 +908,7 @@
 
                         <!-- WEEKLY MAINTENANCE -->
                         <section>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                                 <span class="bg-purple-600 text-white px-2 py-1 rounded text-sm mr-2">4</span>
                                 Weekly Maintenance
                             </h3>
@@ -933,7 +933,7 @@
 
                         <!-- ADDING METADATA -->
                         <section>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
                                 <span class="bg-orange-600 text-white px-2 py-1 rounded text-sm mr-2">5</span>
                                 Adding Trophy Data (Manual)
                             </h3>
@@ -955,7 +955,7 @@
 
                         <!-- Quick Reference -->
                         <section>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Quick Reference</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Quick Reference</h3>
                             <div class="bg-gray-800 text-gray-100 rounded-lg p-4 text-xs font-mono space-y-2 overflow-x-auto">
                                 <p class="text-gray-400"># Initial setup (games + PPX)</p>
                                 <p class="text-green-400">php artisan import:all --full</p>

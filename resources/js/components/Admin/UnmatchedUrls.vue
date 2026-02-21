@@ -4,37 +4,37 @@
             <!-- Header -->
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Unmatched Trophy URLs</h1>
-                    <p class="text-gray-600 text-sm">Hover over search results to preview, click to match</p>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Unmatched Trophy URLs</h1>
+                    <p class="text-gray-600 dark:text-gray-400 text-sm">Hover over search results to preview, click to match</p>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="flex rounded-md shadow-sm">
                         <button
                             @click="showDlc = false"
-                            :class="!showDlc ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
-                            class="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-l-md"
+                            :class="!showDlc ? 'bg-primary-600 text-white' : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50'"
+                            class="px-3 py-1.5 text-sm font-medium border border-gray-300 dark:border-slate-600 rounded-l-md"
                         >
                             Unmatched
                         </button>
                         <button
                             @click="showDlc = true"
-                            :class="showDlc ? 'bg-yellow-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
-                            class="px-3 py-1.5 text-sm font-medium border border-l-0 border-gray-300 rounded-r-md"
+                            :class="showDlc ? 'bg-yellow-500 text-white' : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700/50'"
+                            class="px-3 py-1.5 text-sm font-medium border border-l-0 border-gray-300 dark:border-slate-600 rounded-r-md"
                         >
                             DLC ({{ stats.dlc_count || 0 }})
                         </button>
                     </div>
-                    <select v-model="sourceFilter" class="border-gray-300 rounded-md shadow-sm text-sm" @change="page = 1">
+                    <select v-model="sourceFilter" class="border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300 rounded-md shadow-sm text-sm" @change="page = 1">
                         <option value="">All Sources</option>
                         <option value="psnprofiles">PSNP</option>
                         <option value="playstationtrophies">PST</option>
                         <option value="powerpyx">PPX</option>
                     </select>
-                    <label v-if="showDlc" class="flex items-center gap-1.5 text-sm text-yellow-700 cursor-pointer">
-                        <input type="checkbox" v-model="hideDlcKeyword" class="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500" />
+                    <label v-if="showDlc" class="flex items-center gap-1.5 text-sm text-yellow-700 dark:text-yellow-400 cursor-pointer">
+                        <input type="checkbox" v-model="hideDlcKeyword" class="rounded border-gray-300 dark:border-slate-600 text-yellow-500 focus:ring-yellow-500" />
                         Hide "DLC" in title
                     </label>
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
                         {{ filtered.length }} {{ showDlc ? 'DLC' : 'unmatched' }}
                     </div>
                 </div>
@@ -42,29 +42,29 @@
 
             <!-- Stats (compact) -->
             <div class="grid grid-cols-6 gap-2">
-                <div class="bg-white rounded-lg shadow p-3 text-center">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-red-600">{{ stats.psnprofiles_unmatched || 0 }}</div>
-                    <div class="text-xs text-gray-500">PSNP Unmatched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PSNP Unmatched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3 text-center">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-green-600">{{ stats.psnprofiles_matched || 0 }}</div>
-                    <div class="text-xs text-gray-500">PSNP Matched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PSNP Matched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3 text-center">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-red-600">{{ stats.pst_unmatched || 0 }}</div>
-                    <div class="text-xs text-gray-500">PST Unmatched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PST Unmatched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3 text-center">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-green-600">{{ stats.pst_matched || 0 }}</div>
-                    <div class="text-xs text-gray-500">PST Matched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PST Matched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3 text-center">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-red-600">{{ stats.ppx_unmatched || 0 }}</div>
-                    <div class="text-xs text-gray-500">PPX Unmatched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PPX Unmatched</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3 text-center">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 text-center">
                     <div class="text-xl font-bold text-green-600">{{ stats.ppx_matched || 0 }}</div>
-                    <div class="text-xs text-gray-500">PPX Matched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PPX Matched</div>
                 </div>
             </div>
 
@@ -73,8 +73,8 @@
                 <!-- Left: Preview Panel -->
                 <div class="w-96 shrink-0 sticky top-4 self-start">
                     <!-- Game Preview -->
-                    <div class="bg-white rounded-lg shadow p-4">
-                        <h3 class="text-sm font-semibold text-gray-700 mb-3">Game Preview</h3>
+                    <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
+                        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Game Preview</h3>
 
                         <div v-if="previewGame" class="space-y-3">
                             <!-- Cover -->
@@ -84,13 +84,13 @@
                                     :src="previewGame.cover_url"
                                     class="w-20 h-28 object-cover rounded shadow"
                                 />
-                                <div v-else class="w-20 h-28 bg-gray-200 rounded flex items-center justify-center text-gray-400">
+                                <div v-else class="w-20 h-28 bg-gray-200 dark:bg-slate-600 rounded flex items-center justify-center text-gray-400 dark:text-gray-500">
                                     No Image
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h4 class="font-semibold text-gray-900 text-sm leading-tight">{{ previewGame.title }}</h4>
-                                    <p class="text-xs text-gray-500 mt-1">{{ previewGame.slug }}</p>
-                                    <p v-if="previewGame.release_date" class="text-xs text-gray-400 mt-1">
+                                    <h4 class="font-semibold text-gray-900 dark:text-white text-sm leading-tight">{{ previewGame.title }}</h4>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ previewGame.slug }}</p>
+                                    <p v-if="previewGame.release_date" class="text-xs text-gray-400 dark:text-gray-500 mt-1">
                                         {{ formatDate(previewGame.release_date) }}
                                     </p>
                                 </div>
@@ -101,21 +101,21 @@
                                 <span
                                     v-for="p in previewGame.platforms"
                                     :key="p.id"
-                                    class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs"
+                                    class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 rounded text-xs"
                                 >
                                     {{ p.short_name || p.name }}
                                 </span>
                             </div>
 
                             <!-- Existing Guides -->
-                            <div class="border-t pt-3">
-                                <p class="text-xs font-medium text-gray-500 mb-2">Existing Guides:</p>
+                            <div class="border-t dark:border-slate-700 pt-3">
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Existing Guides:</p>
                                 <div class="space-y-1 text-xs">
                                     <div class="flex items-center gap-2">
                                         <span :class="previewGame.psnprofiles_url ? 'text-green-600' : 'text-gray-300'">
                                             {{ previewGame.psnprofiles_url ? '✓' : '✗' }}
                                         </span>
-                                        <span :class="previewGame.psnprofiles_url ? 'text-gray-700' : 'text-gray-400'">PSNP</span>
+                                        <span :class="previewGame.psnprofiles_url ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'">PSNP</span>
                                         <a v-if="previewGame.psnprofiles_url" :href="previewGame.psnprofiles_url" target="_blank" class="text-blue-500 truncate flex-1">
                                             {{ previewGame.psnprofiles_url.split('/').pop() }}
                                         </a>
@@ -124,13 +124,13 @@
                                         <span :class="previewGame.playstationtrophies_url ? 'text-green-600' : 'text-gray-300'">
                                             {{ previewGame.playstationtrophies_url ? '✓' : '✗' }}
                                         </span>
-                                        <span :class="previewGame.playstationtrophies_url ? 'text-gray-700' : 'text-gray-400'">PST</span>
+                                        <span :class="previewGame.playstationtrophies_url ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'">PST</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span :class="previewGame.powerpyx_url ? 'text-green-600' : 'text-gray-300'">
                                             {{ previewGame.powerpyx_url ? '✓' : '✗' }}
                                         </span>
-                                        <span :class="previewGame.powerpyx_url ? 'text-gray-700' : 'text-gray-400'">PPX</span>
+                                        <span :class="previewGame.powerpyx_url ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400 dark:text-gray-500'">PPX</span>
                                     </div>
                                 </div>
                             </div>
@@ -145,7 +145,7 @@
                             </button>
                         </div>
 
-                        <div v-else class="text-center py-8 text-gray-400 text-sm">
+                        <div v-else class="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
                             <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -157,26 +157,26 @@
                 <!-- Right: URL List -->
                 <div class="flex-1 min-w-0">
                     <!-- Search -->
-                    <div class="bg-white rounded-lg shadow p-3 mb-4">
+                    <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 mb-4">
                         <input
                             v-model="search"
                             type="text"
                             placeholder="Filter unmatched URLs..."
-                            class="w-full border-gray-300 rounded-md shadow-sm text-sm focus:ring-primary-500 focus:border-primary-500"
+                            class="w-full border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-300 dark:placeholder-gray-500 rounded-md shadow-sm text-sm focus:ring-primary-500 focus:border-primary-500"
                         />
                     </div>
 
                     <!-- List -->
-                    <div class="bg-white rounded-lg shadow overflow-visible">
-                        <div v-if="loading" class="p-8 text-center text-gray-500">Loading...</div>
-                        <div v-else-if="filtered.length === 0" class="p-8 text-center text-gray-500">
+                    <div class="bg-white dark:bg-slate-800 rounded-lg shadow overflow-visible">
+                        <div v-if="loading" class="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+                        <div v-else-if="filtered.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
                             No unmatched URLs found
                         </div>
-                        <div v-else class="divide-y divide-gray-100">
+                        <div v-else class="divide-y divide-gray-100 dark:divide-slate-700">
                             <div
                                 v-for="item in paginated"
                                 :key="item.id"
-                                class="p-3 hover:bg-gray-50"
+                                class="p-3 hover:bg-gray-50 dark:hover:bg-slate-700/50"
                                 :class="{ 'bg-primary-50': activeItem?.id === item.id }"
                             >
                                 <!-- URL Info Row -->
@@ -191,7 +191,7 @@
                                     >
                                         {{ item.source === 'psnprofiles' ? 'PSNP' : item.source === 'playstationtrophies' ? 'PST' : 'PPX' }}
                                     </span>
-                                    <span class="font-medium text-gray-900 text-sm truncate">{{ item.extracted_title }}</span>
+                                    <span class="font-medium text-gray-900 dark:text-white text-sm truncate">{{ item.extracted_title }}</span>
                                     <button
                                         @click="toggleDlc(item)"
                                         :class="showDlc
@@ -204,7 +204,7 @@
                                     </button>
                                     <button
                                         @click="skipUrl(item)"
-                                        class="p-1 text-gray-300 hover:text-red-500 shrink-0"
+                                        class="p-1 text-gray-300 dark:text-gray-500 hover:text-red-500 shrink-0"
                                         title="Delete URL"
                                     >
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,34 +230,34 @@
                                             v-model="item.gameSearch"
                                             type="text"
                                             placeholder="Search DB..."
-                                            class="w-full border-gray-300 rounded text-sm py-1.5 px-2 focus:ring-primary-500 focus:border-primary-500"
+                                            class="w-full border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-300 dark:placeholder-gray-500 rounded text-sm py-1.5 px-2 focus:ring-primary-500 focus:border-primary-500"
                                             @focus="setActiveItem(item); item.searchMode = 'db'"
                                             @input="searchGames(item)"
                                         />
                                         <!-- DB Dropdown -->
                                         <div
                                             v-if="activeItem?.id === item.id && item.searchMode === 'db' && item.gameResults?.length > 0"
-                                            class="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+                                            class="absolute z-20 w-full mt-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-md shadow-lg max-h-64 overflow-y-auto"
                                         >
                                             <button
                                                 v-for="game in item.gameResults"
                                                 :key="game.id"
                                                 @mouseenter="previewGame = game"
                                                 @click="matchToGame(item, game)"
-                                                class="w-full px-3 py-2 text-left text-sm hover:bg-primary-50 flex items-center gap-2 border-b border-gray-50 last:border-0"
+                                                class="w-full px-3 py-2 text-left text-sm hover:bg-primary-50 dark:hover:bg-slate-700 flex items-center gap-2 border-b border-gray-50 dark:border-slate-700 last:border-0"
                                             >
                                                 <img
                                                     v-if="game.cover_url"
                                                     :src="game.cover_url"
                                                     class="w-10 h-14 object-cover rounded shrink-0"
                                                 />
-                                                <div class="w-10 h-14 bg-gray-100 rounded flex items-center justify-center text-gray-400 shrink-0" v-else>
+                                                <div class="w-10 h-14 bg-gray-100 dark:bg-slate-700 rounded flex items-center justify-center text-gray-400 dark:text-gray-500 shrink-0" v-else>
                                                     ?
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <div class="font-medium text-gray-900">{{ game.title }}</div>
-                                                    <div class="text-xs text-gray-400">{{ game.slug }}</div>
-                                                    <div v-if="game.release_date" class="text-xs text-gray-400">{{ formatDate(game.release_date) }}</div>
+                                                    <div class="font-medium text-gray-900 dark:text-white">{{ game.title }}</div>
+                                                    <div class="text-xs text-gray-400 dark:text-gray-500">{{ game.slug }}</div>
+                                                    <div v-if="game.release_date" class="text-xs text-gray-400 dark:text-gray-500">{{ formatDate(game.release_date) }}</div>
                                                 </div>
                                                 <div class="flex flex-col gap-0.5 text-xs shrink-0">
                                                     <span :class="game.psnprofiles_url ? 'text-green-500' : 'text-gray-300'">PSNP</span>
@@ -274,7 +274,7 @@
                                             v-model="item.igdbSearch"
                                             type="text"
                                             placeholder="Search IGDB..."
-                                            class="w-full border-gray-300 rounded text-sm py-1.5 px-2 focus:ring-orange-500 focus:border-orange-500 bg-orange-50"
+                                            class="w-full border-gray-300 dark:border-slate-600 rounded text-sm py-1.5 px-2 focus:ring-orange-500 focus:border-orange-500 bg-orange-50 dark:bg-slate-700 dark:text-gray-300 dark:placeholder-gray-500"
                                             @focus="setActiveItem(item); item.searchMode = 'igdb'"
                                             @input="searchIgdb(item)"
                                         />
@@ -287,14 +287,14 @@
                                         <!-- IGDB Dropdown -->
                                         <div
                                             v-if="activeItem?.id === item.id && item.searchMode === 'igdb' && item.igdbResults?.length > 0"
-                                            class="absolute z-20 w-full mt-1 bg-white border border-orange-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
+                                            class="absolute z-20 w-full mt-1 bg-white dark:bg-slate-800 border border-orange-200 dark:border-slate-700 rounded-md shadow-lg max-h-64 overflow-y-auto"
                                         >
                                             <button
                                                 v-for="game in item.igdbResults"
                                                 :key="game.igdb_id"
                                                 @mouseenter="previewGame = game"
                                                 @click="importFromIgdb(item, game)"
-                                                class="w-full px-3 py-2 text-left text-sm hover:bg-orange-50 flex items-center gap-2 border-b border-gray-50 last:border-0"
+                                                class="w-full px-3 py-2 text-left text-sm hover:bg-orange-50 dark:hover:bg-slate-700 flex items-center gap-2 border-b border-gray-50 dark:border-slate-700 last:border-0"
                                             >
                                                 <img
                                                     v-if="game.cover_url"
@@ -305,9 +305,9 @@
                                                     ?
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <div class="font-medium text-gray-900">{{ game.title }}</div>
-                                                    <div class="text-xs text-gray-400">{{ game.slug }}</div>
-                                                    <div v-if="game.release_date" class="text-xs text-gray-400">{{ formatDate(game.release_date) }}</div>
+                                                    <div class="font-medium text-gray-900 dark:text-white">{{ game.title }}</div>
+                                                    <div class="text-xs text-gray-400 dark:text-gray-500">{{ game.slug }}</div>
+                                                    <div v-if="game.release_date" class="text-xs text-gray-400 dark:text-gray-500">{{ formatDate(game.release_date) }}</div>
                                                 </div>
                                                 <div class="flex flex-wrap gap-0.5 text-xs shrink-0">
                                                     <span
@@ -326,23 +326,23 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div v-if="totalPages > 1" class="px-4 py-3 bg-gray-50 border-t flex items-center justify-between">
-                            <div class="text-sm text-gray-500">
+                        <div v-if="totalPages > 1" class="px-4 py-3 bg-gray-50 dark:bg-slate-700 border-t dark:border-slate-700 flex items-center justify-between">
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
                                 {{ (page - 1) * perPage + 1 }}-{{ Math.min(page * perPage, filtered.length) }} of {{ filtered.length }}
                             </div>
                             <div class="flex items-center gap-2">
                                 <button
                                     @click="page = Math.max(1, page - 1)"
                                     :disabled="page === 1"
-                                    class="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                                    class="px-3 py-1 border dark:border-slate-600 dark:text-gray-300 rounded text-sm disabled:opacity-50"
                                 >
                                     Prev
                                 </button>
-                                <span class="text-sm">{{ page }}/{{ totalPages }}</span>
+                                <span class="text-sm dark:text-gray-300">{{ page }}/{{ totalPages }}</span>
                                 <button
                                     @click="page = Math.min(totalPages, page + 1)"
                                     :disabled="page === totalPages"
-                                    class="px-3 py-1 border rounded text-sm disabled:opacity-50"
+                                    class="px-3 py-1 border dark:border-slate-600 dark:text-gray-300 rounded text-sm disabled:opacity-50"
                                 >
                                     Next
                                 </button>

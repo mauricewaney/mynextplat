@@ -3,7 +3,7 @@
         <div class="max-w-4xl mx-auto space-y-4">
             <!-- Header + Page Selector (compact) -->
             <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold text-gray-900">Trophy URL Importer</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Trophy URL Importer</h1>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-2 bg-primary-600 text-white px-3 py-2 rounded-lg">
                         <span class="text-sm opacity-80">Page</span>
@@ -30,11 +30,11 @@
             </div>
 
             <!-- Copy URL helper -->
-            <div class="bg-gray-100 rounded-lg p-2 flex items-center gap-3">
-                <code class="flex-1 text-xs font-mono text-gray-600 select-all truncate">{{ viewSourceUrl }}</code>
+            <div class="bg-gray-100 dark:bg-slate-700 rounded-lg p-2 flex items-center gap-3">
+                <code class="flex-1 text-xs font-mono text-gray-600 dark:text-gray-400 select-all truncate">{{ viewSourceUrl }}</code>
                 <button
                     @click="copyUrl"
-                    class="px-3 py-1 bg-white text-gray-700 text-sm rounded border hover:bg-gray-50 flex items-center gap-1 shrink-0"
+                    class="px-3 py-1 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 text-sm rounded border dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 flex items-center gap-1 shrink-0"
                 >
                     <svg v-if="!copied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     <svg v-else class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -43,23 +43,23 @@
             </div>
 
             <!-- PASTE AREA (prominent) -->
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                 <textarea
                     ref="textareaRef"
                     v-model="html"
                     rows="10"
-                    class="w-full border-2 border-dashed border-gray-300 rounded-lg focus:border-primary-500 focus:ring-0 font-mono text-xs p-3"
+                    class="w-full border-2 border-dashed border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-gray-300 dark:placeholder-gray-500 rounded-lg focus:border-primary-500 focus:ring-0 font-mono text-xs p-3"
                     :class="{ 'border-primary-400 bg-primary-50': loading }"
                     :placeholder="'Paste page ' + currentPage + ' source here (Ctrl+V)...\n\nAuto-imports on paste!'"
                     @paste="onPaste"
                 ></textarea>
                 <div class="flex items-center justify-between mt-2">
                     <div class="flex items-center gap-3 text-sm">
-                        <label class="flex items-center text-gray-600">
+                        <label class="flex items-center text-gray-600 dark:text-gray-400">
                             <input type="checkbox" v-model="autoImport" class="mr-1">
                             Auto-import
                         </label>
-                        <span v-if="htmlLength" class="text-gray-400">({{ htmlLength }} chars)</span>
+                        <span v-if="htmlLength" class="text-gray-400 dark:text-gray-500">({{ htmlLength }} chars)</span>
                         <span v-if="loading" class="text-primary-600 flex items-center gap-1">
                             <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -83,7 +83,7 @@
                         <button
                             @click="html = ''"
                             :disabled="!html"
-                            class="px-3 py-1.5 text-gray-500 text-sm hover:text-gray-700 disabled:opacity-50"
+                            class="px-3 py-1.5 text-gray-500 dark:text-gray-400 text-sm hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50"
                         >
                             Clear
                         </button>
@@ -92,10 +92,10 @@
             </div>
 
             <!-- PowerPyx Import -->
-            <div class="bg-white rounded-lg shadow p-3 flex items-center justify-between">
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 flex items-center justify-between">
                 <div>
-                    <span class="font-medium text-gray-900 text-sm">PowerPyx Guides</span>
-                    <span class="text-xs text-gray-500 ml-2">Auto-scrape from powerpyx.com/guides</span>
+                    <span class="font-medium text-gray-900 dark:text-white text-sm">PowerPyx Guides</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">Auto-scrape from powerpyx.com/guides</span>
                 </div>
                 <div class="flex items-center gap-3">
                     <span v-if="ppxResult" :class="ppxResult.success ? 'text-green-600' : 'text-red-600'" class="text-sm">
@@ -117,33 +117,33 @@
 
             <!-- Stats (compact) -->
             <div v-if="stats" class="grid grid-cols-5 gap-2 text-center">
-                <div class="bg-white rounded-lg shadow p-3">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3">
                     <div class="text-xl font-bold text-blue-600">{{ stats.psnprofiles?.total_urls || 0 }}</div>
-                    <div class="text-xs text-gray-500">PSN URLs</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PSN URLs</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3">
                     <div class="text-xl font-bold text-green-600">{{ stats.psnprofiles?.matched || 0 }}</div>
-                    <div class="text-xs text-gray-500">Matched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Matched</div>
                 </div>
-                <router-link to="/admin/trophy-urls/unmatched" class="bg-white rounded-lg shadow p-3 hover:bg-red-50">
+                <router-link to="/admin/trophy-urls/unmatched" class="bg-white dark:bg-slate-800 rounded-lg shadow p-3 hover:bg-red-50 dark:hover:bg-slate-700">
                     <div class="text-xl font-bold text-red-600">{{ (stats.psnprofiles?.unmatched || 0) + (stats.playstationtrophies?.unmatched || 0) }}</div>
-                    <div class="text-xs text-gray-500">Unmatched</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Unmatched</div>
                 </router-link>
-                <div class="bg-white rounded-lg shadow p-3">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3">
                     <div class="text-xl font-bold text-purple-600">{{ stats.playstationtrophies?.total_urls || 0 }}</div>
-                    <div class="text-xs text-gray-500">PST URLs</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">PST URLs</div>
                 </div>
-                <div class="bg-white rounded-lg shadow p-3">
-                    <div class="text-xl font-bold text-gray-600">{{ stats.total_games || 0 }}</div>
-                    <div class="text-xs text-gray-500">Games</div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-3">
+                    <div class="text-xl font-bold text-gray-600 dark:text-gray-400">{{ stats.total_games || 0 }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Games</div>
                 </div>
             </div>
 
             <!-- Import Log (compact) -->
-            <div v-if="importLog.length > 0" class="bg-white rounded-lg shadow p-4">
+            <div v-if="importLog.length > 0" class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="font-medium text-gray-900 text-sm">Import Log</span>
-                    <span class="text-xs text-gray-500">{{ importLog.length }} pages</span>
+                    <span class="font-medium text-gray-900 dark:text-white text-sm">Import Log</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ importLog.length }} pages</span>
                 </div>
                 <div class="space-y-0.5 max-h-32 overflow-y-auto font-mono text-xs">
                     <div
@@ -152,8 +152,8 @@
                         class="flex items-center gap-2 py-0.5"
                     >
                         <span :class="log.success ? 'text-green-500' : 'text-red-500'">{{ log.success ? '✓' : '✗' }}</span>
-                        <span class="text-gray-400">{{ log.time }}</span>
-                        <span class="text-gray-700 flex-1">{{ log.message }}</span>
+                        <span class="text-gray-400 dark:text-gray-500">{{ log.time }}</span>
+                        <span class="text-gray-700 dark:text-gray-300 flex-1">{{ log.message }}</span>
                         <span v-if="log.stats?.matched > 0" class="text-green-600">+{{ log.stats.matched }}</span>
                     </div>
                 </div>

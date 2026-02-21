@@ -5,10 +5,10 @@
             <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
 
             <!-- Modal -->
-            <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full">
                 <!-- Header -->
-                <div class="border-b px-6 py-4">
-                    <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
+                <div class="border-b dark:border-slate-700 px-6 py-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
                 </div>
 
                 <!-- Content -->
@@ -17,10 +17,10 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="border-t px-6 py-4 flex justify-end space-x-3">
+                <div class="border-t dark:border-slate-700 px-6 py-4 flex justify-end space-x-3">
                     <button
                         @click="close"
-                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        class="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                     >
                         Cancel
                     </button>
