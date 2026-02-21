@@ -126,19 +126,9 @@ class UserGameController extends Controller
             $query->where('title', 'LIKE', "%{$search}%");
         }
 
-        // Has guide filter
+        // Has guide filter — uses indexed boolean column
         if ($request->filled('has_guide')) {
-            if ($this->isTruthy($request->has_guide)) {
-                $query->where(function ($q) {
-                    $q->whereNotNull('psnprofiles_url')
-                      ->orWhereNotNull('playstationtrophies_url')
-                      ->orWhereNotNull('powerpyx_url');
-                });
-            } else {
-                $query->whereNull('psnprofiles_url')
-                      ->whereNull('playstationtrophies_url')
-                      ->whereNull('powerpyx_url');
-            }
+            $query->where('has_guide', $this->isTruthy($request->has_guide));
         }
 
         // Difficulty range
@@ -374,11 +364,7 @@ class UserGameController extends Controller
 
         // Get games that already have guides (to mark as notified)
         $gamesWithGuides = Game::whereIn('id', $newGameIds)
-            ->where(function ($q) {
-                $q->whereNotNull('psnprofiles_url')
-                  ->orWhereNotNull('playstationtrophies_url')
-                  ->orWhereNotNull('powerpyx_url');
-            })
+            ->where('has_guide', true)
             ->pluck('id')
             ->toArray();
 

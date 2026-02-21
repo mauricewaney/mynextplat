@@ -55,6 +55,7 @@ class Game extends Model
         'psnprofiles_url',
         'playstationtrophies_url',
         'powerpyx_url',
+        'has_guide',
         'last_scraped_at',
         'needs_review',
     ];
@@ -67,6 +68,7 @@ class Game extends Model
         'is_unobtainable' => 'boolean',
         'is_verified' => 'boolean',
         'has_platinum' => 'boolean',
+        'has_guide' => 'boolean',
         'is_psplus_extra' => 'boolean',
         'is_psplus_premium' => 'boolean',
         'needs_review' => 'boolean',
@@ -80,6 +82,15 @@ class Game extends Model
         'gold_count' => 'integer',
         'platinum_count' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Game $game) {
+            $game->has_guide = !empty($game->psnprofiles_url)
+                || !empty($game->playstationtrophies_url)
+                || !empty($game->powerpyx_url);
+        });
+    }
 
     // Relationships
     public function genres(): BelongsToMany

@@ -138,23 +138,15 @@ class GameController extends Controller
     public function getStats()
     {
         $totalGames = Game::count();
-        $gamesWithGuide = Game::where(function ($q) {
-            $q->whereNotNull('psnprofiles_url')
-              ->orWhereNotNull('playstationtrophies_url')
-              ->orWhereNotNull('powerpyx_url');
-        })->count();
+        $gamesWithGuide = Game::where('has_guide', true)->count();
         $gamesWithDifficulty = Game::whereNotNull('difficulty')->count();
 
-        // needs_data: has a guide URL but missing ALL of: difficulty, time_min, playthroughs_required
-        $gamesNeedingData = Game::where(function ($q) {
-            $q->whereNotNull('psnprofiles_url')
-              ->orWhereNotNull('playstationtrophies_url')
-              ->orWhereNotNull('powerpyx_url');
-        })
-        ->whereNull('difficulty')
-        ->whereNull('time_min')
-        ->whereNull('playthroughs_required')
-        ->count();
+        // needs_data: has a guide but missing ALL of: difficulty, time_min, playthroughs_required
+        $gamesNeedingData = Game::where('has_guide', true)
+            ->whereNull('difficulty')
+            ->whereNull('time_min')
+            ->whereNull('playthroughs_required')
+            ->count();
 
         $verified = Game::where('is_verified', true)->count();
 
@@ -185,14 +177,8 @@ class GameController extends Controller
         }
 
         $games = Game::with('platforms')
-            ->where(function ($q) {
-                $q->whereNotNull('psnprofiles_url')
-                  ->orWhereNotNull('playstationtrophies_url')
-                  ->orWhereNotNull('powerpyx_url');
-            })
-            ->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($search) . '%']);
-            })
+            ->where('has_guide', true)
+            ->where('title', 'LIKE', '%' . $search . '%')
             ->select('id', 'title', 'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url')
             ->orderByRaw('LENGTH(title) ASC') // Shorter titles first (likely base games)
             ->limit(10)
