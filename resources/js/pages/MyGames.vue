@@ -5,7 +5,7 @@
             <div class="hidden sm:flex items-center gap-2">
                 <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
                     <router-link
-                        to="/"
+                        to="/?view=all"
                         class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
                     >
                         All Games
@@ -27,7 +27,7 @@
             </div>
             <!-- Mobile Nav Tabs -->
             <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
-                <router-link to="/" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
+                <router-link to="/?view=all" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
                     All Games
                 </router-link>
                 <router-link v-if="isPsnLoaded" to="/?view=psn" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">

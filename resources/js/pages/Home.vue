@@ -1057,6 +1057,10 @@ onMounted(() => {
             viewMode.value = 'all'
             sessionStorage.setItem('viewMode', 'all')
         }
+    } else if (route.query.view === 'all') {
+        // Explicit "All Games" navigation — always reset to 'all'
+        viewMode.value = 'all'
+        sessionStorage.setItem('viewMode', 'all')
     } else {
         // Reset to 'all' view if invalid view mode or PSN view was saved but PSN not loaded
         if (viewMode.value === 'library' || (viewMode.value === 'psn' && !isPsnLoaded.value)) {
