@@ -186,7 +186,7 @@
                         :class="[
                             'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
                             filters.has_guide === true
-                                ? 'bg-emerald-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
@@ -219,7 +219,7 @@
                                 class="sr-only peer"
                                 @change="emitFilters"
                             />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-yellow-500 transition-colors"></div>
+                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-500 transition-colors"></div>
                             <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
                         </div>
                         <span class="text-sm text-gray-700 dark:text-gray-300">Has platinum</span>

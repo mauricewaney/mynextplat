@@ -197,13 +197,13 @@
                     </div>
 
                     <!-- Online Trophies Status -->
-                    <div v-if="game.has_online_trophies" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
-                        <span class="text-red-700 dark:text-red-300 text-sm font-medium">
+                    <div v-if="game.has_online_trophies" class="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3 mb-4">
+                        <span class="text-orange-700 dark:text-orange-300 text-sm font-medium">
                             This game has online trophies
                         </span>
                     </div>
-                    <div v-else-if="game.has_online_trophies === false" class="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 mb-4">
-                        <span class="text-emerald-700 dark:text-emerald-300 text-sm font-medium">
+                    <div v-else-if="game.has_online_trophies === false" class="bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800 rounded-lg p-3 mb-4">
+                        <span class="text-primary-700 dark:text-primary-300 text-sm font-medium">
                             No online trophies required
                         </span>
                     </div>

@@ -6,19 +6,71 @@
                 <div class="flex items-center justify-between h-16">
                     <div class="flex items-center gap-4">
                         <router-link to="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <div class="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
                                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <h1 class="hidden sm:block text-xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
-                                {{ title || appName }}
-                            </h1>
                         </router-link>
 
-                        <!-- Slot for page-specific header content (e.g., view mode tabs, PSN library) -->
-                        <slot name="header-left"></slot>
+                        <slot name="nav-tabs">
+                            <!-- Navigation Tabs - Mobile (default) -->
+                            <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
+                                <router-link
+                                    to="/"
+                                    :class="[
+                                        'px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+                                        $route.path === '/'
+                                            ? 'bg-primary-600 text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400'
+                                    ]"
+                                >
+                                    All Games
+                                </router-link>
+                                <router-link
+                                    v-if="isAuthenticated"
+                                    to="/my-games"
+                                    :class="[
+                                        'px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+                                        $route.path === '/my-games'
+                                            ? 'bg-primary-600 text-white shadow-sm'
+                                            : 'text-gray-600 dark:text-gray-400'
+                                    ]"
+                                >
+                                    My Games
+                                </router-link>
+                            </div>
+
+                            <!-- Navigation Tabs - Desktop (default) -->
+                            <div class="hidden sm:flex items-center">
+                                <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
+                                    <router-link
+                                        to="/"
+                                        :class="[
+                                            'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                                            $route.path === '/'
+                                                ? 'bg-primary-600 text-white shadow-sm'
+                                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                                        ]"
+                                    >
+                                        All Games
+                                    </router-link>
+                                    <router-link
+                                        v-if="isAuthenticated"
+                                        to="/my-games"
+                                        :class="[
+                                            'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                                            $route.path === '/my-games'
+                                                ? 'bg-primary-600 text-white shadow-sm'
+                                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                                        ]"
+                                    >
+                                        My Games
+                                    </router-link>
+                                </div>
+                            </div>
+                        </slot>
                     </div>
 
                     <!-- Mobile actions -->
@@ -111,7 +163,7 @@
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <!-- Brand -->
                     <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                        <div class="w-6 h-6 bg-gradient-to-br from-primary-500 to-purple-600 rounded-md flex items-center justify-center">
+                        <div class="w-6 h-6 bg-primary-600 rounded-md flex items-center justify-center">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
