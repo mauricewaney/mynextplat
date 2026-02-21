@@ -4,12 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Game extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $appends = [
         'time_range',
@@ -247,7 +246,6 @@ class Game extends Model
             })
             ->join('games', 'games.id', '=', 'ug2.game_id')
             ->where('ug1.game_id', $this->id)
-            ->whereNull('games.deleted_at')
             ->select(
                 'ug2.game_id',
                 'games.title',
