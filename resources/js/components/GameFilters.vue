@@ -650,56 +650,56 @@ function onDifficultyMinChange() {
     if (filters.difficulty_min > filters.difficulty_max) {
         filters.difficulty_max = filters.difficulty_min
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onDifficultyMaxChange() {
     if (filters.difficulty_max < filters.difficulty_min) {
         filters.difficulty_min = filters.difficulty_max
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onUserScoreMinChange() {
     if (filters.user_score_min > filters.user_score_max) {
         filters.user_score_max = filters.user_score_min
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onUserScoreMaxChange() {
     if (filters.user_score_max < filters.user_score_min) {
         filters.user_score_min = filters.user_score_max
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onCriticScoreMinChange() {
     if (filters.critic_score_min > filters.critic_score_max) {
         filters.critic_score_max = filters.critic_score_min
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onCriticScoreMaxChange() {
     if (filters.critic_score_max < filters.critic_score_min) {
         filters.critic_score_min = filters.critic_score_max
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onTimeMinChange() {
     if (filters.time_min > filters.time_max) {
         filters.time_max = filters.time_min
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function onTimeMaxChange() {
     if (filters.time_max < filters.time_min) {
         filters.time_min = filters.time_max
     }
-    emitFilters()
+    debouncedEmit()
 }
 
 function setTimePreset(preset) {

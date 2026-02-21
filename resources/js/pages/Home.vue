@@ -1186,7 +1186,15 @@ function switchViewMode(mode) {
     loadGames()
 }
 
+let loadGamesController = null
+
 async function loadGames() {
+    // Cancel any in-flight request
+    if (loadGamesController) {
+        loadGamesController.abort()
+    }
+    loadGamesController = new AbortController()
+
     loading.value = true
 
     try {
@@ -1251,7 +1259,9 @@ async function loadGames() {
         params.append('page', currentPage.value)
         params.append('per_page', 24)
 
-        const response = await fetch(`/api/games?${params}`)
+        const response = await fetch(`/api/games?${params}`, {
+            signal: loadGamesController.signal,
+        })
         const data = await response.json()
 
         if (currentPage.value === 1) {
@@ -1263,6 +1273,7 @@ async function loadGames() {
         total.value = data.total
         lastPage.value = data.last_page
     } catch (e) {
+        if (e.name === 'AbortError') return // Request was cancelled by a newer one
         console.error('Failed to load games:', e)
     } finally {
         loading.value = false

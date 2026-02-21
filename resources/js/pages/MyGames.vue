@@ -588,7 +588,15 @@ watch(sortBy, (newVal) => {
     loadGames()
 })
 
+let loadGamesController = null
+
 async function loadGames() {
+    // Cancel any in-flight request
+    if (loadGamesController) {
+        loadGamesController.abort()
+    }
+    loadGamesController = new AbortController()
+
     loading.value = true
 
     try {
@@ -635,6 +643,7 @@ async function loadGames() {
 
         const response = await fetch(`/api/my-games?${params}`, {
             credentials: 'include',
+            signal: loadGamesController.signal,
         })
         const data = await response.json()
 
@@ -648,6 +657,7 @@ async function loadGames() {
         lastPage.value = data.last_page
         statusCounts.value = data.status_counts || { all: data.total }
     } catch (e) {
+        if (e.name === 'AbortError') return
         console.error('Failed to load games:', e)
     } finally {
         loading.value = false
