@@ -545,7 +545,7 @@ const filters = reactive({
     has_online_trophies: null,
     missable_trophies: null,
     has_guide: null, // null = any, true = only with guides, false = only without guides
-    exclude_unobtainable: null,
+    exclude_unobtainable: true,
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
