@@ -30,6 +30,11 @@
                         <option value="playstationtrophies">PST</option>
                         <option value="powerpyx">PPX</option>
                     </select>
+                    <select v-model="sortOrder" class="border-gray-300 dark:border-slate-600 dark:bg-slate-800 dark:text-gray-300 rounded-md shadow-sm text-sm" @change="page = 1">
+                        <option value="newest">Newest first</option>
+                        <option value="oldest">Oldest first</option>
+                        <option value="alpha">A-Z</option>
+                    </select>
                     <label v-if="showDlc" class="flex items-center gap-1.5 text-sm text-yellow-700 dark:text-yellow-400 cursor-pointer">
                         <input type="checkbox" v-model="hideDlcKeyword" class="rounded border-gray-300 dark:border-slate-600 text-yellow-500 focus:ring-yellow-500" />
                         Hide "DLC" in title
@@ -370,6 +375,7 @@ const loading = ref(true)
 const search = ref('')
 const sourceFilter = ref('')
 const showDlc = ref(false)
+const sortOrder = ref('newest')
 const hideDlcKeyword = ref(false)
 const page = ref(1)
 const perPage = 15
@@ -398,6 +404,13 @@ const filtered = computed(() => {
             !i.extracted_slug?.toLowerCase().includes('dlc')
         )
     }
+
+    if (sortOrder.value === 'oldest') {
+        items = [...items].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+    } else if (sortOrder.value === 'alpha') {
+        items = [...items].sort((a, b) => (a.extracted_title || '').localeCompare(b.extracted_title || ''))
+    }
+    // 'newest' is the default order from the API
 
     return items
 })
