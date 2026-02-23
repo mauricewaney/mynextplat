@@ -336,13 +336,13 @@
                     <!-- Vote Result Banner (when enough votes) -->
                     <div v-if="guideVotes.winner && guideVotes.total_votes >= 3" class="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                         <p class="text-sm text-green-700 dark:text-green-400 font-medium">
-                            {{ guideVotes.winner_percentage }}% of users preferred the {{ guideLabels[guideVotes.winner] }} guide
+                            {{ guideVotes.winner_percentage }}% of users found the {{ guideLabels[guideVotes.winner] }} guide most helpful
                         </p>
                     </div>
 
                     <!-- Voting UI -->
                     <div class="flex flex-wrap items-center gap-4">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Which guide did you use?</span>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Which guide did you find most helpful?</span>
                         <div class="flex flex-wrap gap-3">
                             <label
                                 v-for="guide in guideVotes.available_guides"

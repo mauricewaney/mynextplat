@@ -90,27 +90,6 @@
                                 </div>
                             </div>
 
-                            <!-- Filter Button (Mobile) -->
-                            <button
-                                @click="showMobileFilters = true"
-                                :class="[
-                                    'lg:hidden relative flex items-center justify-center p-2 rounded-full transition-all ring-1',
-                                    activeFilterCount > 0
-                                        ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 ring-primary-200 dark:ring-primary-800'
-                                        : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
-                                ]"
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                                </svg>
-                                <span
-                                    v-if="activeFilterCount > 0"
-                                    class="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-primary-600 text-white"
-                                >
-                                    {{ activeFilterCount }}
-                                </span>
-                            </button>
-
                         </div>
                     </div>
 
@@ -141,9 +120,20 @@
 
                     <!-- Sort Bar -->
                     <div class="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3">
-                        <span class="text-sm text-gray-500 dark:text-gray-400">
-                            <span class="font-semibold text-gray-900 dark:text-white">{{ total }}</span> games
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <!-- Filter Button (Mobile) -->
+                            <button
+                                @click="showMobileFilters = true"
+                                class="lg:hidden flex items-center justify-center p-2 rounded-full transition-all ring-1 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                </svg>
+                            </button>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ total }}</span> games
+                            </span>
+                        </div>
                         <div class="flex items-center gap-2">
                             <!-- Share Button -->
                             <button
@@ -176,31 +166,6 @@
                                 </svg>
                                 <span class="hidden sm:inline">Share</span>
                             </router-link>
-
-                            <!-- Notifications Toggle -->
-                            <button
-                                @click="toggleNotifications"
-                                :disabled="updatingNotifications"
-                                class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm rounded-lg transition-colors"
-                                :class="[
-                                    notifyNewGuides
-                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'
-                                ]"
-                                :title="notifyNewGuides ? 'Email notifications enabled' : 'Email notifications disabled'"
-                            >
-                                <svg v-if="updatingNotifications" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                                </svg>
-                                <span class="hidden sm:inline">Notify</span>
-                            </button>
-
-                            <!-- Separator -->
-                            <div class="hidden sm:block w-px h-5 bg-gray-200 dark:bg-slate-600"></div>
 
                             <label class="hidden sm:block text-sm text-gray-500 dark:text-gray-400">Sort:</label>
                             <select
