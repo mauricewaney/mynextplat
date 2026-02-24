@@ -51,21 +51,31 @@
                 <!-- Main Content -->
                 <main class="flex-1 min-w-0">
                     <!-- Discover Presets (All Games view only) -->
-                    <div v-if="viewMode === 'all'" class="mb-3 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
-                        <div class="flex gap-2">
+                    <div v-if="viewMode === 'all'" class="mb-3 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide sm:overflow-visible">
+                        <div class="flex gap-2 sm:grid sm:grid-cols-5 sm:gap-2">
                             <button
                                 v-for="preset in presets"
                                 :key="preset.label"
                                 @click="applyPreset(preset)"
                                 :class="[
-                                    'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-sm',
+                                    'relative overflow-hidden rounded-md py-7 px-5 text-sm font-bold whitespace-nowrap transition-all bg-black min-w-[40vw] sm:min-w-0',
                                     activePreset === preset.label
                                         ? preset.activeClass
                                         : preset.inactiveClass
                                 ]"
                             >
-                                <span class="text-base leading-none">{{ preset.icon }}</span>
-                                {{ preset.label }}
+                                <img
+                                    :src="preset.image"
+                                    :alt="preset.label"
+                                    class="absolute inset-0 w-full h-full object-cover object-left"
+                                    :class="activePreset === preset.label ? 'opacity-90' : 'opacity-50 dark:opacity-40'"
+                                    :style="activePreset === preset.label
+                                        ? 'mask-image: linear-gradient(to right, black 50%, transparent 95%); -webkit-mask-image: linear-gradient(to right, black 50%, transparent 95%);'
+                                        : 'mask-image: linear-gradient(to right, black 30%, transparent 90%); -webkit-mask-image: linear-gradient(to right, black 30%, transparent 90%);'"
+                                />
+                                <span class="relative z-10 text-white drop-shadow-md text-shadow ml-auto block text-right">
+                                    {{ preset.label }}
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -898,45 +908,45 @@ const defaultFilters = {
 const presets = [
     {
         label: 'Fast & Easy',
-        icon: '\u26A1',
-        activeClass: 'bg-amber-500 text-white ring-1 ring-amber-500',
-        inactiveClass: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30',
+        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co86yv.jpg',
+        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { difficulty_max: 4, time_max: 15, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
         sort: 'time_min',
         order: 'asc',
     },
     {
         label: 'Must Play',
-        icon: '\u2B50',
-        activeClass: 'bg-green-500 text-white ring-1 ring-green-500',
-        inactiveClass: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 ring-1 ring-green-200 dark:ring-green-800/50 hover:bg-green-100 dark:hover:bg-green-900/30',
+        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/coba3k.jpg',
+        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { user_score_min: 80, critic_score_min: 80, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
         sort: 'critic_score',
         order: 'desc',
     },
     {
         label: 'Quality Epics',
-        icon: '\uD83C\uDFC6',
-        activeClass: 'bg-purple-500 text-white ring-1 ring-purple-500',
-        inactiveClass: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 ring-1 ring-purple-200 dark:ring-purple-800/50 hover:bg-purple-100 dark:hover:bg-purple-900/30',
+        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/cob9h2.jpg',
+        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { critic_score_min: 80, time_min: 40, genre_ids: [4, 3, 14, 5] },
         sort: 'critic_score',
         order: 'desc',
     },
     {
         label: 'Hidden Gems',
-        icon: '\uD83D\uDC8E',
-        activeClass: 'bg-cyan-500 text-white ring-1 ring-cyan-500',
-        inactiveClass: 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 ring-1 ring-cyan-200 dark:ring-cyan-800/50 hover:bg-cyan-100 dark:hover:bg-cyan-900/30',
+        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co9ihi.jpg',
+        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { user_score_min: 75, critic_score_max: 75 },
         sort: 'user_score',
         order: 'desc',
     },
     {
         label: 'No Stress',
-        icon: '\uD83C\uDFAE',
-        activeClass: 'bg-sky-500 text-white ring-1 ring-sky-500',
-        inactiveClass: 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 ring-1 ring-sky-200 dark:ring-sky-800/50 hover:bg-sky-100 dark:hover:bg-sky-900/30',
+        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2j1g.jpg',
+        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { has_online_trophies: false, missable_trophies: false },
         sort: 'critic_score',
         order: 'desc',
@@ -1240,6 +1250,10 @@ onMounted(() => {
 .slide-up-enter-from,
 .slide-up-leave-to {
     transform: translateY(100%);
+}
+
+.text-shadow {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 /* Hide scrollbar for horizontal scroll */
