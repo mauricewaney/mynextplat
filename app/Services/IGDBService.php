@@ -231,14 +231,13 @@ class IGDBService
     protected const TROPHY_ERA_START = 1182960000;
 
     /**
-     * Fetch PlayStation games from IGDB in bulk using cursor-based pagination
+     * Fetch PlayStation games from IGDB in bulk using ID-based cursor pagination
      *
      * @param int $limit Number of games to fetch
-     * @param int $offset Offset for pagination within current cursor window
-     * @param int|null $sinceTimestamp Continue from this Unix timestamp (cursor-based)
-     * @param array $excludeIds IGDB IDs to exclude (only for games at cursor boundary)
+     * @param int|null $sinceIgdbId Continue from this IGDB ID (fetch games with id > this value)
+     * @param int|null $releasedSinceTimestamp Only fetch games released on or after this Unix timestamp
      */
-    public function fetchPlayStationGames(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = [], ?int $releasedSinceTimestamp = null): array
+    public function fetchPlayStationGames(int $limit = 100, ?int $sinceIgdbId = null, ?int $releasedSinceTimestamp = null): array
     {
         $accessToken = $this->getAccessToken();
 
@@ -261,9 +260,9 @@ class IGDBService
             'first_release_date >= ' . self::TROPHY_ERA_START,
         ];
 
-        // Use IGDB's created_at to find recently added entries (incremental sync)
-        if ($sinceTimestamp) {
-            $whereConditions[] = 'created_at >= ' . $sinceTimestamp;
+        // Use IGDB ID as cursor for incremental sync (IDs are incremental)
+        if ($sinceIgdbId) {
+            $whereConditions[] = 'id > ' . $sinceIgdbId;
         }
 
         // Filter by release date to catch games that were added to IGDB long ago but released recently
@@ -271,17 +270,10 @@ class IGDBService
             $whereConditions[] = 'first_release_date >= ' . $releasedSinceTimestamp;
         }
 
-        // Only exclude IDs if we have a reasonable number (for boundary games)
-        if (!empty($excludeIds) && count($excludeIds) <= 500) {
-            $excludeIdsList = implode(',', $excludeIds);
-            $whereConditions[] = 'id != (' . $excludeIdsList . ')';
-        }
-
         $query = $fields
             . 'where ' . implode(' & ', $whereConditions) . '; '
-            . 'sort created_at asc; '
-            . 'limit ' . $limit . '; '
-            . 'offset ' . $offset . ';';
+            . 'sort id asc; '
+            . 'limit ' . $limit . ';';
 
         $response = Http::withHeaders([
             'Client-ID' => $this->clientId,

@@ -15,9 +15,7 @@ class ImportIGDBGames implements ShouldQueue
     use Queueable;
 
     protected int $limit;
-    protected int $offset;
-    protected ?int $sinceTimestamp;
-    protected array $excludeIds;
+    protected ?int $sinceIgdbId;
     protected ?int $releasedSinceTimestamp;
 
     /**
@@ -29,17 +27,13 @@ class ImportIGDBGames implements ShouldQueue
      * Create a new job instance.
      *
      * @param int $limit Number of games to fetch
-     * @param int $offset Offset for pagination
-     * @param int|null $sinceTimestamp Only fetch games created on IGDB on or after this Unix timestamp
-     * @param array $excludeIds IGDB IDs to exclude (for reliable continuation)
+     * @param int|null $sinceIgdbId Only fetch games with IGDB ID greater than this value
      * @param int|null $releasedSinceTimestamp Only fetch games released on or after this Unix timestamp
      */
-    public function __construct(int $limit = 100, int $offset = 0, ?int $sinceTimestamp = null, array $excludeIds = [], ?int $releasedSinceTimestamp = null)
+    public function __construct(int $limit = 100, ?int $sinceIgdbId = null, ?int $releasedSinceTimestamp = null)
     {
         $this->limit = $limit;
-        $this->offset = $offset;
-        $this->sinceTimestamp = $sinceTimestamp;
-        $this->excludeIds = $excludeIds;
+        $this->sinceIgdbId = $sinceIgdbId;
         $this->releasedSinceTimestamp = $releasedSinceTimestamp;
     }
 
@@ -48,19 +42,25 @@ class ImportIGDBGames implements ShouldQueue
      */
     public function handle(IGDBService $igdbService): void
     {
-        Log::info("Starting IGDB import: limit={$this->limit}, offset={$this->offset}");
+        Log::info("Starting IGDB import: limit={$this->limit}, sinceIgdbId={$this->sinceIgdbId}");
 
-        // Fetch games from IGDB using created_at cursor for incremental sync
-        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->offset, $this->sinceTimestamp, $this->excludeIds, $this->releasedSinceTimestamp);
+        // Fetch games from IGDB using ID-based cursor for incremental sync
+        $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->sinceIgdbId, $this->releasedSinceTimestamp);
 
         Log::info("Fetched " . count($igdbGames) . " games from IGDB");
 
         $imported = 0;
         $skipped = 0;
         $errors = 0;
+        $maxIgdbId = $this->sinceIgdbId;
 
         foreach ($igdbGames as $igdbGame) {
             try {
+                // Track the highest IGDB ID seen for auto-pagination
+                if (isset($igdbGame['id']) && ($maxIgdbId === null || $igdbGame['id'] > $maxIgdbId)) {
+                    $maxIgdbId = $igdbGame['id'];
+                }
+
                 // Skip if already imported (by IGDB ID or slug)
                 if (isset($igdbGame['id']) && Game::where('igdb_id', $igdbGame['id'])->exists()) {
                     $skipped++;
@@ -131,6 +131,12 @@ class ImportIGDBGames implements ShouldQueue
 
         if ($imported > 0) {
             \App\Http\Controllers\GameController::bustGameCache();
+        }
+
+        // Auto-pagination: if batch was full, there may be more games to fetch
+        if (count($igdbGames) >= $this->limit && $maxIgdbId !== null) {
+            Log::info("Batch was full ({$this->limit}), dispatching next batch from igdb_id > {$maxIgdbId}");
+            self::dispatch($this->limit, sinceIgdbId: $maxIgdbId, releasedSinceTimestamp: $this->releasedSinceTimestamp);
         }
     }
 }

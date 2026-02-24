@@ -16,23 +16,15 @@ Artisan::command('inspire', function () {
 |--------------------------------------------------------------------------
 |
 | Import new PlayStation games from IGDB daily at 3 AM.
-| Uses incremental sync - fetches games from the latest release date in DB.
+| Uses IGDB ID cursor - fetches games with ID greater than our max.
 |
 */
 
 Schedule::call(function () {
-    // Use created_at as cursor to catch any recently added IGDB entries
-    $sinceTimestamp = null;
-    $latestGame = Game::whereNotNull('igdb_id')
-        ->orderBy('created_at', 'desc')
-        ->first();
+    // Use max IGDB ID as cursor — IDs are incremental, so no buffer needed
+    $maxIgdbId = Game::whereNotNull('igdb_id')->max('igdb_id');
 
-    if ($latestGame) {
-        // Subtract 1 day buffer to avoid missing edge cases
-        $sinceTimestamp = $latestGame->created_at->subDay()->timestamp;
-    }
-
-    ImportIGDBGames::dispatch(100, 0, $sinceTimestamp);
+    ImportIGDBGames::dispatch(500, sinceIgdbId: $maxIgdbId);
 })
     ->daily()
     ->at('03:00')
@@ -46,8 +38,8 @@ Schedule::call(function () {
 |--------------------------------------------------------------------------
 |
 | Catch games that were added to IGDB long ago but released recently.
-| The main import above uses IGDB's created_at cursor, which misses
-| games added to IGDB months before their release date.
+| The main import uses an IGDB ID cursor, which misses old entries
+| that only recently became relevant due to a new release date.
 |
 */
 
@@ -55,11 +47,30 @@ Schedule::call(function () {
     // Look for games released in the last 30 days
     $releasedSince = now()->subDays(30)->timestamp;
 
-    ImportIGDBGames::dispatch(100, 0, null, [], $releasedSince);
+    ImportIGDBGames::dispatch(100, sinceIgdbId: null, releasedSinceTimestamp: $releasedSince);
 })
     ->daily()
     ->at('03:15')
     ->name('igdb-import-recently-released')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Weekly Catchup Import
+|--------------------------------------------------------------------------
+|
+| Scan all IGDB entries since trophy era to catch any games that slipped
+| through the cracks (e.g., old IGDB entries with new release dates).
+| Runs Sunday nights; auto-paginates through all batches via the queue.
+|
+*/
+
+Schedule::call(function () {
+    ImportIGDBGames::dispatch(500, sinceIgdbId: null);
+})
+    ->weeklyOn(0, '02:00')
+    ->name('igdb-weekly-catchup')
     ->withoutOverlapping()
     ->onOneServer();
 
