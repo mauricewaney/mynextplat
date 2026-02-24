@@ -46,9 +46,9 @@
         </template>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex gap-8">
+            <div class="flex gap-4">
                 <!-- Sidebar Filters (Desktop) -->
-                <aside class="hidden lg:block w-[420px] shrink-0">
+                <aside class="hidden lg:block w-[300px] shrink-0">
                     <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 scrollbar-thin">
                         <GameFilters @update:filters="onFilterChange" />
                     </div>
@@ -244,7 +244,7 @@
                     </div>
 
                     <!-- Game List -->
-                    <div v-else class="space-y-4">
+                    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <GameCard
                             v-for="game in games"
                             :key="game.id"

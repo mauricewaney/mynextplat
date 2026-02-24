@@ -40,16 +40,36 @@
 
         <h1 class="sr-only">PlayStation Trophy Guides, Platinum Difficulty Ratings & Completion Times</h1>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex gap-8">
+            <div class="flex gap-4">
                 <!-- Sidebar Filters (Desktop) -->
-                <aside class="hidden lg:block w-[420px] shrink-0">
+                <aside class="hidden lg:block w-[300px] shrink-0">
                     <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 scrollbar-thin">
-                        <GameFilters @update:filters="onFilterChange" />
+                        <GameFilters :key="filterKey" @update:filters="onFilterChange" />
                     </div>
                 </aside>
 
                 <!-- Main Content -->
                 <main class="flex-1 min-w-0">
+                    <!-- Discover Presets (All Games view only) -->
+                    <div v-if="viewMode === 'all'" class="mb-3 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
+                        <div class="flex gap-2">
+                            <button
+                                v-for="preset in presets"
+                                :key="preset.label"
+                                @click="applyPreset(preset)"
+                                :class="[
+                                    'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all shadow-sm',
+                                    activePreset === preset.label
+                                        ? preset.activeClass
+                                        : preset.inactiveClass
+                                ]"
+                            >
+                                <span class="text-base leading-none">{{ preset.icon }}</span>
+                                {{ preset.label }}
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- PSN View Info Bar (when in PSN view mode) -->
                     <div v-if="viewMode === 'psn' && isPsnLoaded" class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -255,7 +275,7 @@
                     </div>
 
                     <!-- Games List -->
-                    <div v-else class="space-y-4">
+                    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <GameCard
                             v-for="game in games"
                             :key="game.id"
@@ -322,7 +342,7 @@
                             </div>
                             <!-- Scrollable content -->
                             <div class="flex-1 overflow-y-auto p-4 pb-24">
-                                <GameFilters @update:filters="onFilterChange" />
+                                <GameFilters :key="filterKey" @update:filters="onFilterChange" />
                             </div>
                             <!-- Sticky footer with Show Results button -->
                             <div class="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 p-4">
@@ -848,6 +868,80 @@ const urlState = queryToFilters(route.query)
 const sortBy = ref(urlState?.sortBy || sessionStorage.getItem('sortBy') || 'critic_score')
 const sortOrder = ref(urlState?.sortOrder || sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
+const filterKey = ref(0)
+const activePreset = ref(null)
+
+const defaultFilters = {
+    search: '',
+    platform_ids: [],
+    genre_ids: [],
+    tag_ids: [],
+    difficulty_min: 1,
+    difficulty_max: 10,
+    time_min: 0,
+    time_max: 200,
+    max_playthroughs: null,
+    user_score_min: 0,
+    user_score_max: 100,
+    critic_score_min: 0,
+    critic_score_max: 100,
+    has_platinum: true,
+    has_online_trophies: null,
+    missable_trophies: null,
+    has_guide: null,
+    exclude_unobtainable: true,
+    guide_psnp: false,
+    guide_pst: false,
+    guide_ppx: false,
+}
+
+const presets = [
+    {
+        label: 'Fast Platinums',
+        icon: '\u26A1',
+        activeClass: 'bg-amber-500 text-white ring-1 ring-amber-500',
+        inactiveClass: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800/50 hover:bg-amber-100 dark:hover:bg-amber-900/30',
+        filters: { difficulty_max: 4, time_max: 10, has_online_trophies: false, missable_trophies: false },
+        sort: 'time_min',
+        order: 'asc',
+    },
+    {
+        label: 'Easy First Platinum',
+        icon: '\u2B50',
+        activeClass: 'bg-green-500 text-white ring-1 ring-green-500',
+        inactiveClass: 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 ring-1 ring-green-200 dark:ring-green-800/50 hover:bg-green-100 dark:hover:bg-green-900/30',
+        filters: { difficulty_max: 3, time_max: 15, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
+        sort: 'difficulty',
+        order: 'asc',
+    },
+    {
+        label: 'Quality Epics',
+        icon: '\uD83C\uDFC6',
+        activeClass: 'bg-purple-500 text-white ring-1 ring-purple-500',
+        inactiveClass: 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 ring-1 ring-purple-200 dark:ring-purple-800/50 hover:bg-purple-100 dark:hover:bg-purple-900/30',
+        filters: { critic_score_min: 80, time_min: 40 },
+        sort: 'critic_score',
+        order: 'desc',
+    },
+    {
+        label: 'Hidden Gems',
+        icon: '\uD83D\uDC8E',
+        activeClass: 'bg-cyan-500 text-white ring-1 ring-cyan-500',
+        inactiveClass: 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 ring-1 ring-cyan-200 dark:ring-cyan-800/50 hover:bg-cyan-100 dark:hover:bg-cyan-900/30',
+        filters: { user_score_min: 75, critic_score_max: 75 },
+        sort: 'user_score',
+        order: 'desc',
+    },
+    {
+        label: 'No Stress',
+        icon: '\uD83C\uDFAE',
+        activeClass: 'bg-sky-500 text-white ring-1 ring-sky-500',
+        inactiveClass: 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 ring-1 ring-sky-200 dark:ring-sky-800/50 hover:bg-sky-100 dark:hover:bg-sky-900/30',
+        filters: { has_online_trophies: false, missable_trophies: false },
+        sort: 'critic_score',
+        order: 'desc',
+    },
+]
 
 // Load filters: URL params first (shared link), then sessionStorage (returning user)
 const savedFilters = (() => {
@@ -903,8 +997,38 @@ function syncQueryToUrl() {
 
 const hasMore = computed(() => currentPage.value < lastPage.value)
 
+function applyPreset(preset) {
+    // Toggle off if already active
+    if (activePreset.value === preset.label) {
+        activePreset.value = null
+        const resetFilters = { ...defaultFilters }
+        sessionStorage.setItem('gameFilters', JSON.stringify(resetFilters))
+        sortBy.value = 'critic_score'
+        sortOrder.value = 'desc'
+    } else {
+        activePreset.value = preset.label
+        const presetFilters = { ...defaultFilters, ...preset.filters }
+        sessionStorage.setItem('gameFilters', JSON.stringify(presetFilters))
+        sortBy.value = preset.sort
+        sortOrder.value = preset.order
+    }
+    sessionStorage.setItem('sortBy', sortBy.value)
+    sessionStorage.setItem('sortOrder', sortOrder.value)
+    filterKey.value++
+    // GameFilters will re-mount, read from sessionStorage, and emit → onFilterChange → loadGames
+}
+
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
+    // Clear active preset when user manually changes filters
+    if (!isMounting && activePreset.value) {
+        const preset = presets.find(p => p.label === activePreset.value)
+        if (preset) {
+            const expected = { ...defaultFilters, ...preset.filters }
+            const mismatch = Object.keys(expected).some(k => newFilters[k] !== expected[k])
+            if (mismatch) activePreset.value = null
+        }
+    }
     // During mount, just sync filter values — parent onMounted will call loadGames()
     if (isMounting) return
     // Save filters to sessionStorage (exclude game_ids as they're from PSN lookup)

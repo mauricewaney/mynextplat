@@ -1,6 +1,6 @@
 <template>
     <div
-        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex gap-3 sm:gap-4 p-3 sm:p-4 select-none cursor-pointer"
+        class="group relative bg-white dark:bg-slate-800 rounded-xl shadow-sm hover:shadow-md dark:shadow-slate-900/50 transition-all duration-300 flex flex-col p-3 select-none cursor-pointer"
         @click="navigateToGame"
     >
         <!-- Unobtainable Stamp Overlay -->
@@ -12,8 +12,10 @@
                 UNOBTAINABLE
             </div>
         </div>
+        <!-- Top Section: Cover + Info -->
+        <div class="flex gap-3 sm:gap-4">
         <!-- Cover Image -->
-        <div class="relative w-28 sm:w-28 h-40 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
+        <div class="relative w-28 h-40 sm:h-36 shrink-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-lg overflow-hidden">
             <img
                 v-if="game.cover_url"
                 :src="game.cover_url"
@@ -29,6 +31,16 @@
                     <path d="M511.638,96.668c-0.033-1.268-0.068-2.336-0.068-3.174V45.1h-73.889v38.736h35.152v9.658c0,1.127,0.037,2.557,0.086,4.258c0.389,13.976,1.303,46.707-21.545,70.203c-5.121,5.266-11.221,9.787-18.219,13.613c-3.883,17.635-10.109,33.564-18.104,47.814c26.561-6.406,48.026-17.898,64.096-34.422C513.402,159.734,512.121,113.918,511.638,96.668z"/>
                     <path d="M60.625,167.955c-22.848-23.496-21.934-56.227-21.541-70.203c0.047-1.701,0.082-3.131,0.082-4.258v-9.658h34.842h0.07h0.24V45.1H0.43v48.394c0,0.838-0.032,1.906-0.068,3.174c-0.482,17.25-1.76,63.066,32.494,98.293c16.068,16.524,37.531,28.014,64.092,34.422c-7.996-14.25-14.22-30.182-18.103-47.816C71.846,177.74,65.746,173.221,60.625,167.955z"/>
                 </svg>
+            </div>
+            <!-- Platform Icons -->
+            <div v-if="game.platforms?.length" class="absolute bottom-1 left-1 flex gap-0.5">
+                <span
+                    v-for="platform in game.platforms.slice(0, 3)"
+                    :key="platform.id"
+                    class="h-6 px-1 inline-flex items-center bg-black/80 text-white text-[10px] font-medium rounded"
+                >
+                    <PlatformIcon :slug="platform.slug" :fallback="platform.short_name || platform.name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-6" />
+                </span>
             </div>
             <!-- Add to List Button -->
             <div class="absolute top-1 right-1">
@@ -51,27 +63,20 @@
 
         <!-- Info Section -->
         <div class="flex-1 flex flex-col min-w-0">
-            <!-- Top Row: Title, Platforms, Score -->
+            <!-- Top Row: Title + Developer, Status, Score -->
             <div class="flex items-start gap-1 sm:gap-2">
-                <!-- Title -->
-                <router-link
-                    :to="'/game/' + game.slug"
-                    class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 hover:text-primary-600 dark:hover:text-primary-400 hover:underline transition-colors"
-                >
-                    {{ game.title }}
-                </router-link>
-                <!-- Platforms (hidden on mobile) -->
-                <div v-if="game.platforms?.length" class="hidden sm:flex gap-1 shrink-0">
-                    <span
-                        v-for="platform in game.platforms.slice(0, 3)"
-                        :key="platform.id"
-                        class="h-8 px-1.5 inline-flex items-center bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded"
+                <!-- Title & Developer -->
+                <div class="min-w-0 flex-1 mb-1">
+                    <router-link
+                        :to="'/game/' + game.slug"
+                        class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 hover:text-primary-600 dark:hover:text-primary-400 hover:underline transition-colors block"
                     >
-                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name || platform.name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-6" />
-                    </span>
+                        {{ game.title }}
+                    </router-link>
+                    <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                        {{ game.developer || game.publisher || 'Unknown Developer' }}
+                    </p>
                 </div>
-                <!-- Spacer -->
-                <div class="flex-1"></div>
                 <!-- Status Dropdown (when in user's library) -->
                 <div v-if="game.user_status" class="relative status-dropdown-container shrink-0" @click.stop>
                     <button
@@ -172,15 +177,9 @@
                 </component>
             </div>
 
-            <!-- Developer/Publisher -->
-            <p class="text-[10px] sm:text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-1.5 line-clamp-1">
-                {{ game.developer || game.publisher || 'Unknown Developer' }}
-            </p>
-
             <!-- Stats Group -->
             <div class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1">
-                <!-- Mobile: 2 rows, stacked label below value -->
-                <div class="grid grid-cols-3 gap-x-2 gap-y-2 sm:hidden text-xs">
+                <div class="grid grid-cols-3 gap-x-2 gap-y-2 text-xs">
                     <div>
                         <div v-if="game.difficulty" :class="['font-bold', difficultyTextClass]">{{ game.difficulty }}/10</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
@@ -213,108 +212,57 @@
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Source</div>
                     </div>
                 </div>
-                <!-- Desktop: original label-value rows -->
-                <div class="hidden sm:grid grid-cols-2 gap-x-2 gap-y-1.5 text-sm">
-                    <!-- Difficulty -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Difficulty</span>
-                        <div v-if="game.difficulty" class="flex items-center gap-1">
-                            <div class="w-12 h-1.5 bg-gray-200 dark:bg-slate-600 rounded-full overflow-hidden">
-                                <div
-                                    :class="['h-full rounded-full', difficultyBarClass]"
-                                    :style="{ width: `${game.difficulty * 10}%` }"
-                                ></div>
-                            </div>
-                            <span :class="['font-medium', difficultyTextClass]">{{ game.difficulty }}/10</span>
-                        </div>
-                        <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                    </div>
-
-                    <!-- Missables -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Missables</span>
-                        <span v-if="game.missable_trophies === false" class="text-primary-600 dark:text-primary-400 font-medium">None</span>
-                        <span v-else-if="game.missable_trophies === true" class="text-red-600 dark:text-red-400 font-medium">Yes</span>
-                        <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                    </div>
-
-                    <!-- Time -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Time</span>
-                        <span v-if="timeValues" class="font-medium text-gray-700 dark:text-gray-300">{{ timeValues.desktop }}</span>
-                        <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                    </div>
-
-                    <!-- Playthroughs -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Runs</span>
-                        <span v-if="game.playthroughs_required" class="font-medium text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}x</span>
-                        <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                    </div>
-
-                    <!-- Online -->
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Online</span>
-                        <span v-if="game.has_online_trophies === false" class="text-primary-600 dark:text-primary-400 font-medium">No</span>
-                        <span v-else-if="game.has_online_trophies === true" class="text-red-600 dark:text-red-400 font-medium">Yes</span>
-                        <span v-else class="text-gray-300 dark:text-gray-600">--</span>
-                    </div>
-
-                    <!-- Source -->
-                    <div v-if="game.data_source" class="flex items-center gap-2">
-                        <span class="text-gray-500 dark:text-gray-400 w-20 shrink-0">Source</span>
-                        <span :class="['font-medium', dataSourceClass]">{{ dataSourceLabel }}</span>
-                    </div>
-                </div>
             </div>
 
-            <!-- Bottom Row: Genres, Guides -->
-            <div class="flex items-center gap-1 sm:gap-2 mt-1 sm:mt-2 flex-wrap">
-                <!-- Genres (hidden on mobile) -->
-                <template v-if="game.genres?.length">
-                    <span
-                        v-for="genre in game.genres.slice(0, 2)"
-                        :key="genre.id"
-                        class="hidden sm:inline px-2 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs rounded-full"
-                    >
-                        {{ genre.name }}
-                    </span>
-                </template>
+        </div>
+        </div>
 
-                <!-- Spacer -->
-                <div class="flex-1"></div>
+        <!-- Bottom Row: Genres + Guides (full card width) -->
+        <div class="flex items-center gap-1 sm:gap-2 mt-1 sm:mt-2">
+            <!-- Genres (desktop only) -->
+            <template v-if="game.genres?.length">
+                <span
+                    v-for="genre in game.genres.slice(0, 2)"
+                    :key="genre.id"
+                    class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-[10px] rounded-full"
+                >
+                    {{ genre.name }}
+                </span>
+            </template>
 
-                <!-- Guide Links -->
-                <div v-if="hasGuide" class="flex items-center gap-1.5 px-2 py-1 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
-                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                    </svg>
-                    <div class="flex items-center gap-1">
-                        <a
-                            v-if="game.psnprofiles_url"
-                            :href="game.psnprofiles_url"
-                            target="_blank"
-                            @click.stop="trackGuideClick('psnprofiles')"
-                            class="px-1.5 sm:px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors"
-                            title="PSNProfiles Guide"
-                        >PSNP</a>
-                        <a
-                            v-if="game.playstationtrophies_url"
-                            :href="game.playstationtrophies_url"
-                            target="_blank"
-                            @click.stop="trackGuideClick('playstationtrophies')"
-                            class="px-1.5 sm:px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-[10px] sm:text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors"
-                            title="PlayStationTrophies Guide"
-                        >PST</a>
-                        <a
-                            v-if="game.powerpyx_url"
-                            :href="game.powerpyx_url"
-                            target="_blank"
-                            @click.stop="trackGuideClick('powerpyx')"
-                            class="px-1.5 sm:px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-[10px] sm:text-xs font-bold hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors"
-                            title="PowerPyx Guide"
-                        >PPX</a>
-                    </div>
+            <!-- Spacer -->
+            <div class="flex-1"></div>
+
+            <!-- Guide Links -->
+            <div v-if="hasGuide" class="flex items-center gap-1.5 px-2 py-1 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <div class="flex items-center gap-1">
+                    <a
+                        v-if="game.psnprofiles_url"
+                        :href="game.psnprofiles_url"
+                        target="_blank"
+                        @click.stop="trackGuideClick('psnprofiles')"
+                        class="px-1.5 sm:px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors"
+                        title="PSNProfiles Guide"
+                    >PSNP</a>
+                    <a
+                        v-if="game.playstationtrophies_url"
+                        :href="game.playstationtrophies_url"
+                        target="_blank"
+                        @click.stop="trackGuideClick('playstationtrophies')"
+                        class="px-1.5 sm:px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-[10px] sm:text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors"
+                        title="PlayStationTrophies Guide"
+                    >PST</a>
+                    <a
+                        v-if="game.powerpyx_url"
+                        :href="game.powerpyx_url"
+                        target="_blank"
+                        @click.stop="trackGuideClick('powerpyx')"
+                        class="px-1.5 sm:px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-[10px] sm:text-xs font-bold hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors"
+                        title="PowerPyx Guide"
+                    >PPX</a>
                 </div>
             </div>
         </div>
@@ -489,9 +437,9 @@ const timeValues = computed(() => {
 
 const dataSourceLabel = computed(() => {
     const s = props.game.data_source
-    if (s === 'playstationtrophies') return 'PlayStationTrophies'
-    if (s === 'powerpyx') return 'PowerPyx'
-    if (s === 'psnprofiles') return 'PSNProfiles'
+    if (s === 'playstationtrophies') return 'PST'
+    if (s === 'powerpyx') return 'PPX'
+    if (s === 'psnprofiles') return 'PSNP'
     return s
 })
 

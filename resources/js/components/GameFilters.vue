@@ -26,10 +26,10 @@
         <!-- Active Filters Summary (always reserve space to prevent layout jump) -->
         <div class="h-8 flex items-center gap-2 flex-wrap">
             <template v-if="activeFilterCount > 0">
-                <span class="text-sm text-gray-500 dark:text-gray-400">{{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }} active</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ activeFilterCount }} filter{{ activeFilterCount > 1 ? 's' : '' }} active</span>
                 <button
                     @click="clearAllFilters"
-                    class="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-medium"
+                    class="text-xs text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-medium"
                 >
                     Clear all
                 </button>
@@ -40,27 +40,27 @@
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
             <!-- Platforms -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-2 block">Platforms</label>
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 block">Platforms</label>
                 <div class="flex flex-wrap gap-1.5">
                     <button
                         v-for="platform in platforms"
                         :key="platform.id"
                         @click="toggleFilter('platform_ids', platform.id)"
                         :class="[
-                            'h-10 px-2 rounded-md text-sm font-medium transition-all inline-flex items-center',
+                            'h-8 px-2 rounded-md text-xs font-medium transition-all inline-flex items-center',
                             isSelected('platform_ids', platform.id)
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                         ]"
                     >
-                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" :size-class="platform.slug === 'ps-vr' ? 'h-5' : 'h-8'" />
+                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'vr' : ''" :size-class="platform.slug === 'ps-vr' ? 'h-5' : 'h-6'" />
                     </button>
                 </div>
             </div>
 
             <!-- IGDB User Score -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <div class="flex items-center justify-between text-sm mb-2">
+                <div class="flex items-center justify-between text-xs mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB User Score</span>
                     <span v-if="filters.user_score_min > 0 || filters.user_score_max < 100" class="text-gray-600 dark:text-gray-400">{{ filters.user_score_min }} - {{ filters.user_score_max }}</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
@@ -97,7 +97,7 @@
 
             <!-- IGDB Critic Score -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <div class="flex items-center justify-between text-sm mb-2">
+                <div class="flex items-center justify-between text-xs mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB Critic Score</span>
                     <span v-if="filters.critic_score_min > 0 || filters.critic_score_max < 100" class="text-gray-600 dark:text-gray-400">{{ filters.critic_score_min }} - {{ filters.critic_score_max }}</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
@@ -134,7 +134,7 @@
 
             <!-- Difficulty -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <div class="flex items-center justify-between text-sm mb-2">
+                <div class="flex items-center justify-between text-xs mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">Difficulty</span>
                     <span class="text-gray-600 dark:text-gray-400">{{ filters.difficulty_min }} - {{ filters.difficulty_max }}</span>
                 </div>
@@ -168,23 +168,12 @@
 
             <!-- Has Guide Filter -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Availability</label>
+<!--                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Availability</label>-->
                 <div class="flex gap-1.5">
-                    <button
-                        @click="filters.has_guide = null; emitFilters()"
-                        :class="[
-                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
-                            filters.has_guide === null
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                        ]"
-                    >
-                        Any
-                    </button>
                     <button
                         @click="filters.has_guide = true; emitFilters()"
                         :class="[
-                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
                             filters.has_guide === true
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
@@ -195,7 +184,7 @@
                     <button
                         @click="filters.has_guide = false; emitFilters()"
                         :class="[
-                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
                             filters.has_guide === false
                                 ? 'bg-amber-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
@@ -203,88 +192,108 @@
                     >
                         No Guide
                     </button>
+                    <button
+                        @click="filters.has_guide = null; emitFilters()"
+                        :class="[
+                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
+                            filters.has_guide === null
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                        ]"
+                    >
+                        Any
+                    </button>
                 </div>
             </div>
 
             <!-- Trophy toggles -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                        <div class="relative shrink-0">
-                            <input
-                                type="checkbox"
-                                v-model="filters.has_platinum"
-                                :true-value="true"
-                                :false-value="null"
-                                class="sr-only peer"
-                                @change="emitFilters"
-                            />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-500 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+<!--                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Trophy filters</label>-->
+                <div class="grid grid-cols-4 gap-x-3">
+                    <label class="cursor-pointer group">
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Platinum</span>
+                        <div class="flex items-center gap-2">
+                            <div class="relative shrink-0">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.has_platinum"
+                                    :true-value="true"
+                                    :false-value="null"
+                                    class="sr-only peer"
+                                    @change="emitFilters"
+                                />
+                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-500 transition-colors"></div>
+                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
                         </div>
-                        <span class="text-sm text-gray-700 dark:text-gray-300">Has platinum</span>
                     </label>
 
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                        <div class="relative shrink-0">
-                            <input
-                                type="checkbox"
-                                v-model="filters.has_online_trophies"
-                                :true-value="false"
-                                :false-value="null"
-                                class="sr-only peer"
-                                @change="emitFilters"
-                            />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                    <label class="cursor-pointer group">
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Obtainable</span>
+                        <div class="flex items-center gap-2">
+                            <div class="relative shrink-0">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.exclude_unobtainable"
+                                    :true-value="true"
+                                    :false-value="null"
+                                    class="sr-only peer"
+                                    @change="emitFilters"
+                                />
+                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
+                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
                         </div>
-                        <span class="text-sm text-gray-700 dark:text-gray-300">No online</span>
                     </label>
 
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                        <div class="relative shrink-0">
-                            <input
-                                type="checkbox"
-                                v-model="filters.missable_trophies"
-                                :true-value="false"
-                                :false-value="null"
-                                class="sr-only peer"
-                                @change="emitFilters"
-                            />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                    <label class="cursor-pointer group">
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Offline</span>
+                        <div class="flex items-center gap-2">
+                            <div class="relative shrink-0">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.has_online_trophies"
+                                    :true-value="false"
+                                    :false-value="null"
+                                    class="sr-only peer"
+                                    @change="emitFilters"
+                                />
+                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
+                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
                         </div>
-                        <span class="text-sm text-gray-700 dark:text-gray-300">No missables</span>
                     </label>
 
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                        <div class="relative shrink-0">
-                            <input
-                                type="checkbox"
-                                v-model="filters.exclude_unobtainable"
-                                :true-value="true"
-                                :false-value="null"
-                                class="sr-only peer"
-                                @change="emitFilters"
-                            />
-                            <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
-                            <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                    <label class="cursor-pointer group">
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">No miss.</span>
+                        <div class="flex items-center gap-2">
+                            <div class="relative shrink-0">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.missable_trophies"
+                                    :true-value="false"
+                                    :false-value="null"
+                                    class="sr-only peer"
+                                    @change="emitFilters"
+                                />
+                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
+                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
                         </div>
-                        <span class="text-sm text-gray-700 dark:text-gray-300">No unobtainable</span>
                     </label>
                 </div>
             </div>
 
             <!-- Playthroughs -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Max playthroughs</label>
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Max playthroughs</label>
                 <div class="flex gap-1.5">
                     <button
                         v-for="n in [1, 2, 3]"
                         :key="n"
                         @click="filters.max_playthroughs = filters.max_playthroughs === n ? null : n; emitFilters()"
                         :class="[
-                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
                             filters.max_playthroughs === n
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
@@ -295,7 +304,7 @@
                     <button
                         @click="filters.max_playthroughs = null; emitFilters()"
                         :class="[
-                            'flex-1 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
                             !filters.max_playthroughs
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
@@ -308,7 +317,7 @@
 
             <!-- Time to Platinum -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <div class="flex items-center justify-between text-sm mb-2">
+                <div class="flex items-center justify-between text-xs mb-2">
                     <span class="text-gray-600 dark:text-gray-400 font-medium">Time to Platinum</span>
                     <span class="text-gray-600 dark:text-gray-400">{{ filters.time_min }}h - {{ filters.time_max >= 200 ? '200+' : filters.time_max }}h</span>
                 </div>
@@ -359,11 +368,11 @@
 
             <!-- Genres (multiselect dropdown) -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Genres</label>
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Genres</label>
                 <div class="relative" ref="genreDropdownRef">
                     <button
                         @click="genreDropdownOpen = !genreDropdownOpen"
-                        class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-left flex items-center justify-between hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+                        class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs text-left flex items-center justify-between hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                     >
                         <span v-if="filters.genre_ids?.length" class="text-gray-900 dark:text-gray-200">
                             {{ filters.genre_ids.length }} selected
@@ -375,7 +384,7 @@
                     </button>
                     <div
                         v-if="genreDropdownOpen"
-                        class="absolute z-20 mt-1 w-full bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                        class="absolute z-20 bottom-full mb-1 w-full bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto"
                     >
                         <label
                             v-for="genre in filterOptions.genres"
@@ -388,7 +397,7 @@
                                 @change="toggleFilter('genre_ids', genre.id)"
                                 class="w-4 h-4 text-primary-600 border-gray-300 dark:border-slate-500 rounded focus:ring-primary-500 dark:bg-slate-600"
                             />
-                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ genre.name }}</span>
+                            <span class="text-xs text-gray-700 dark:text-gray-300">{{ genre.name }}</span>
                         </label>
                     </div>
                 </div>
@@ -411,12 +420,12 @@
 
             <!-- Guide Sources -->
             <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Sources</label>
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Sources</label>
                 <div class="flex gap-1.5">
                     <button
                         @click="filters.guide_psnp = !filters.guide_psnp; emitFilters()"
                         :class="[
-                            'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                             filters.guide_psnp
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
@@ -427,7 +436,7 @@
                     <button
                         @click="filters.guide_pst = !filters.guide_pst; emitFilters()"
                         :class="[
-                            'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                             filters.guide_pst
                                 ? 'bg-purple-600 text-white'
                                 : 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50'
@@ -438,7 +447,7 @@
                     <button
                         @click="filters.guide_ppx = !filters.guide_ppx; emitFilters()"
                         :class="[
-                            'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                            'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                             filters.guide_ppx
                                 ? 'bg-orange-600 text-white'
                                 : 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50'
@@ -451,11 +460,11 @@
 
             <!-- Tags (multiselect dropdown) — hidden until needed -->
             <div v-if="false" class="px-4 py-3">
-                <label class="text-sm text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Tags</label>
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Tags</label>
                 <div class="relative" ref="tagDropdownRef">
                     <button
                         @click="tagDropdownOpen = !tagDropdownOpen"
-                        class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm text-left flex items-center justify-between hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
+                        class="w-full px-3 py-2 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-xs text-left flex items-center justify-between hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors"
                     >
                         <span v-if="filters.tag_ids?.length" class="text-gray-900 dark:text-gray-200">
                             {{ filters.tag_ids.length }} selected
@@ -480,7 +489,7 @@
                                 @change="toggleFilter('tag_ids', tag.id)"
                                 class="w-4 h-4 text-primary-600 border-gray-300 dark:border-slate-500 rounded focus:ring-primary-500 dark:bg-slate-600"
                             />
-                            <span class="text-sm text-gray-700 dark:text-gray-300">{{ tag.name }}</span>
+                            <span class="text-xs text-gray-700 dark:text-gray-300">{{ tag.name }}</span>
                         </label>
                     </div>
                 </div>
