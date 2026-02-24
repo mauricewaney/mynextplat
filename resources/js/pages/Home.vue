@@ -1025,7 +1025,7 @@ function onFilterChange(newFilters) {
         const preset = presets.find(p => p.label === activePreset.value)
         if (preset) {
             const expected = { ...defaultFilters, ...preset.filters }
-            const mismatch = Object.keys(expected).some(k => newFilters[k] !== expected[k])
+            const mismatch = Object.keys(expected).some(k => JSON.stringify(newFilters[k]) !== JSON.stringify(expected[k]))
             if (mismatch) activePreset.value = null
         }
     }
