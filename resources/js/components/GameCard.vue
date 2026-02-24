@@ -214,11 +214,35 @@
                 </div>
             </div>
 
+            <!-- Mobile: Genres + Guides (inside info section, below stats) -->
+            <div class="flex items-center gap-1 mt-1 sm:hidden">
+                <template v-if="game.genres?.length">
+                    <span
+                        v-for="genre in game.genres.slice(0, 2)"
+                        :key="genre.id"
+                        class="px-1.5 py-0.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 text-[10px] rounded-full"
+                    >
+                        {{ genre.name }}
+                    </span>
+                </template>
+                <div class="flex-1"></div>
+                <div v-if="hasGuide" class="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <div class="flex items-center gap-1">
+                        <a v-if="game.psnprofiles_url" :href="game.psnprofiles_url" target="_blank" @click.stop="trackGuideClick('psnprofiles')" class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] font-bold hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors" title="PSNProfiles Guide">PSNP</a>
+                        <a v-if="game.playstationtrophies_url" :href="game.playstationtrophies_url" target="_blank" @click.stop="trackGuideClick('playstationtrophies')" class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-[10px] font-bold hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors" title="PlayStationTrophies Guide">PST</a>
+                        <a v-if="game.powerpyx_url" :href="game.powerpyx_url" target="_blank" @click.stop="trackGuideClick('powerpyx')" class="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-[10px] font-bold hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors" title="PowerPyx Guide">PPX</a>
+                    </div>
+                </div>
+            </div>
+
         </div>
         </div>
 
-        <!-- Bottom Row: Genres + Guides (full card width) -->
-        <div class="flex items-center gap-1 sm:gap-2 mt-1 sm:mt-2">
+        <!-- Desktop: Genres + Guides (full card width) -->
+        <div class="hidden sm:flex items-center gap-2 mt-2">
             <!-- Genres (desktop only) -->
             <template v-if="game.genres?.length">
                 <span
