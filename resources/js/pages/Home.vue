@@ -51,8 +51,8 @@
                 <!-- Main Content -->
                 <main class="flex-1 min-w-0">
                     <!-- Discover Presets (All Games view only) -->
-                    <div v-if="viewMode === 'all'" class="mb-3 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide">
-                        <div class="flex gap-2">
+                    <div v-if="viewMode === 'all'" class="mb-3">
+                        <div class="flex flex-wrap gap-2">
                             <button
                                 v-for="preset in presets"
                                 :key="preset.label"
