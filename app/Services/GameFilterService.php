@@ -171,12 +171,21 @@ class GameFilterService
 
     /**
      * Score range filters (user score and critic score)
+     * Minimum rating/review counts must match frontend thresholds to avoid
+     * filtering on unreliable scores that display as "N/A" to the user.
      */
     protected function applyScoreFilter(Builder $query, Request $request): void
     {
+        $minUserRatings = 3;
+        $minCriticSources = 3;
+
         // IGDB User Score range filter
         if ($request->filled('user_score_min') && $request->input('user_score_min') > 0) {
-            $query->where('user_score', '>=', $request->input('user_score_min'));
+            $query->where('user_score', '>=', $request->input('user_score_min'))
+                  ->where(function ($q) use ($minUserRatings) {
+                      $q->where('user_score_count', '>=', $minUserRatings)
+                        ->orWhereNull('user_score_count');
+                  });
         }
         if ($request->filled('user_score_max') && $request->input('user_score_max') < 100) {
             $query->where('user_score', '<=', $request->input('user_score_max'));
@@ -184,7 +193,11 @@ class GameFilterService
 
         // IGDB Critic Score range filter
         if ($request->filled('critic_score_min') && $request->input('critic_score_min') > 0) {
-            $query->where('critic_score', '>=', $request->input('critic_score_min'));
+            $query->where('critic_score', '>=', $request->input('critic_score_min'))
+                  ->where(function ($q) use ($minCriticSources) {
+                      $q->where('critic_score_count', '>=', $minCriticSources)
+                        ->orWhereNull('critic_score_count');
+                  });
         }
         if ($request->filled('critic_score_max') && $request->input('critic_score_max') < 100) {
             $query->where('critic_score', '<=', $request->input('critic_score_max'));
