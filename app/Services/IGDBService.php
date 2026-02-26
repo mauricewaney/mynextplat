@@ -289,6 +289,48 @@ class IGDBService
     }
 
     /**
+     * Fetch PlayStation games updated since a given timestamp, returning only score fields.
+     * Used by the scheduled score refresh job.
+     */
+    public function fetchUpdatedGameScores(int $limit = 500, ?int $sinceUpdatedAt = null): array
+    {
+        $accessToken = $this->getAccessToken();
+
+        if (!$accessToken) {
+            throw new \Exception('Failed to get IGDB access token.');
+        }
+
+        $platformFilter = implode(',', self::PLAYSTATION_PLATFORMS);
+
+        $fields = 'fields id,aggregated_rating,aggregated_rating_count,rating,rating_count,updated_at; ';
+
+        $whereConditions = [
+            'platforms = (' . $platformFilter . ')',
+        ];
+
+        if ($sinceUpdatedAt) {
+            $whereConditions[] = 'updated_at > ' . $sinceUpdatedAt;
+        }
+
+        $query = $fields
+            . 'where ' . implode(' & ', $whereConditions) . '; '
+            . 'sort updated_at asc; '
+            . 'limit ' . $limit . ';';
+
+        $response = Http::withHeaders([
+            'Client-ID' => $this->clientId,
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->withBody($query, 'text/plain')
+          ->post('https://api.igdb.com/v4/games');
+
+        if (!$response->successful()) {
+            throw new \Exception('IGDB API error: ' . $response->body());
+        }
+
+        return $response->json() ?? [];
+    }
+
+    /**
      * Parse IGDB game data into our database format
      */
     public function parseGameData(array $igdbGame): array

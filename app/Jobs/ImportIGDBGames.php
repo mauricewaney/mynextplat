@@ -42,12 +42,12 @@ class ImportIGDBGames implements ShouldQueue
      */
     public function handle(IGDBService $igdbService): void
     {
-        Log::info("Starting IGDB import: limit={$this->limit}, sinceIgdbId={$this->sinceIgdbId}");
+        Log::channel('jobs')->info("Starting IGDB import: limit={$this->limit}, sinceIgdbId={$this->sinceIgdbId}");
 
         // Fetch games from IGDB using ID-based cursor for incremental sync
         $igdbGames = $igdbService->fetchPlayStationGames($this->limit, $this->sinceIgdbId, $this->releasedSinceTimestamp);
 
-        Log::info("Fetched " . count($igdbGames) . " games from IGDB");
+        Log::channel('jobs')->info("Fetched " . count($igdbGames) . " games from IGDB");
 
         $imported = 0;
         $skipped = 0;
@@ -123,11 +123,11 @@ class ImportIGDBGames implements ShouldQueue
 
             } catch (\Exception $e) {
                 $errors++;
-                Log::error("Failed to import game: " . ($igdbGame['name'] ?? 'Unknown') . " - " . $e->getMessage());
+                Log::channel('jobs')->error("Failed to import game: " . ($igdbGame['name'] ?? 'Unknown') . " - " . $e->getMessage());
             }
         }
 
-        Log::info("IGDB import complete: imported={$imported}, skipped={$skipped}, errors={$errors}");
+        Log::channel('jobs')->info("IGDB import complete: imported={$imported}, skipped={$skipped}, errors={$errors}");
 
         if ($imported > 0) {
             \App\Http\Controllers\GameController::bustGameCache();
@@ -135,7 +135,7 @@ class ImportIGDBGames implements ShouldQueue
 
         // Auto-pagination: if batch was full, there may be more games to fetch
         if (count($igdbGames) >= $this->limit && $maxIgdbId !== null) {
-            Log::info("Batch was full ({$this->limit}), dispatching next batch from igdb_id > {$maxIgdbId}");
+            Log::channel('jobs')->info("Batch was full ({$this->limit}), dispatching next batch from igdb_id > {$maxIgdbId}");
             self::dispatch($this->limit, sinceIgdbId: $maxIgdbId, releasedSinceTimestamp: $this->releasedSinceTimestamp);
         }
     }

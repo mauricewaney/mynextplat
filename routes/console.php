@@ -1,9 +1,11 @@
 <?php
 
 use App\Jobs\ImportIGDBGames;
+use App\Jobs\RefreshIGDBScores;
 use App\Models\Game;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -71,6 +73,28 @@ Schedule::call(function () {
 })
     ->weeklyOn(0, '02:00')
     ->name('igdb-weekly-catchup')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| Refresh IGDB Scores
+|--------------------------------------------------------------------------
+|
+| Fetch games updated on IGDB since last refresh and update scores.
+| Uses updated_at cursor to efficiently fetch only changed entries.
+| Runs daily at 3:30 AM (after imports, before trophy scraping).
+|
+*/
+
+Schedule::call(function () {
+    $lastRefresh = Cache::get('igdb_scores_last_refresh');
+
+    RefreshIGDBScores::dispatch(500, $lastRefresh);
+})
+    ->daily()
+    ->at('03:30')
+    ->name('igdb-refresh-scores')
     ->withoutOverlapping()
     ->onOneServer();
 
