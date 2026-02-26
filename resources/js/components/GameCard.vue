@@ -37,9 +37,12 @@
                 <span
                     v-for="platform in game.platforms.slice(0, 3)"
                     :key="platform.id"
-                    class="h-6 px-1 inline-flex items-center bg-black/80 text-white text-[10px] font-medium rounded"
+                    class="h-6 px-1 inline-flex items-center bg-black/80 text-white text-[10px] font-medium rounded [&_img]:brightness-0 [&_img]:invert"
                 >
-                    <PlatformIcon :slug="platform.slug" :fallback="platform.short_name || platform.name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-6" />
+                    <template v-if="platform.slug === 'ps-vr'">
+                        <span class="text-[9px]">PSVR</span>
+                    </template>
+                    <PlatformIcon v-else :slug="platform.slug" :fallback="platform.short_name || platform.name" size-class="h-6" />
                 </span>
             </div>
             <!-- Add to List Button -->
