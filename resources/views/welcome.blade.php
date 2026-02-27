@@ -33,6 +33,12 @@
     <link rel="preconnect" href="https://images.igdb.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.igdb.com">
 
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
     {{-- Ahrefs --}}
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="EwmZjm+zQ4UD20MWX0JQZg" async></script>
 
