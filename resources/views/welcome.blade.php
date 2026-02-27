@@ -33,6 +33,9 @@
     <link rel="preconnect" href="https://images.igdb.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.igdb.com">
 
+    {{-- Ahrefs --}}
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="EwmZjm+zQ4UD20MWX0JQZg" async></script>
+
     {{-- Prevent flash of wrong theme by applying dark mode before render --}}
     <script>
         (function() {
