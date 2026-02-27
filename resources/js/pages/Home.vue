@@ -14,9 +14,12 @@
                         My Games
                     </router-link>
                 </div>
-                <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
-                    PSN
-                </button>
+                <span class="group/psn relative inline-flex" @mouseenter="psnTooltip.show('desktop')" @mouseleave="psnTooltip.hide()" @click.stop="psnTooltip.toggle('desktop')">
+                    <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                        PSN
+                    </button>
+                    <span :class="['absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-2 py-1 w-56 text-xs text-center bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', psnTooltip.isVisible('desktop') ? 'opacity-100' : 'opacity-0 hidden group-hover/psn:block group-hover/psn:opacity-100']">Look up any PSN profile to browse their game library and find platinums</span>
+                </span>
             </div>
             <!-- Mobile View Mode Tabs -->
             <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
@@ -33,9 +36,12 @@
         </template>
 
         <template #header-mobile>
-            <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
-                PSN
-            </button>
+            <span class="group/psn-m relative inline-flex" @click.stop="psnTooltip.toggle('mobile')">
+                <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800">
+                    PSN
+                </button>
+                <span :class="['absolute top-full right-0 mt-1.5 px-2 py-1 w-56 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', psnTooltip.isVisible('mobile') ? 'opacity-100' : 'opacity-0 hidden group-hover/psn-m:block group-hover/psn-m:opacity-100']">Look up any PSN profile to browse their game library and find platinums</span>
+            </span>
         </template>
 
         <h1 class="sr-only">PlayStation Trophy Guides, Platinum Difficulty Ratings & Completion Times</h1>
@@ -628,6 +634,9 @@ import { useAuth } from '../composables/useAuth'
 import { useAppConfig } from '../composables/useAppConfig'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
 import { useUserGames } from '../composables/useUserGames'
+import { useTooltip } from '../composables/useTooltip'
+
+const psnTooltip = useTooltip()
 
 const { appName } = useAppConfig()
 
@@ -1008,16 +1017,19 @@ function syncQueryToUrl() {
 const hasMore = computed(() => currentPage.value < lastPage.value)
 
 function applyPreset(preset) {
+    // Preserve "sticky" toggles — these are sensible defaults most users always want on
+    const sticky = { has_platinum: filters.has_platinum, exclude_unobtainable: filters.exclude_unobtainable }
+
     // Toggle off if already active
     if (activePreset.value === preset.label) {
         activePreset.value = null
-        const resetFilters = { ...defaultFilters }
+        const resetFilters = { ...defaultFilters, ...sticky }
         sessionStorage.setItem('gameFilters', JSON.stringify(resetFilters))
         sortBy.value = 'critic_score'
         sortOrder.value = 'desc'
     } else {
         activePreset.value = preset.label
-        const presetFilters = { ...defaultFilters, ...preset.filters }
+        const presetFilters = { ...defaultFilters, ...preset.filters, ...sticky }
         sessionStorage.setItem('gameFilters', JSON.stringify(presetFilters))
         sortBy.value = preset.sort
         sortOrder.value = preset.order

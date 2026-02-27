@@ -134,7 +134,7 @@
                     @click.stop
                 >
                     <!-- User Score -->
-                    <div class="group/user relative inline-flex" @click.stop="toggleTooltip('user')">
+                    <div class="group/user relative inline-flex" @click.stop="tooltip.toggle('user')">
                         <div
                             :class="[
                                 'w-7 h-7 sm:w-8 sm:h-8 rounded-md sm:rounded-lg flex items-center justify-center font-bold',
@@ -146,8 +146,8 @@
                         </div>
                         <div
                             :class="[
-                                'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
-                                showTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
+                                'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150',
+                                tooltip.isVisible('user') ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
                             ]"
                         >
                             <template v-if="displayUserScore === null">No user score</template>
@@ -156,7 +156,7 @@
                         </div>
                     </div>
                     <!-- Critic Score -->
-                    <div class="group/critic relative inline-flex" @click.stop="toggleTooltip('critic')">
+                    <div class="group/critic relative inline-flex" @click.stop="tooltip.toggle('critic')">
                         <div
                             :class="[
                                 'w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg flex items-center justify-center font-bold border',
@@ -168,8 +168,8 @@
                         </div>
                         <div
                             :class="[
-                                'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
-                                showTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
+                                'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150',
+                                tooltip.isVisible('critic') ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
                             ]"
                         >
                             <template v-if="displayCriticScore === null">No critic score</template>
@@ -301,6 +301,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { apiPost } from '../utils/api'
 import { useAuth } from '../composables/useAuth'
+import { useTooltip } from '../composables/useTooltip'
 import AddToListButton from './AddToListButton.vue'
 import PlatformIcon from './PlatformIcon.vue'
 
@@ -324,18 +325,7 @@ const emit = defineEmits(['update-status', 'removed'])
 const showStatusMenu = ref(false)
 
 // Tooltip state (mobile tap)
-const showTooltip = ref(null)
-let tooltipTimer = null
-
-function toggleTooltip(type) {
-    if (showTooltip.value === type) {
-        showTooltip.value = null
-    } else {
-        showTooltip.value = type
-        clearTimeout(tooltipTimer)
-        tooltipTimer = setTimeout(() => { showTooltip.value = null }, 2000)
-    }
-}
+const tooltip = useTooltip()
 
 const statusLabels = {
     backlog: 'Backlog',

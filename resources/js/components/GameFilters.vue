@@ -37,10 +37,14 @@
         </div>
 
         <!-- All Filters -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm [&>*:first-child]:rounded-t-xl [&>*:last-child]:rounded-b-xl">
             <!-- Platforms -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 block">Platforms</label>
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                    Platforms
+                    <svg @click.stop="filterTooltip.toggle('platforms')" @mouseenter="filterTooltip.show('platforms')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                </label>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('platforms') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.platforms }}</div>
                 <div class="flex flex-wrap gap-1.5">
                     <button
                         v-for="platform in platforms"
@@ -59,12 +63,16 @@
             </div>
 
             <!-- IGDB User Score -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-xs mb-2">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB User Score</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
+                        IGDB User Score
+                        <svg @click.stop="filterTooltip.toggle('user_score')" @mouseenter="filterTooltip.show('user_score')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                    </span>
                     <span v-if="filters.user_score_min > 0 || filters.user_score_max < 100" class="text-gray-600 dark:text-gray-400">{{ filters.user_score_min }} - {{ filters.user_score_max }}</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
                 </div>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('user_score') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.user_score }}</div>
                 <div class="relative h-2">
                     <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
                     <div
@@ -96,12 +104,16 @@
             </div>
 
             <!-- IGDB Critic Score -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-xs mb-2">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">IGDB Critic Score</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
+                        IGDB Critic Score
+                        <svg @click.stop="filterTooltip.toggle('critic_score')" @mouseenter="filterTooltip.show('critic_score')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                    </span>
                     <span v-if="filters.critic_score_min > 0 || filters.critic_score_max < 100" class="text-gray-600 dark:text-gray-400">{{ filters.critic_score_min }} - {{ filters.critic_score_max }}</span>
                     <span v-else class="text-gray-400 dark:text-gray-500">Any</span>
                 </div>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('critic_score') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.critic_score }}</div>
                 <div class="relative h-2">
                     <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
                     <div
@@ -133,11 +145,15 @@
             </div>
 
             <!-- Difficulty -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-xs mb-2">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">Difficulty</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
+                        Difficulty
+                        <svg @click.stop="filterTooltip.toggle('difficulty')" @mouseenter="filterTooltip.show('difficulty')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                    </span>
                     <span class="text-gray-600 dark:text-gray-400">{{ filters.difficulty_min }} - {{ filters.difficulty_max }}</span>
                 </div>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('difficulty') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.difficulty }}</div>
                 <div class="relative h-2">
                     <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
                     <div
@@ -167,8 +183,12 @@
             </div>
 
             <!-- Has Guide Filter -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-<!--                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Availability</label>-->
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                    Has Guide / No Guide
+                    <svg @click.stop="filterTooltip.toggle('has_guide')" @mouseenter="filterTooltip.show('has_guide')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                </label>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('has_guide') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.has_guide }}</div>
                 <div class="flex gap-1.5">
                     <button
                         @click="filters.has_guide = true; emitFilters()"
@@ -206,48 +226,14 @@
                 </div>
             </div>
 
-            <!-- Trophy toggles -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-<!--                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Trophy filters</label>-->
-                <div class="grid grid-cols-4 gap-x-3">
+            <!-- Trophy toggles (active filters) -->
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <div class="grid grid-cols-2 gap-x-3">
                     <label class="cursor-pointer group">
-                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Platinum</span>
-                        <div class="flex items-center gap-2">
-                            <div class="relative shrink-0">
-                                <input
-                                    type="checkbox"
-                                    v-model="filters.has_platinum"
-                                    :true-value="true"
-                                    :false-value="null"
-                                    class="sr-only peer"
-                                    @change="emitFilters"
-                                />
-                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-500 transition-colors"></div>
-                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
-                            </div>
-                        </div>
-                    </label>
-
-                    <label class="cursor-pointer group">
-                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Obtainable</span>
-                        <div class="flex items-center gap-2">
-                            <div class="relative shrink-0">
-                                <input
-                                    type="checkbox"
-                                    v-model="filters.exclude_unobtainable"
-                                    :true-value="true"
-                                    :false-value="null"
-                                    class="sr-only peer"
-                                    @change="emitFilters"
-                                />
-                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
-                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
-                            </div>
-                        </div>
-                    </label>
-
-                    <label class="cursor-pointer group">
-                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">Offline</span>
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-0.5">
+                            Offline only
+                            <svg @click.stop.prevent="filterTooltip.toggle('offline')" @mouseenter="filterTooltip.show('offline')" @mouseleave="filterTooltip.hide()" class="w-3 h-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                        </span>
                         <div class="flex items-center gap-2">
                             <div class="relative shrink-0">
                                 <input
@@ -265,7 +251,10 @@
                     </label>
 
                     <label class="cursor-pointer group">
-                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 block">No miss.</span>
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-0.5">
+                            No missables
+                            <svg @click.stop.prevent="filterTooltip.toggle('no_miss')" @mouseenter="filterTooltip.show('no_miss')" @mouseleave="filterTooltip.hide()" class="w-3 h-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                        </span>
                         <div class="flex items-center gap-2">
                             <div class="relative shrink-0">
                                 <input
@@ -282,11 +271,17 @@
                         </div>
                     </label>
                 </div>
+                <div v-if="filterTooltip.isVisible('offline')" class="absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100]">{{ filterDescriptions.offline }}</div>
+                <div v-if="filterTooltip.isVisible('no_miss')" class="absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100]">{{ filterDescriptions.no_miss }}</div>
             </div>
 
             <!-- Playthroughs -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Max playthroughs</label>
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                    Max Playthroughs
+                    <svg @click.stop="filterTooltip.toggle('playthroughs')" @mouseenter="filterTooltip.show('playthroughs')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                </label>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('playthroughs') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.playthroughs }}</div>
                 <div class="flex gap-1.5">
                     <button
                         v-for="n in [1, 2, 3]"
@@ -316,11 +311,15 @@
             </div>
 
             <!-- Time to Platinum -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                 <div class="flex items-center justify-between text-xs mb-2">
-                    <span class="text-gray-600 dark:text-gray-400 font-medium">Time to Platinum</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-medium flex items-center gap-1">
+                        Time to Platinum
+                        <svg @click.stop="filterTooltip.toggle('time')" @mouseenter="filterTooltip.show('time')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                    </span>
                     <span class="text-gray-600 dark:text-gray-400">{{ filters.time_min }}h - {{ filters.time_max >= 200 ? '200+' : filters.time_max }}h</span>
                 </div>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('time') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.time }}</div>
                 <div class="relative h-2">
                     <div class="absolute inset-0 bg-gray-200 dark:bg-slate-600 rounded-full"></div>
                     <div
@@ -367,8 +366,12 @@
             </div>
 
             <!-- Genres (multiselect dropdown) -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Genres</label>
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                    Genres
+                    <svg @click.stop="filterTooltip.toggle('genres')" @mouseenter="filterTooltip.show('genres')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                </label>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('genres') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.genres }}</div>
                 <div class="relative" ref="genreDropdownRef">
                     <button
                         @click="genreDropdownOpen = !genreDropdownOpen"
@@ -418,9 +421,62 @@
                 </div>
             </div>
 
+            <!-- Platinum & Obtainable (defaults — rarely toggled) -->
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <div class="grid grid-cols-2 gap-x-3">
+                    <label class="cursor-pointer group">
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-0.5">
+                            Platinum
+                            <svg @click.stop.prevent="filterTooltip.toggle('platinum')" @mouseenter="filterTooltip.show('platinum')" @mouseleave="filterTooltip.hide()" class="w-3 h-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <div class="relative shrink-0">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.has_platinum"
+                                    :true-value="true"
+                                    :false-value="null"
+                                    class="sr-only peer"
+                                    @change="emitFilters"
+                                />
+                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-500 transition-colors"></div>
+                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer group">
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mb-1 flex items-center gap-0.5">
+                            Obtainable
+                            <svg @click.stop.prevent="filterTooltip.toggle('obtainable')" @mouseenter="filterTooltip.show('obtainable')" @mouseleave="filterTooltip.hide()" class="w-3 h-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <div class="relative shrink-0">
+                                <input
+                                    type="checkbox"
+                                    v-model="filters.exclude_unobtainable"
+                                    :true-value="true"
+                                    :false-value="null"
+                                    class="sr-only peer"
+                                    @change="emitFilters"
+                                />
+                                <div class="w-9 h-5 bg-gray-200 dark:bg-slate-600 rounded-full peer-checked:bg-primary-600 transition-colors"></div>
+                                <div class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4 shadow-sm"></div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+                <div v-if="filterTooltip.isVisible('platinum')" class="absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100]">{{ filterDescriptions.platinum }}</div>
+                <div v-if="filterTooltip.isVisible('obtainable')" class="absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100]">{{ filterDescriptions.obtainable }}</div>
+            </div>
+
             <!-- Guide Sources -->
-            <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Guide Sources</label>
+            <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                    Guide Sources
+                    <svg @click.stop="filterTooltip.toggle('guide_sources')" @mouseenter="filterTooltip.show('guide_sources')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
+                </label>
+                <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('guide_sources') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.guide_sources }}</div>
                 <div class="flex gap-1.5">
                     <button
                         @click="filters.guide_psnp = !filters.guide_psnp; emitFilters()"
@@ -516,6 +572,25 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import PlatformIcon from './PlatformIcon.vue'
+import { useTooltip } from '../composables/useTooltip'
+
+const filterTooltip = useTooltip()
+
+const filterDescriptions = {
+    platforms: 'Show games available on selected PlayStation platforms',
+    user_score: 'Community ratings from IGDB users (0\u2013100)',
+    critic_score: 'Aggregated critic review scores from IGDB (0\u2013100)',
+    difficulty: 'Platinum difficulty rating from trophy guides (1\u201310)',
+    has_guide: 'Whether a trophy guide exists from PSNP, PST, or PowerPyx',
+    platinum: 'Only show games that have a platinum trophy',
+    obtainable: 'Hide games with shut down servers (unobtainable platinum)',
+    offline: 'Only show games with no online trophies required',
+    no_miss: 'Only show games with no missable trophies',
+    playthroughs: 'Maximum full playthroughs needed for platinum',
+    time: 'Estimated hours to earn the platinum trophy',
+    genres: 'Filter by game genre',
+    guide_sources: 'Show only games with guides from selected sites',
+}
 
 const emit = defineEmits(['update:filters'])
 
