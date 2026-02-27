@@ -207,8 +207,8 @@
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 loading="lazy"
                             />
-                            <!-- Status Badge -->
-                            <div class="absolute top-2 right-2">
+                            <!-- Status Badge (owner only) -->
+                            <div v-if="isOwner" class="absolute top-2 right-2">
                                 <span :class="[
                                     'px-1.5 py-0.5 rounded text-[10px] font-bold uppercase',
                                     statusColors[game.status]
@@ -216,11 +216,11 @@
                                     {{ statusLabels[game.status] }}
                                 </span>
                             </div>
-                            <!-- Guide Indicator -->
-                            <div v-if="game.has_guide" class="absolute bottom-2 left-2">
-                                <span class="px-1.5 py-0.5 bg-green-500 rounded text-white text-[10px] font-bold">
-                                    GUIDE
-                                </span>
+                            <!-- Guide Links -->
+                            <div v-if="game.has_guide" class="absolute bottom-2 left-2 flex gap-1">
+                                <a v-if="game.psnprofiles_url" :href="game.psnprofiles_url" target="_blank" @click.prevent.stop="openGuide(game.psnprofiles_url)" class="px-1.5 py-0.5 rounded bg-blue-600/90 text-white text-[10px] font-bold hover:bg-blue-700 transition-colors">PSNP</a>
+                                <a v-if="game.playstationtrophies_url" :href="game.playstationtrophies_url" target="_blank" @click.prevent.stop="openGuide(game.playstationtrophies_url)" class="px-1.5 py-0.5 rounded bg-purple-600/90 text-white text-[10px] font-bold hover:bg-purple-700 transition-colors">PST</a>
+                                <a v-if="game.powerpyx_url" :href="game.powerpyx_url" target="_blank" @click.prevent.stop="openGuide(game.powerpyx_url)" class="px-1.5 py-0.5 rounded bg-orange-600/90 text-white text-[10px] font-bold hover:bg-orange-700 transition-colors">PPX</a>
                             </div>
                         </div>
                         <h3 class="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
@@ -363,6 +363,10 @@ async function loadProfile() {
     } finally {
         loading.value = false
     }
+}
+
+function openGuide(url) {
+    window.open(url, '_blank')
 }
 
 async function copyProfileLink() {

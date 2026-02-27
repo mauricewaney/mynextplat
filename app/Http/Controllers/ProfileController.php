@@ -91,7 +91,10 @@ class ProfileController extends Controller
                     'difficulty' => $game->difficulty,
                     'time_min' => $game->time_min,
                     'time_max' => $game->time_max,
-                    'has_guide' => $game->psnprofiles_url || $game->playstationtrophies_url || $game->powerpyx_url,
+                    'psnprofiles_url' => $game->psnprofiles_url,
+                    'playstationtrophies_url' => $game->playstationtrophies_url,
+                    'powerpyx_url' => $game->powerpyx_url,
+                    'has_guide' => (bool) ($game->psnprofiles_url || $game->playstationtrophies_url || $game->powerpyx_url),
                     'status' => $game->pivot->status,
                 ];
             });
