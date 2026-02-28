@@ -38,7 +38,7 @@ class BackfillGameDescriptions extends Command
         Game::whereNotNull('igdb_id')
             ->whereNull('description')
             ->orderBy('igdb_id')
-            ->chunk($batchSize, function ($games) use ($igdbService, &$updated, &$skipped, &$errors, $progressBar, $sleepMs) {
+            ->chunkById($batchSize, function ($games) use ($igdbService, &$updated, &$skipped, &$errors, $progressBar, $sleepMs) {
                 $igdbIds = $games->pluck('igdb_id')->toArray();
 
                 try {
