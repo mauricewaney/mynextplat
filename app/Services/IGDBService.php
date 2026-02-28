@@ -68,6 +68,42 @@ class IGDBService
     }
 
     /**
+     * Fetch summaries for a batch of IGDB IDs.
+     *
+     * @return array<int, string> Map of igdb_id => summary
+     */
+    public function fetchSummaries(array $igdbIds): array
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            throw new \Exception('Failed to get IGDB access token.');
+        }
+
+        $body = 'fields id,summary; '
+            . 'where id = (' . implode(',', $igdbIds) . '); '
+            . 'limit ' . count($igdbIds) . ';';
+
+        $response = Http::withHeaders([
+            'Client-ID' => $this->clientId,
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->withBody($body, 'text/plain')
+            ->post('https://api.igdb.com/v4/games');
+
+        if (!$response->successful()) {
+            throw new \Exception("IGDB API error: {$response->status()}");
+        }
+
+        $result = [];
+        foreach ($response->json() as $game) {
+            if (!empty($game['summary'])) {
+                $result[$game['id']] = $game['summary'];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Search for a game and get its cover image (filtered to PlayStation platforms)
      */
     public function searchAndGetCover(string $gameTitle): array
@@ -407,6 +443,7 @@ class IGDBService
             'critic_score' => isset($igdbGame['aggregated_rating']) ? (int) round($igdbGame['aggregated_rating']) : null,
             'critic_score_count' => $igdbGame['aggregated_rating_count'] ?? null,
             'user_score' => isset($igdbGame['rating']) ? (int) round($igdbGame['rating']) : null,
+            'description' => $igdbGame['summary'] ?? null,
             'user_score_count' => $igdbGame['rating_count'] ?? null,
             'platforms_data' => $platformsData,
             'genre_names' => $genreNames,

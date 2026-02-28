@@ -79,6 +79,7 @@ class ImportIGDBGames implements ShouldQueue
                     'igdb_id' => $gameData['igdb_id'],
                     'title' => $gameData['title'],
                     'slug' => $gameData['slug'],
+                    'description' => $gameData['description'],
                     'developer' => $gameData['developer'],
                     'publisher' => $gameData['publisher'],
                     'release_date' => $gameData['release_date'],
