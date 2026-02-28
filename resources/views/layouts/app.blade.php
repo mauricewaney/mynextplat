@@ -90,37 +90,55 @@
                         @yield('nav-tabs')
                     @else
                         {{-- Default Navigation Tabs - Mobile --}}
-                        <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
+                        <div class="sm:hidden flex items-center gap-1">
                             <a href="/"
-                                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors {{ request()->is('/') ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400' }}"
+                                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors {{ request()->is('/') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400' }}"
                             >
                                 All Games
                             </a>
+                            <a href="/browse"
+                                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors {{ request()->is('browse') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400' }}"
+                            >
+                                Browse
+                            </a>
                             @if($authUser)
                                 <a href="/my-games"
-                                    class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors {{ request()->is('my-games') ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400' }}"
+                                    class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors {{ request()->is('my-games') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400' }}"
                                 >
                                     My Games
+                                </a>
+                                <a href="/?view=psn"
+                                    class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400"
+                                >
+                                    Load PSN
                                 </a>
                             @endif
                         </div>
 
                         {{-- Default Navigation Tabs - Desktop --}}
-                        <div class="hidden sm:flex items-center">
-                            <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
-                                <a href="/"
-                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->is('/') ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50' }}"
+                        <div class="hidden sm:flex items-center gap-1">
+                            <a href="/"
+                                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->is('/') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}"
+                            >
+                                All Games
+                            </a>
+                            <a href="/browse"
+                                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->is('browse') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}"
+                            >
+                                Browse
+                            </a>
+                            @if($authUser)
+                                <a href="/my-games"
+                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->is('my-games') ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}"
                                 >
-                                    All Games
+                                    My Games
                                 </a>
-                                @if($authUser)
-                                    <a href="/my-games"
-                                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->is('my-games') ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50' }}"
-                                    >
-                                        My Games
-                                    </a>
-                                @endif
-                            </div>
+                                <a href="/?view=psn"
+                                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                >
+                                    Load PSN
+                                </a>
+                            @endif
                         </div>
                     @endif
                 </div>

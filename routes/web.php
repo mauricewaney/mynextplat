@@ -18,6 +18,9 @@ Route::get('/games/genre/{slug}', [DirectoryController::class, 'genre']);
 Route::get('/games/platform/{slug}', [DirectoryController::class, 'platform']);
 Route::get('/guides/{slug}', [DirectoryController::class, 'preset']);
 
+// Browse hub
+Route::get('/browse', [DirectoryController::class, 'browse']);
+
 // Public pages
 Route::get('/', fn () => view('pages.home'));
 Route::get('/game/{slug}', fn ($slug) => view('pages.game', ['slug' => $slug]));

@@ -5,6 +5,11 @@
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
+    <url>
+        <loc>{{ url('/browse') }}</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
     @foreach($games as $game)
     <url>
         <loc>{{ url('/game/' . $game->slug) }}</loc>

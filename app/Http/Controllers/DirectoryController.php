@@ -141,6 +141,39 @@ class DirectoryController extends Controller
 
     private const GENERIC_INTRO = 'Browse our curated selection of PlayStation trophy games. Find your next platinum with detailed difficulty ratings, time estimates, and trophy guides.';
 
+    private const PRESET_DESCRIPTIONS = [
+        'fast-and-easy' => 'Under 15 hours, low difficulty, no online or missable trophies.',
+        'must-play' => 'Scored 80+ by critics and players, no online or missables.',
+        'no-stress' => 'No online trophies, no missable trophies — play at your own pace.',
+        'easy-platinums' => 'Difficulty 3 or below with a guaranteed platinum.',
+        'quick-platinums' => 'Earn a platinum in 10 hours or less.',
+        'offline-only' => 'Every trophy earnable offline — future-proof platinums.',
+        'no-missables' => 'No missable trophies — enjoy without a guide.',
+        'hidden-gems' => 'Loved by players, overlooked by critics.',
+        'quality-epics' => 'Critically acclaimed 40+ hour RPGs and adventures.',
+    ];
+
+    public function browse()
+    {
+        $version = Cache::get('games:cache_version', 1);
+        $cacheKey = "directory:browse:v{$version}";
+
+        $data = Cache::remember($cacheKey, 86400, function () {
+            $genres = Genre::withCount('games')->orderBy('name')->get();
+            $platforms = Platform::withCount('games')->orderByDesc('games_count')->get();
+
+            $presets = collect(self::PRESETS)->map(fn ($preset, $slug) => [
+                'slug' => $slug,
+                'title' => $preset['title'],
+                'description' => self::PRESET_DESCRIPTIONS[$slug] ?? '',
+            ])->values();
+
+            return compact('genres', 'platforms', 'presets');
+        });
+
+        return view('pages.browse', $data);
+    }
+
     public function genre(string $slug)
     {
         $genre = Genre::where('slug', $slug)->first();

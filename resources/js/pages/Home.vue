@@ -1,5 +1,27 @@
 <template>
     <div>
+        <!-- All Games tab — teleported into Blade header (Vue-controlled for PSN view toggle) -->
+        <Teleport to="#home-tab-allgames-mobile">
+            <a
+                href="/"
+                @click.prevent="switchViewMode('all')"
+                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                :class="viewMode === 'all' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'"
+            >
+                All Games
+            </a>
+        </Teleport>
+        <Teleport to="#home-tab-allgames-desktop">
+            <a
+                href="/"
+                @click.prevent="switchViewMode('all')"
+                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                :class="viewMode === 'all' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
+            >
+                All Games
+            </a>
+        </Teleport>
+
         <h1 class="sr-only">PlayStation Trophy Guides, Platinum Difficulty Ratings & Completion Times</h1>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex gap-4">
@@ -680,6 +702,7 @@ watch(isPsnLoaded, (loaded) => {
         loadGames()
     }
 })
+
 
 // Watch PSN game IDs (filtered by guide toggle) and reload games when they change
 watch(psnGameIds, (newIds, oldIds) => {

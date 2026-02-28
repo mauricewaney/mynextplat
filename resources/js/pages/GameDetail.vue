@@ -475,7 +475,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { useUserGames } from '../composables/useUserGames'
 import { apiPost } from '../utils/api'
