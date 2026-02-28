@@ -35,12 +35,18 @@ class SeoPrerender
             return $next($request);
         }
 
-        $slug = $this->extractGameSlug($request->path());
+        $path = $request->path();
 
-        if (!$slug) {
-            return $next($request);
+        // Try game detail page
+        if ($slug = $this->extractGameSlug($path)) {
+            return $this->handleGamePage($slug, $next, $request);
         }
 
+        return $next($request);
+    }
+
+    private function handleGamePage(string $slug, Closure $next, Request $request): Response
+    {
         $version = Cache::get('games:cache_version', 1);
         $cacheKey = "seo:game:v{$version}:{$slug}";
 

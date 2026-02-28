@@ -1,6 +1,5 @@
 <template>
-    <AppLayout title="Settings">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-8">Settings</h1>
 
             <!-- Loading -->
@@ -167,23 +166,10 @@
                 </Transition>
             </div>
         </div>
-    </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useHead } from '@vueuse/head'
-import AppLayout from '../components/AppLayout.vue'
-import { useAppConfig } from '../composables/useAppConfig'
-
-const { appName } = useAppConfig()
-
-useHead({
-    title: `Settings | ${appName}`,
-    meta: [
-        { name: 'robots', content: 'noindex, nofollow' },
-    ],
-})
 
 const loading = ref(true)
 const saving = ref(false)

@@ -55,6 +55,7 @@ class Game extends Model
         'playstationtrophies_url',
         'powerpyx_url',
         'has_guide',
+        'description',
         'last_scraped_at',
         'needs_review',
     ];

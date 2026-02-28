@@ -7,6 +7,12 @@ const user = ref(null)
 const loading = ref(true)
 const initialized = ref(false)
 
+export function seedAuth(userData) {
+    user.value = userData
+    loading.value = false
+    initialized.value = true
+}
+
 export function useAuth() {
     const isAuthenticated = computed(() => !!user.value)
     const isAdmin = computed(() => user.value?.is_admin === true)

@@ -1,6 +1,5 @@
 <template>
-    <AppLayout :title="profileUser?.display_name ? `${profileUser.display_name}'s Profile` : 'Profile'">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Loading -->
             <div v-if="loading" class="space-y-6">
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 animate-pulse">
@@ -22,13 +21,13 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile Not Found</h1>
                 <p class="text-gray-500 dark:text-gray-400 mb-6">This profile doesn't exist or is private.</p>
                 <div class="flex items-center justify-center gap-4">
-                    <router-link to="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
+                    <a href="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
                         Browse Libraries
-                    </router-link>
+                    </a>
                     <span class="text-gray-300 dark:text-gray-600">|</span>
-                    <router-link to="/" class="text-primary-600 dark:text-primary-400 hover:underline">
+                    <a href="/" class="text-primary-600 dark:text-primary-400 hover:underline">
                         Browse Games
-                    </router-link>
+                    </a>
                 </div>
             </div>
 
@@ -54,28 +53,28 @@
                     <span>This library is private</span>
                 </div>
                 <div class="flex items-center justify-center gap-4">
-                    <router-link to="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
+                    <a href="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
                         Browse Libraries
-                    </router-link>
+                    </a>
                     <span class="text-gray-300 dark:text-gray-600">|</span>
-                    <router-link to="/" class="text-primary-600 dark:text-primary-400 hover:underline">
+                    <a href="/" class="text-primary-600 dark:text-primary-400 hover:underline">
                         Browse Games
-                    </router-link>
+                    </a>
                 </div>
             </div>
 
             <!-- Public Profile -->
             <div v-else>
                 <!-- Back to Profiles -->
-                <router-link
-                    to="/profiles"
+                <a
+                    href="/profiles"
                     class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-4 transition-colors"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                     All Libraries
-                </router-link>
+                </a>
 
                 <!-- Profile Header -->
                 <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 mb-6">
@@ -126,8 +125,8 @@
 
                         <!-- Owner Actions -->
                         <div v-if="isOwner" class="flex flex-col gap-2">
-                            <router-link
-                                to="/settings"
+                            <a
+                                href="/settings"
                                 class="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +134,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                                 Edit Settings
-                            </router-link>
+                            </a>
                             <button
                                 @click="copyProfileLink"
                                 class="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors flex items-center gap-2"
@@ -193,10 +192,10 @@
 
                 <!-- Game Grid -->
                 <div v-else class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                    <router-link
+                    <a
                         v-for="game in filteredGames"
                         :key="game.id"
-                        :to="`/game/${game.slug}`"
+                        :href="`/game/${game.slug}`"
                         class="group"
                     >
                         <div class="relative aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg overflow-hidden mb-2">
@@ -229,23 +228,16 @@
                         <div v-if="game.difficulty" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             {{ game.difficulty }}/10
                         </div>
-                    </router-link>
+                    </a>
                 </div>
             </div>
         </div>
-    </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useHead } from '@vueuse/head'
-import AppLayout from '../components/AppLayout.vue'
-import { useAppConfig } from '../composables/useAppConfig'
+import { ref, computed, onMounted } from 'vue'
 
-const { appName } = useAppConfig()
-
-const route = useRoute()
+const props = defineProps({ identifier: String })
 
 const loading = ref(true)
 const notFound = ref(false)
@@ -294,41 +286,6 @@ function getStatusCount(status) {
     return stats.value[status] || 0
 }
 
-// Dynamic SEO
-useHead(() => {
-    if (loading.value) {
-        return { title: `Loading... | ${appName}` }
-    }
-    if (notFound.value || isPrivate.value) {
-        return {
-            title: `Profile | ${appName}`,
-            meta: [{ name: 'robots', content: 'noindex' }],
-        }
-    }
-    const name = profileUser.value?.display_name
-    const platCount = stats.value.platinumed || stats.value.platinum || 0
-    const totalCount = stats.value.total || 0
-    const title = `${name}'s Games | ${appName}`
-    const description = `View ${name}'s trophy hunting collection. ${platCount} platinums, ${totalCount} games total.`
-
-    return {
-        title,
-        meta: [
-            { name: 'description', content: description },
-            { property: 'og:title', content: title },
-            { property: 'og:description', content: description },
-            { property: 'og:type', content: 'profile' },
-            ...(profileUser.value?.avatar ? [
-                { property: 'og:image', content: profileUser.value.avatar },
-                { name: 'twitter:image', content: profileUser.value.avatar },
-            ] : []),
-            { name: 'twitter:card', content: 'summary' },
-            { name: 'twitter:title', content: title },
-            { name: 'twitter:description', content: description },
-        ],
-    }
-})
-
 async function loadProfile() {
     loading.value = true
     notFound.value = false
@@ -336,7 +293,7 @@ async function loadProfile() {
     avatarError.value = false
 
     try {
-        const response = await fetch(`/api/profile/${route.params.identifier}`, {
+        const response = await fetch(`/api/profile/${props.identifier}`, {
             credentials: 'include',
         })
 
@@ -380,7 +337,4 @@ async function copyProfileLink() {
 }
 
 onMounted(loadProfile)
-
-// Reload when route changes
-watch(() => route.params.identifier, loadProfile)
 </script>

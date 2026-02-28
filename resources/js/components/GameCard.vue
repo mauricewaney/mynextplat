@@ -70,12 +70,12 @@
             <div class="flex items-start gap-1 sm:gap-2">
                 <!-- Title & Developer -->
                 <div class="min-w-0 flex-1 mb-1">
-                    <router-link
-                        :to="'/game/' + game.slug"
+                    <a
+                        :href="'/game/' + game.slug"
                         class="font-semibold text-gray-900 dark:text-white text-xs sm:text-base leading-tight line-clamp-1 hover:text-primary-600 dark:hover:text-primary-400 hover:underline transition-colors block"
                     >
                         {{ game.title }}
-                    </router-link>
+                    </a>
                     <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
                         {{ game.developer || game.publisher || 'Unknown Developer' }}
                     </p>
@@ -298,18 +298,16 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
-import { useRouter } from 'vue-router'
 import { apiPost } from '../utils/api'
 import { useAuth } from '../composables/useAuth'
 import { useTooltip } from '../composables/useTooltip'
 import AddToListButton from './AddToListButton.vue'
 import PlatformIcon from './PlatformIcon.vue'
 
-const router = useRouter()
 const { isAdmin } = useAuth()
 
 function navigateToGame() {
-    router.push('/game/' + props.game.slug)
+    window.location.href = '/game/' + props.game.slug
 }
 
 const props = defineProps({

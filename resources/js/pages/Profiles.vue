@@ -1,6 +1,5 @@
 <template>
-    <AppLayout title="Libraries">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="mb-8">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Libraries</h1>
                 <p class="text-gray-500 dark:text-gray-400">
@@ -38,10 +37,10 @@
 
             <!-- Profiles Grid -->
             <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <router-link
+                <a
                     v-for="profile in profiles"
                     :key="profile.id"
-                    :to="`/u/${profile.profile_slug || profile.id}`"
+                    :href="`/u/${profile.profile_slug || profile.id}`"
                     class="group bg-white dark:bg-slate-800 rounded-xl shadow-sm p-5 hover:shadow-md dark:hover:bg-slate-700/50 transition-all"
                 >
                     <div class="flex items-center gap-4">
@@ -85,7 +84,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </div>
-                </router-link>
+                </a>
             </div>
 
             <!-- Load More -->
@@ -106,26 +105,10 @@
                 </button>
             </div>
         </div>
-    </AppLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useHead } from '@vueuse/head'
-import AppLayout from '../components/AppLayout.vue'
-import { useAppConfig } from '../composables/useAppConfig'
-
-const { appName } = useAppConfig()
-
-useHead({
-    title: `Libraries | ${appName}`,
-    meta: [
-        { name: 'description', content: 'Browse public game libraries and collections. See what other PlayStation trophy hunters are playing and their platinum achievements.' },
-        { property: 'og:title', content: `Libraries | ${appName}` },
-        { property: 'og:description', content: 'Browse public game libraries and collections.' },
-    ],
-})
-
 const profiles = ref([])
 const loading = ref(true)
 const loadingMore = ref(false)

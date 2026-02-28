@@ -5,11 +5,11 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-14">
                     <div class="flex items-center flex-1">
-                        <router-link to="/" class="flex-shrink-0 flex items-center gap-2 group">
+                        <a href="/" class="flex-shrink-0 flex items-center gap-2 group">
                             <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 group-hover:text-primary-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                             </svg>
-                        </router-link>
+                        </a>
                         <span class="ml-2 px-2 py-0.5 bg-gray-200 dark:bg-slate-600 text-gray-600 dark:text-gray-300 text-xs font-medium rounded">Admin</span>
                         <div class="ml-8 flex space-x-1">
                             <router-link
@@ -55,6 +55,17 @@
                                 ]"
                             >
                                 NP IDs
+                            </router-link>
+                            <router-link
+                                to="/admin/directory-pages"
+                                :class="[
+                                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                                    isActive('/admin/directory-pages')
+                                        ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white'
+                                ]"
+                            >
+                                Directories
                             </router-link>
                             <router-link
                                 to="/admin/corrections"
@@ -137,20 +148,18 @@
                                         <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user?.name }}</p>
                                         <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
                                     </div>
-                                    <router-link
-                                        to="/"
-                                        @click="showUserMenu = false"
+                                    <a
+                                        href="/"
                                         class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                                     >
                                         Back to Site
-                                    </router-link>
-                                    <router-link
-                                        to="/settings"
-                                        @click="showUserMenu = false"
+                                    </a>
+                                    <a
+                                        href="/settings"
                                         class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                                     >
                                         Settings
-                                    </router-link>
+                                    </a>
                                     <button
                                         @click="handleLogout"
                                         class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700"
@@ -176,10 +185,9 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
 const route = useRoute()
-const router = useRouter()
 const { user, logout } = useAuth()
 
 const pendingCorrections = ref(0)
@@ -194,7 +202,7 @@ watch(() => user.value?.avatar, () => {
 })
 
 function isActive(path) {
-    return route.path === path
+    return route.path === path || route.path.startsWith(path + '/')
 }
 
 function toggleDarkMode() {
@@ -206,7 +214,7 @@ function toggleDarkMode() {
 async function handleLogout() {
     showUserMenu.value = false
     await logout()
-    router.push('/')
+    window.location.href = '/'
 }
 
 // Close menu when clicking outside

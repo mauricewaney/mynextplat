@@ -1,6 +1,5 @@
 <template>
-    <AppLayout title="Report an Issue">
-        <div class="max-w-3xl mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto px-4 py-8">
             <!-- Success Message -->
             <div v-if="submitted" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-8 text-center">
                 <div class="w-16 h-16 mx-auto mb-4 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center">
@@ -13,12 +12,12 @@
                     Your correction has been submitted and will be reviewed by our team.
                 </p>
                 <div class="flex justify-center gap-3">
-                    <router-link
-                        to="/"
+                    <a
+                        href="/"
                         class="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                     >
                         Back to Home
-                    </router-link>
+                    </a>
                     <button
                         @click="resetForm"
                         class="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
@@ -61,13 +60,13 @@
                         </div>
                         <div class="flex-1">
                             <div class="font-medium text-gray-900 dark:text-white">{{ selectedGame.title }}</div>
-                            <router-link
-                                :to="`/game/${selectedGame.slug}`"
+                            <a
+                                :href="`/game/${selectedGame.slug}`"
                                 class="text-xs text-primary-600 dark:text-primary-400 hover:underline"
                                 target="_blank"
                             >
                                 View game page
-                            </router-link>
+                            </a>
                         </div>
                         <button
                             type="button"
@@ -225,27 +224,12 @@
                 </button>
             </form>
         </div>
-    </AppLayout>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
-import { useAppConfig } from '../composables/useAppConfig'
-import AppLayout from '../components/AppLayout.vue'
 
-const { appName } = useAppConfig()
-const route = useRoute()
-
-useHead({
-    title: `Report an Issue | ${appName}`,
-    meta: [
-        { name: 'description', content: 'Report incorrect game data, missing information, or broken links on MyNextPlat.' },
-        { name: 'robots', content: 'noindex' },
-    ],
-})
 let recaptchaScript = null
 const { isAuthenticated, user } = useAuth()
 
@@ -312,7 +296,7 @@ function clearGame() {
 }
 
 async function loadGameFromRoute() {
-    const gameId = route.query.game
+    const gameId = new URLSearchParams(window.location.search).get('game')
     if (!gameId) return
 
     try {

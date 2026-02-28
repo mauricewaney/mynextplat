@@ -1,49 +1,5 @@
 <template>
-    <AppLayout>
-        <template #nav-tabs>
-            <!-- Desktop View Mode Tabs -->
-            <div class="hidden sm:flex items-center gap-2">
-                <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
-                    <button @click="switchViewMode('all')" :class="['px-3 py-1.5 rounded-md text-sm font-medium transition-colors', viewMode === 'all' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50']">
-                        All Games
-                    </button>
-                    <button v-if="isPsnLoaded" @click="switchViewMode('psn')" :class="['px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5', viewMode === 'psn' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50']">
-                        PSN: {{ psnUser?.username }}
-                    </button>
-                    <router-link v-if="isAuthenticated" to="/my-games" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50">
-                        My Games
-                    </router-link>
-                </div>
-                <span class="group/psn relative inline-flex" @mouseenter="psnTooltip.show('desktop')" @mouseleave="psnTooltip.hide()" @click.stop="psnTooltip.toggle('desktop')">
-                    <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        PSN
-                    </button>
-                    <span :class="['absolute top-full left-1/2 -translate-x-1/2 mt-1.5 px-2 py-1 w-56 text-xs text-center bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', psnTooltip.isVisible('desktop') ? 'opacity-100' : 'opacity-0 hidden group-hover/psn:block group-hover/psn:opacity-100']">Look up any PSN profile to browse their game library and find platinums</span>
-                </span>
-            </div>
-            <!-- Mobile View Mode Tabs -->
-            <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
-                <button @click="switchViewMode('all')" :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-colors', viewMode === 'all' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400']">
-                    All Games
-                </button>
-                <button v-if="isPsnLoaded" @click="switchViewMode('psn')" :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-colors', viewMode === 'psn' ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-400']">
-                    PSN
-                </button>
-                <router-link v-if="isAuthenticated" to="/my-games" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
-                    My Games
-                </router-link>
-            </div>
-        </template>
-
-        <template #header-mobile>
-            <span class="group/psn-m relative inline-flex" @click.stop="psnTooltip.toggle('mobile')">
-                <button @click="showPsnSearchModal = true" class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800">
-                    PSN
-                </button>
-                <span :class="['absolute top-full right-0 mt-1.5 px-2 py-1 w-56 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', psnTooltip.isVisible('mobile') ? 'opacity-100' : 'opacity-0 hidden group-hover/psn-m:block group-hover/psn-m:opacity-100']">Look up any PSN profile to browse their game library and find platinums</span>
-            </span>
-        </template>
-
+    <div>
         <h1 class="sr-only">PlayStation Trophy Guides, Platinum Difficulty Ratings & Completion Times</h1>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex gap-4">
@@ -620,52 +576,20 @@
                 </div>
             </div>
         </Teleport>
-    </AppLayout>
+    </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useHead } from '@vueuse/head'
-import AppLayout from '../components/AppLayout.vue'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
 import { useAuth } from '../composables/useAuth'
-import { useAppConfig } from '../composables/useAppConfig'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
 import { useUserGames } from '../composables/useUserGames'
 import { useTooltip } from '../composables/useTooltip'
 
 const psnTooltip = useTooltip()
 
-const { appName } = useAppConfig()
-
-// SEO Meta Tags
-const ogImage = `${window.location.origin}/images/og-banner.png`
-
-useHead({
-    title: `${appName} - PlayStation Trophy Guides & Tracker`,
-    link: [
-        { rel: 'canonical', href: window.location.origin + '/' },
-    ],
-    meta: [
-        { name: 'description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx. Filter by difficulty, time, and more.' },
-        { property: 'og:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
-        { property: 'og:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides from PSNProfiles, PlayStationTrophies, and PowerPyx.' },
-        { property: 'og:type', content: 'website' },
-        { property: 'og:image', content: ogImage },
-        { property: 'og:image:width', content: '1200' },
-        { property: 'og:image:height', content: '630' },
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: `${appName} - PlayStation Trophy Guides & Tracker` },
-        { name: 'twitter:description', content: 'Find your next platinum trophy. Browse PlayStation trophy guides with filters for difficulty, time, and more.' },
-        { name: 'twitter:image', content: ogImage },
-        { name: 'keywords', content: 'playstation, trophy guide, platinum trophy, ps5, ps4, psnprofiles, powerpyx, trophy hunting' },
-    ],
-})
-
-const route = useRoute()
-const router = useRouter()
 const { user, isAuthenticated, isAdmin, loginWithGoogle } = useAuth()
 const {
     psnGameIds,
@@ -742,16 +666,6 @@ const showLoginPrompt = ref(false)
 const viewMode = ref(sessionStorage.getItem('viewMode') || 'all') // 'all' | 'psn'
 const bulkAddLoading = ref(false)
 const showBulkAddConfirm = ref(false)
-
-// Check for login required query param
-watch(() => route.query.login, (val) => {
-    if (val === 'required') {
-        showLoginPrompt.value = true
-        // Clear the login param while preserving others
-        const { login, ...rest } = route.query
-        router.replace({ query: rest })
-    }
-}, { immediate: true })
 
 // Watch PSN loaded state - auto-switch to PSN view when library loads
 watch(isPsnLoaded, (loaded) => {
@@ -883,7 +797,7 @@ const total = ref(0)
 const currentPage = ref(1)
 const lastPage = ref(1)
 // Load saved state — URL query params take priority over sessionStorage
-const urlState = queryToFilters(route.query)
+const urlState = queryToFilters(Object.fromEntries(new URLSearchParams(window.location.search)))
 const sortBy = ref(urlState?.sortBy || sessionStorage.getItem('sortBy') || 'critic_score')
 const sortOrder = ref(urlState?.sortOrder || sessionStorage.getItem('sortOrder') || 'desc')
 const showMobileFilters = ref(false)
@@ -980,9 +894,10 @@ function filtersToQuery() {
     const query = {}
 
     // Preserve non-filter query params
+    const currentParams = new URLSearchParams(window.location.search)
     for (const key of RESERVED_PARAMS) {
-        if (route.query[key] != null) {
-            query[key] = route.query[key]
+        if (currentParams.has(key)) {
+            query[key] = currentParams.get(key)
         }
     }
 
@@ -1011,7 +926,13 @@ function filtersToQuery() {
 }
 
 function syncQueryToUrl() {
-    router.replace({ query: filtersToQuery() })
+    const query = filtersToQuery()
+    const params = new URLSearchParams()
+    for (const [k, v] of Object.entries(query)) {
+        params.set(k, v)
+    }
+    const qs = params.toString()
+    history.replaceState(null, '', qs ? '?' + qs : '/')
 }
 
 const hasMore = computed(() => currentPage.value < lastPage.value)
@@ -1205,8 +1126,18 @@ async function updateGameStatus(gameId, status) {
 }
 
 onMounted(() => {
+    const mountParams = new URLSearchParams(window.location.search)
+
+    // Handle login=required redirect
+    if (mountParams.get('login') === 'required') {
+        showLoginPrompt.value = true
+        mountParams.delete('login')
+        history.replaceState(null, '', mountParams.toString() ? '?' + mountParams.toString() : '/')
+    }
+
     // Handle view query parameter (e.g., from My Games navigation tabs)
-    if (route.query.view === 'psn') {
+    const viewParam = mountParams.get('view')
+    if (viewParam === 'psn') {
         if (isPsnLoaded.value) {
             viewMode.value = 'psn'
             sessionStorage.setItem('viewMode', 'psn')
@@ -1216,7 +1147,7 @@ onMounted(() => {
             viewMode.value = 'all'
             sessionStorage.setItem('viewMode', 'all')
         }
-    } else if (route.query.view === 'all') {
+    } else if (viewParam === 'all') {
         // Explicit "All Games" navigation — always reset to 'all'
         viewMode.value = 'all'
         sessionStorage.setItem('viewMode', 'all')

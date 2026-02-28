@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,7 +13,30 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::get('/robots.txt', [SitemapController::class, 'robots']);
 
-// SPA catch-all (must be last)
-Route::get('/{any}', function () {
-    return view('welcome');
-})->where('any', '.*');
+// SEO directory pages (served to everyone — no cloaking)
+Route::get('/games/genre/{slug}', [DirectoryController::class, 'genre']);
+Route::get('/games/platform/{slug}', [DirectoryController::class, 'platform']);
+Route::get('/guides/{slug}', [DirectoryController::class, 'preset']);
+
+// Public pages
+Route::get('/', fn () => view('pages.home'));
+Route::get('/game/{slug}', fn ($slug) => view('pages.game', ['slug' => $slug]));
+Route::get('/contact', fn () => view('pages.contact'));
+Route::get('/privacy', fn () => view('pages.privacy'));
+Route::get('/profiles', fn () => view('pages.profiles'));
+Route::get('/u/{identifier}', fn ($identifier) => view('pages.profile', ['identifier' => $identifier]));
+Route::get('/report-issue', fn () => view('pages.report-issue'));
+
+// Auth-protected
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/my-games', fn () => view('pages.my-games'));
+    Route::get('/settings', fn () => view('pages.settings'));
+});
+
+// Admin (keeps internal vue-router)
+Route::middleware(['auth:sanctum', 'admin'])
+    ->get('/admin/{any?}', fn () => view('pages.admin'))
+    ->where('any', '.*');
+
+// 404 catch-all
+Route::fallback(fn () => response()->view('pages.not-found', [], 404));

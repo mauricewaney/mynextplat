@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GuideClickController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
+use App\Http\Controllers\Admin\DirectoryPageController as AdminDirectoryPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,6 +151,21 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::put('/{id}', [AdminGameCorrectionController::class, 'update']);
         Route::delete('/{id}', [AdminGameCorrectionController::class, 'destroy']);
         Route::post('/bulk-update', [AdminGameCorrectionController::class, 'bulkUpdate']);
+    });
+
+    // Directory Pages Management
+    Route::prefix('admin/directory-pages')->group(function () {
+        Route::get('/', [AdminDirectoryPageController::class, 'index']);
+        Route::get('/available-slugs', [AdminDirectoryPageController::class, 'availableSlugs']);
+        Route::post('/', [AdminDirectoryPageController::class, 'store']);
+        Route::get('/{id}', [AdminDirectoryPageController::class, 'show']);
+        Route::put('/{id}', [AdminDirectoryPageController::class, 'update']);
+        Route::delete('/{id}', [AdminDirectoryPageController::class, 'destroy']);
+        Route::post('/{id}/sections', [AdminDirectoryPageController::class, 'addSection']);
+        Route::put('/{id}/sections/reorder', [AdminDirectoryPageController::class, 'reorderSections']);
+        Route::put('/{id}/sections/{sectionId}', [AdminDirectoryPageController::class, 'updateSection']);
+        Route::delete('/{id}/sections/{sectionId}', [AdminDirectoryPageController::class, 'deleteSection']);
+        Route::post('/{id}/sections/{sectionId}/preview', [AdminDirectoryPageController::class, 'previewSection']);
     });
 
     Route::prefix('admin/games')->group(function () {

@@ -28,28 +28,28 @@
                     <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ user?.name }}</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user?.email }}</p>
                 </div>
-                <router-link
-                    to="/my-games"
+                <a
+                    href="/my-games"
                     @click="showMenu = false"
                     class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                 >
                     My Games
-                </router-link>
-                <router-link
+                </a>
+                <a
                     v-if="isAdmin"
-                    to="/admin"
+                    href="/admin"
                     @click="showMenu = false"
                     class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                 >
                     Admin
-                </router-link>
-                <router-link
-                    to="/settings"
+                </a>
+                <a
+                    href="/settings"
                     @click="showMenu = false"
                     class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
                 >
                     Settings
-                </router-link>
+                </a>
                 <button
                     @click="handleLogout"
                     class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-slate-700"

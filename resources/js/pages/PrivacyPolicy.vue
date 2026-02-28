@@ -1,6 +1,5 @@
 <template>
-    <AppLayout title="Privacy Policy">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Privacy Policy</h1>
 
             <div class="prose prose-gray dark:prose-invert max-w-none space-y-8">
@@ -91,25 +90,15 @@
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Contact</h2>
                     <p class="text-gray-700 dark:text-gray-300">
                         If you have questions about this privacy policy or wish to exercise your data rights, please reach out through our
-                        <router-link to="/contact" class="text-primary-600 dark:text-primary-400 hover:underline">contact page</router-link>.
+                        <a href="/contact" class="text-primary-600 dark:text-primary-400 hover:underline">contact page</a>.
                     </p>
                 </section>
             </div>
         </div>
-    </AppLayout>
 </template>
 
 <script setup>
-import { useHead } from '@vueuse/head'
-import AppLayout from '../components/AppLayout.vue'
 import { useAppConfig } from '../composables/useAppConfig'
 
 const { appName } = useAppConfig()
-
-useHead({
-    title: `Privacy Policy | ${appName}`,
-    meta: [
-        { name: 'description', content: `${appName} privacy policy. Learn about what data we collect and how we use it.` },
-    ],
-})
 </script>

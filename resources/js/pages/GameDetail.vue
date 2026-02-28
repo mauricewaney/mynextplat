@@ -1,5 +1,5 @@
 <template>
-    <AppLayout>
+    <div>
         <!-- Loading -->
         <div v-if="loading" class="flex justify-center items-center h-96">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -9,7 +9,7 @@
         <div v-else-if="error" class="max-w-4xl mx-auto px-4 py-16 text-center">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Game Not Found</h1>
             <p class="text-gray-600 dark:text-gray-400 mb-8">{{ error }}</p>
-            <router-link to="/" class="text-primary-600 hover:underline">Back to Home</router-link>
+            <a href="/" class="text-primary-600 hover:underline">Back to Home</a>
         </div>
 
         <!-- Game Content -->
@@ -28,7 +28,7 @@
                     <div class="max-w-6xl mx-auto px-4 pb-6 w-full">
                         <!-- Breadcrumb -->
                         <nav class="mb-3 text-sm">
-                            <router-link to="/" class="text-gray-300 hover:text-white">Home</router-link>
+                            <a href="/" class="text-gray-300 hover:text-white">Home</a>
                             <span class="mx-2 text-gray-500">/</span>
                             <span class="text-gray-400">{{ game.title }}</span>
                         </nav>
@@ -42,7 +42,7 @@
             <div class="max-w-6xl mx-auto px-4 py-8">
                 <!-- Breadcrumb (only if no banner) -->
                 <nav v-if="!game.banner_url" class="mb-6 text-sm">
-                    <router-link to="/" class="text-primary-600 hover:underline">Home</router-link>
+                    <a href="/" class="text-primary-600 hover:underline">Home</a>
                     <span class="mx-2 text-gray-400">/</span>
                     <span class="text-gray-600 dark:text-gray-400">{{ game.title }}</span>
                 </nav>
@@ -253,8 +253,8 @@
                         </button>
 
                         <!-- Report Issue Button -->
-                        <router-link
-                            :to="`/report-issue?game=${game.slug}`"
+                        <a
+                            :href="`/report-issue?game=${game.slug}`"
                             class="inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm"
                             title="Report incorrect information"
                         >
@@ -262,7 +262,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                             </svg>
                             <span class="hidden sm:inline">Report Issue</span>
-                        </router-link>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -407,10 +407,10 @@
 
                 <!-- Recommendations Grid -->
                 <div v-else-if="recommendations.length" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <router-link
+                    <a
                         v-for="rec in recommendations"
                         :key="rec.game_id"
-                        :to="`/game/${rec.slug}`"
+                        :href="`/game/${rec.slug}`"
                         class="group"
                     >
                         <div class="relative aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg overflow-hidden mb-2">
@@ -439,7 +439,7 @@
                             <span v-if="rec.difficulty">{{ rec.difficulty }}/10</span>
                             <span v-if="rec.time_min">{{ rec.time_min }}{{ rec.time_max && rec.time_max !== rec.time_min ? `-${rec.time_max}` : '' }}h</span>
                         </div>
-                    </router-link>
+                    </a>
                 </div>
 
                 <!-- No Recommendations -->
@@ -471,23 +471,18 @@
             </div>
             </div>
         </div>
-    </AppLayout>
+    </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useHead } from '@vueuse/head'
+import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '../composables/useAuth'
-import { useAppConfig } from '../composables/useAppConfig'
 import { useUserGames } from '../composables/useUserGames'
 import { apiPost } from '../utils/api'
-import AppLayout from '../components/AppLayout.vue'
 import PlatformIcon from '../components/PlatformIcon.vue'
 
-const { appName } = useAppConfig()
+const props = defineProps({ slug: String })
 
-const route = useRoute()
 const { isAuthenticated, loginWithGoogle } = useAuth()
 const { addToList, removeFromList, checkInList, updatePreferredGuide } = useUserGames()
 
@@ -568,89 +563,6 @@ function trackGuideClick(source) {
     }
 }
 
-// Dynamic SEO meta tags
-useHead(() => {
-    if (!game.value) {
-        return {
-            title: `Loading... | ${appName}`,
-        }
-    }
-
-    const title = `${game.value.title} Trophy Guide | ${appName}`
-    const description = buildDescription()
-    const image = game.value.cover_url || game.value.banner_url
-
-    const canonicalUrl = `${window.location.origin}/game/${route.params.slug}`
-
-    return {
-        title,
-        link: [
-            { rel: 'canonical', href: canonicalUrl },
-        ],
-        meta: [
-            { name: 'description', content: description },
-            // Open Graph
-            { property: 'og:title', content: title },
-            { property: 'og:description', content: description },
-            { property: 'og:type', content: 'website' },
-            { property: 'og:url', content: canonicalUrl },
-            ...(image ? [{ property: 'og:image', content: image }] : []),
-            // Twitter
-            { name: 'twitter:card', content: 'summary_large_image' },
-            { name: 'twitter:title', content: title },
-            { name: 'twitter:description', content: description },
-            ...(image ? [{ name: 'twitter:image', content: image }] : []),
-        ],
-        // JSON-LD Structured Data
-        script: [
-            {
-                type: 'application/ld+json',
-                innerHTML: JSON.stringify({
-                    '@context': 'https://schema.org',
-                    '@type': 'VideoGame',
-                    name: game.value.title,
-                    description: game.value.description || description,
-                    image: image,
-                    gamePlatform: game.value.platforms?.map(p => p.name) || [],
-                    genre: game.value.genres?.map(g => g.name) || [],
-                    publisher: game.value.publisher || undefined,
-                    developer: { '@type': 'Organization', name: game.value.developer } || undefined,
-                    ...(displayUserScore.value && displayUserScore.value !== 'N/A' ? {
-                        aggregateRating: {
-                            '@type': 'AggregateRating',
-                            ratingValue: displayUserScore.value,
-                            bestRating: 100,
-                            worstRating: 0,
-                            ratingCount: game.value.user_score_count,
-                        },
-                    } : {}),
-                }),
-            },
-            {
-                type: 'application/ld+json',
-                innerHTML: JSON.stringify({
-                    '@context': 'https://schema.org',
-                    '@type': 'BreadcrumbList',
-                    itemListElement: [
-                        {
-                            '@type': 'ListItem',
-                            position: 1,
-                            name: 'Home',
-                            item: window.location.origin,
-                        },
-                        {
-                            '@type': 'ListItem',
-                            position: 2,
-                            name: game.value.title,
-                            item: canonicalUrl,
-                        },
-                    ],
-                }),
-            },
-        ],
-    }
-})
-
 function buildDescription() {
     if (!game.value) return ''
 
@@ -682,7 +594,7 @@ async function fetchGame() {
     error.value = null
 
     try {
-        const response = await fetch(`/api/games/${route.params.slug}`)
+        const response = await fetch(`/api/games/${props.slug}`)
         if (!response.ok) {
             throw new Error('Game not found')
         }
@@ -784,15 +696,6 @@ async function fetchRecommendations() {
 }
 
 onMounted(fetchGame)
-
-// Re-fetch when route changes
-watch(() => route.params.slug, () => {
-    recommendations.value = []
-    inList.value = false
-    guideVotes.value = null
-    userVote.value = null
-    fetchGame()
-})
 
 // Check list status when auth state changes
 watch(isAuthenticated, (newVal) => {

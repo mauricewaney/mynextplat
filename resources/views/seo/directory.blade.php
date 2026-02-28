@@ -1,0 +1,164 @@
+@php
+    $appName = config('app.name', 'MyNextPlat');
+    $pageTitle = "{$title} | {$appName}";
+    $gameCount = $games->count();
+
+    // JSON-LD ItemList schema
+    $itemListSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'ItemList',
+        'name' => $title,
+        'description' => $description,
+        'numberOfItems' => $gameCount,
+        'itemListElement' => $games->map(fn ($game, $index) => [
+            '@type' => 'ListItem',
+            'position' => $index + 1,
+            'url' => url("/game/{$game->slug}"),
+            'name' => $game->title,
+        ])->toArray(),
+    ];
+
+    // JSON-LD BreadcrumbList schema
+    $breadcrumbSchema = [
+        '@context' => 'https://schema.org',
+        '@type' => 'BreadcrumbList',
+        'itemListElement' => [
+            [
+                '@type' => 'ListItem',
+                'position' => 1,
+                'name' => 'Home',
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 2,
+                'name' => $breadcrumbType,
+                'item' => url('/'),
+            ],
+            [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $breadcrumbLabel,
+                'item' => $canonicalUrl,
+            ],
+        ],
+    ];
+@endphp
+
+@extends('layouts.app')
+
+@section('title', $pageTitle)
+@section('description', $description)
+@section('og_title', $pageTitle)
+@section('og_description', $description)
+
+@section('canonical', $canonicalUrl)
+
+@section('meta')
+    <script type="application/ld+json">{!! json_encode($itemListSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <style>
+        .featured-game { display: flex; gap: 1.25rem; padding: 1.25rem; margin-bottom: 1rem; }
+        .list-game { display: flex; gap: 0.75rem; padding: 0.75rem 0; align-items: center; }
+        @media (max-width: 640px) {
+            .featured-game { flex-direction: column; align-items: center; text-align: center; }
+            .featured-game .badges { justify-content: center; }
+            .featured-game .featured-stats { justify-content: center; }
+        }
+    </style>
+@endsection
+
+@section('content')
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+
+        {{-- Breadcrumbs --}}
+        <nav class="text-sm text-gray-400 dark:text-gray-500 mb-6">
+            <a href="/" class="text-primary-400 hover:text-primary-300">{{ $appName }}</a>
+            <span class="mx-1">&rsaquo;</span>
+            <span>{{ $breadcrumbType }}</span>
+            <span class="mx-1">&rsaquo;</span>
+            <span class="text-gray-300">{{ $breadcrumbLabel }}</span>
+        </nav>
+
+        <h1 class="text-2xl font-bold text-white mb-1">{{ $title }}</h1>
+        <p class="text-gray-500 mb-4">{{ $gameCount }} {{ Str::plural('game', $gameCount) }}</p>
+        <p class="text-gray-400 leading-relaxed mb-8">{{ $intro }}</p>
+
+        {{-- Aggregate Stats Bar --}}
+        @if(!empty($stats) && ($stats['avg_difficulty'] !== null || $stats['avg_time'] !== null || $stats['pct_no_online'] !== null))
+            <div class="grid grid-cols-3 gap-4 mb-8">
+                @if($stats['avg_difficulty'] !== null)
+                    <div class="bg-slate-800/60 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-primary-400">{{ $stats['avg_difficulty'] }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Avg Difficulty</div>
+                    </div>
+                @endif
+                @if($stats['avg_time'] !== null)
+                    <div class="bg-slate-800/60 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-primary-400">{{ $stats['avg_time'] }}h</div>
+                        <div class="text-xs text-gray-500 mt-1">Avg Time</div>
+                    </div>
+                @endif
+                @if($stats['pct_no_online'] !== null)
+                    <div class="bg-slate-800/60 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-primary-400">{{ $stats['pct_no_online'] }}%</div>
+                        <div class="text-xs text-gray-500 mt-1">No Online</div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        {{-- Featured Games --}}
+        @if($featuredGames->isNotEmpty())
+            <h2 class="text-lg font-bold text-gray-400 mb-4 border-b border-slate-700/50 pb-2">Featured Games</h2>
+            @foreach($featuredGames as $game)
+                @include('seo.partials.featured-game-card', ['game' => $game])
+            @endforeach
+        @endif
+
+        {{-- Curated Sections --}}
+        @if(isset($sections) && $sections->isNotEmpty())
+            @foreach($sections as $section)
+                <h2 class="section-title-text text-lg font-bold text-gray-400 mt-8 mb-4 border-b border-slate-700/50 pb-2">{{ $section['title'] }}</h2>
+                @foreach($section['games'] as $game)
+                    @include('seo.partials.list-game-row', ['game' => $game])
+                @endforeach
+            @endforeach
+        @endif
+
+        {{-- All remaining games --}}
+        @if($listGames->isNotEmpty())
+            <h2 class="text-lg font-bold text-gray-400 mt-8 mb-4 border-b border-slate-700/50 pb-2">All Games</h2>
+            @foreach($listGames as $game)
+                @include('seo.partials.list-game-row', ['game' => $game])
+            @endforeach
+        @endif
+
+        {{-- Related Categories --}}
+        @if(!empty($relatedPages))
+            <div class="mt-8 mb-4">
+                <h2 class="text-lg font-bold text-gray-400 mb-4 border-b border-slate-700/50 pb-2">Related Categories</h2>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($relatedPages as $related)
+                        @php
+                            $relatedUrl = match($related['type']) {
+                                'genre' => "/games/genre/{$related['slug']}",
+                                'platform' => "/games/platform/{$related['slug']}",
+                                'preset' => "/guides/{$related['slug']}",
+                                default => '/',
+                            };
+                        @endphp
+                        <a href="{{ $relatedUrl }}" class="inline-block bg-slate-800 hover:bg-slate-700 text-primary-400 hover:text-primary-300 px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
+                            {{ $related['label'] }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        {{-- CTA --}}
+        <a class="block text-center bg-primary-600 hover:bg-primary-500 text-white font-bold text-lg py-3 px-6 rounded-xl my-8 transition-colors no-underline" href="{{ $ctaUrl }}">
+            Explore all {{ $title }} with filters &rarr;
+        </a>
+    </div>
+@endsection

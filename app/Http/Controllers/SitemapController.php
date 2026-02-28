@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
+use App\Models\Genre;
+use App\Models\Platform;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -17,7 +19,16 @@ class SitemapController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        $content = view('sitemap', ['games' => $games])->render();
+        $genres = Genre::select('slug')->orderBy('name')->get();
+        $platforms = Platform::select('slug')->orderBy('name')->get();
+
+        $presets = [
+            'fast-and-easy', 'must-play', 'no-stress', 'easy-platinums',
+            'quick-platinums', 'offline-only', 'no-missables', 'hidden-gems',
+            'quality-epics',
+        ];
+
+        $content = view('sitemap', compact('games', 'genres', 'platforms', 'presets'))->render();
 
         return response($content, 200)
             ->header('Content-Type', 'application/xml');

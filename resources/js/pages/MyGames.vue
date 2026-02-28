@@ -1,50 +1,5 @@
 <template>
-    <AppLayout title="My Games">
-        <template #nav-tabs>
-            <!-- Desktop Nav Tabs -->
-            <div class="hidden sm:flex items-center gap-2">
-                <div class="flex bg-gray-100 dark:bg-slate-800 rounded-lg p-1">
-                    <router-link
-                        to="/?view=all"
-                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
-                    >
-                        All Games
-                    </router-link>
-                    <router-link
-                        v-if="isPsnLoaded"
-                        to="/?view=psn"
-                        class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
-                    >
-                        PSN: {{ psnUser?.username }}
-                    </router-link>
-                    <span class="px-3 py-1.5 rounded-md text-sm font-medium bg-primary-600 text-white shadow-sm">
-                        My Games
-                    </span>
-                </div>
-                <router-link to="/?view=psn" class="px-2 py-1 text-xs font-bold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
-                    PSN
-                </router-link>
-            </div>
-            <!-- Mobile Nav Tabs -->
-            <div class="sm:hidden flex bg-gray-100 dark:bg-slate-800 rounded-lg p-0.5">
-                <router-link to="/?view=all" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
-                    All Games
-                </router-link>
-                <router-link v-if="isPsnLoaded" to="/?view=psn" class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors text-gray-600 dark:text-gray-400">
-                    PSN
-                </router-link>
-                <span class="px-2.5 py-1 rounded-md text-xs font-medium bg-primary-600 text-white shadow-sm">
-                    My Games
-                </span>
-            </div>
-        </template>
-
-        <template #header-mobile>
-            <router-link to="/?view=psn" class="px-2 py-1 text-xs font-bold rounded-lg transition-colors text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-800" :title="isPsnLoaded ? 'Load different PSN' : 'Load PSN Library'">
-                PSN
-            </router-link>
-        </template>
-
+    <div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex gap-4">
                 <!-- Sidebar Filters (Desktop) -->
@@ -155,9 +110,9 @@
                                 </svg>
                                 <span class="hidden sm:inline">{{ showShareCopied ? 'Copied!' : 'Share' }}</span>
                             </button>
-                            <router-link
+                            <a
                                 v-else
-                                to="/settings"
+                                href="/settings"
                                 class="flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                 title="Enable sharing in Settings"
                             >
@@ -165,7 +120,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
                                 </svg>
                                 <span class="hidden sm:inline">Share</span>
-                            </router-link>
+                            </a>
 
                             <label class="hidden sm:block text-sm text-gray-500 dark:text-gray-400">Sort:</label>
                             <select
@@ -231,16 +186,16 @@
                         <p class="text-gray-500 dark:text-gray-400 mb-4">
                             {{ hasActiveFilters ? 'Try adjusting your filters' : 'Start adding games to your list!' }}
                         </p>
-                        <router-link
+                        <a
                             v-if="!hasActiveFilters"
-                            to="/"
+                            href="/"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                             </svg>
                             Browse Games
-                        </router-link>
+                        </a>
                     </div>
 
                     <!-- Game List -->
@@ -340,32 +295,16 @@
                 </div>
             </Transition>
         </Teleport>
-    </AppLayout>
+    </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useHead } from '@vueuse/head'
 import { useAuth } from '../composables/useAuth'
-import { useAppConfig } from '../composables/useAppConfig'
 import { useUserGames } from '../composables/useUserGames'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
-import AppLayout from '../components/AppLayout.vue'
 import GameFilters from '../components/GameFilters.vue'
 import GameCard from '../components/GameCard.vue'
-
-const { appName } = useAppConfig()
-
-// SEO - noindex for private page
-useHead({
-    title: `My Games | ${appName}`,
-    meta: [
-        { name: 'robots', content: 'noindex, nofollow' },
-    ],
-})
-
-const route = useRoute()
 const { notifyNewGuides, profilePublic, profileUrl, updatePreferences } = useAuth()
 const { updateStatus } = useUserGames()
 const { isPsnLoaded, psnUser } = usePSNLibrary()
@@ -696,7 +635,7 @@ onMounted(() => {
     loadGames()
 
     // Handle unsubscribe from email link
-    if (route.query.notifications === 'off') {
+    if (new URLSearchParams(window.location.search).get('notifications') === 'off') {
         updatePreferences({ notify_new_guides: false })
     }
 })
