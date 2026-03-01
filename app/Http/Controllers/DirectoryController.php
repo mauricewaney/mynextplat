@@ -162,11 +162,32 @@ class DirectoryController extends Controller
             $genres = Genre::withCount('games')->orderBy('name')->get();
             $platforms = Platform::withCount('games')->orderByDesc('games_count')->get();
 
-            $presets = collect(self::PRESETS)->map(fn ($preset, $slug) => [
-                'slug' => $slug,
-                'title' => $preset['title'],
-                'description' => self::PRESET_DESCRIPTIONS[$slug] ?? '',
-            ])->values();
+            $filterService = app(GameFilterService::class);
+
+            $presets = collect(self::PRESETS)->map(function ($preset, $slug) use ($filterService) {
+                $query = Game::query();
+                $syntheticRequest = Request::create('/', 'GET', $preset['filters']);
+                $filterService->applyFilters($query, $syntheticRequest);
+
+                $covers = $query
+                    ->whereNotNull('cover_url')
+                    ->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'))
+                    ->orderByRaw('critic_score IS NULL')
+                    ->orderBy('critic_score', 'desc')
+                    ->limit(4)
+                    ->pluck('cover_url')
+                    ->toArray();
+
+                $gameCount = $query->count();
+
+                return [
+                    'slug' => $slug,
+                    'title' => $preset['title'],
+                    'description' => self::PRESET_DESCRIPTIONS[$slug] ?? '',
+                    'covers' => $covers,
+                    'game_count' => $gameCount,
+                ];
+            })->values();
 
             return compact('genres', 'platforms', 'presets');
         });

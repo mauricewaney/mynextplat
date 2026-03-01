@@ -22,10 +22,19 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             @foreach($presets as $preset)
                 <a href="/guides/{{ $preset['slug'] }}"
-                    class="group block p-5 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-md transition-all"
+                    class="group relative flex gap-3 p-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-primary-400 dark:hover:border-primary-500 hover:shadow-md transition-all overflow-hidden"
                 >
-                    <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{{ $preset['title'] }}</h3>
-                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ $preset['description'] }}</p>
+                    {{-- Stacked covers --}}
+                    <div class="flex gap-1 shrink-0">
+                        @foreach(array_slice($preset['covers'], 0, 3) as $cover)
+                            <img class="w-10 h-14 object-cover rounded" src="{{ $cover }}" alt="" loading="lazy">
+                        @endforeach
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-gray-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors text-sm leading-tight">{{ $preset['title'] }}</h3>
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ $preset['description'] }}</p>
+                        <span class="mt-1.5 inline-block text-[11px] font-medium text-primary-600 dark:text-primary-400">{{ $preset['game_count'] }} games</span>
+                    </div>
                 </a>
             @endforeach
         </div>
