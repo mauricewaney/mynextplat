@@ -328,8 +328,8 @@ class DirectoryController extends Controller
             // Exclude featured from "All Games" list
             $listGames = $games->filter(fn ($g) => !in_array($g->id, $featuredGameIds))->values();
         } else {
-            $featuredGames = $games->take(5);
-            $listGames = $games->slice(5)->values();
+            $featuredGames = $games->take(3);
+            $listGames = $games->slice(3)->values();
         }
 
         // Resolve curated sections
