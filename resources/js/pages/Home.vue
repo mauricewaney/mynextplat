@@ -861,7 +861,7 @@ const presets = [
     {
         label: 'Fast & Easy',
         image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co86yv.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { difficulty_max: 4, time_max: 15, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
         sort: 'time_min',
@@ -870,7 +870,7 @@ const presets = [
     {
         label: 'Must Play',
         image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/coba3k.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { user_score_min: 80, critic_score_min: 80, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
         sort: 'critic_score',
@@ -879,7 +879,7 @@ const presets = [
     {
         label: 'Quality Epics',
         image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/cob9h2.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { critic_score_min: 80, time_min: 40, genre_ids: [4, 3, 14, 5] },
         sort: 'critic_score',
@@ -888,7 +888,7 @@ const presets = [
     {
         label: 'Hidden Gems',
         image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co9ihi.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { user_score_min: 75, critic_score_max: 75 },
         sort: 'user_score',
@@ -897,7 +897,7 @@ const presets = [
     {
         label: 'No Stress',
         image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2j1g.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
+        activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { has_online_trophies: false, missable_trophies: false },
         sort: 'critic_score',
