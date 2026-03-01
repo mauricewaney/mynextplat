@@ -78,11 +78,4 @@
             @endif
         </div>
     </div>
-
-    {{-- Description (desktop only, 2nd column) --}}
-    @if($game->description)
-        <div class="hidden lg:flex items-center flex-1 pl-4 border-l border-slate-700/50">
-            <p class="text-xs text-gray-500 line-clamp-4 leading-relaxed">{{ $game->description }}</p>
-        </div>
-    @endif
 </div>

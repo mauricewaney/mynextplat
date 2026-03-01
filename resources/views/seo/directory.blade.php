@@ -127,12 +127,41 @@
             @endforeach
         @endif
 
-        {{-- All remaining games --}}
-        @if($listGames->isNotEmpty())
-            <h2 class="text-lg font-bold text-gray-400 mt-8 mb-4 border-b border-slate-700/50 pb-2">All Games</h2>
-            @foreach($listGames as $game)
-                @include('seo.partials.list-game-row', ['game' => $game])
-            @endforeach
+        {{-- All remaining games: two columns (desktop) / tabs (mobile) --}}
+        @if($listGamesByDate->isNotEmpty())
+            {{-- Mobile tabs --}}
+            <div class="lg:hidden mt-8">
+                <div class="flex gap-2 mb-4 border-b border-slate-700/50">
+                    <button id="tab-recent" onclick="document.getElementById('panel-recent').style.display='';document.getElementById('panel-popular').style.display='none';this.className='px-3 py-1.5 text-sm font-bold transition-colors text-primary-400 border-b-2 border-primary-400';document.getElementById('tab-popular').className='px-3 py-1.5 text-sm font-bold transition-colors text-gray-500';" class="px-3 py-1.5 text-sm font-bold transition-colors text-primary-400 border-b-2 border-primary-400">Newest Releases</button>
+                    <button id="tab-popular" onclick="document.getElementById('panel-popular').style.display='';document.getElementById('panel-recent').style.display='none';this.className='px-3 py-1.5 text-sm font-bold transition-colors text-primary-400 border-b-2 border-primary-400';document.getElementById('tab-recent').className='px-3 py-1.5 text-sm font-bold transition-colors text-gray-500';" class="px-3 py-1.5 text-sm font-bold transition-colors text-gray-500">Most Popular</button>
+                </div>
+                <div id="panel-recent">
+                    @foreach($listGamesByDate as $game)
+                        @include('seo.partials.list-game-row', ['game' => $game])
+                    @endforeach
+                </div>
+                <div id="panel-popular" style="display: none;">
+                    @foreach($listGamesByPopularity as $game)
+                        @include('seo.partials.list-game-row', ['game' => $game])
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Desktop two columns --}}
+            <div class="hidden lg:grid lg:grid-cols-2 gap-8 mt-8">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-400 mb-4 border-b border-slate-700/50 pb-2">Newest Releases</h2>
+                    @foreach($listGamesByDate as $game)
+                        @include('seo.partials.list-game-row', ['game' => $game])
+                    @endforeach
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-400 mb-4 border-b border-slate-700/50 pb-2">Most Popular</h2>
+                    @foreach($listGamesByPopularity as $game)
+                        @include('seo.partials.list-game-row', ['game' => $game])
+                    @endforeach
+                </div>
+            </div>
         @endif
 
         {{-- Related Categories --}}

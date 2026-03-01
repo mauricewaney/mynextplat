@@ -357,10 +357,15 @@ class DirectoryController extends Controller
         // Related pages
         $relatedPages = ($page && !empty($page->related_pages)) ? $page->related_pages : [];
 
+        $listGamesByPopularity = $listGames->sortByDesc('user_score')->values();
+        $listGamesByDate = $listGames->sortByDesc('release_date')->values();
+
         return [
             'intro' => $intro,
             'featuredGames' => $featuredGames,
             'listGames' => $listGames,
+            'listGamesByDate' => $listGamesByDate,
+            'listGamesByPopularity' => $listGamesByPopularity,
             'sections' => $sections,
             'stats' => $stats,
             'relatedPages' => $relatedPages,
