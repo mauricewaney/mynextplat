@@ -4,7 +4,11 @@ import '../css/app.css'
 
 // Seed auth from server data (no API call needed)
 import { seedAuth } from './composables/useAuth'
-if (window.__AUTH_USER__) seedAuth(window.__AUTH_USER__)
+import { loadUserGameIds } from './composables/useUserGames'
+if (window.__AUTH_USER__) {
+    seedAuth(window.__AUTH_USER__)
+    loadUserGameIds()
+}
 
 // Mount NavMenu on every page
 import NavMenu from './components/NavMenu.vue'

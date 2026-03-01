@@ -1,32 +1,10 @@
 <template>
     <div>
-        <!-- All Games tab — teleported into Blade header (Vue-controlled for PSN view toggle) -->
-        <Teleport to="#home-tab-allgames-mobile">
-            <a
-                href="/"
-                @click.prevent="switchViewMode('all')"
-                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                :class="viewMode === 'all' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'"
-            >
-                All Games
-            </a>
-        </Teleport>
-        <Teleport to="#home-tab-allgames-desktop">
-            <a
-                href="/"
-                @click.prevent="switchViewMode('all')"
-                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-                :class="viewMode === 'all' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
-            >
-                All Games
-            </a>
-        </Teleport>
-
-        <h1 class="sr-only">PlayStation Trophy Guides, Platinum Difficulty Ratings & Completion Times</h1>
+        <h1 class="sr-only">PSN Library - PlayStation Trophy Guides</h1>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex gap-4">
                 <!-- Sidebar Filters (Desktop) -->
-                <aside class="hidden lg:block w-[300px] shrink-0">
+                <aside v-if="isPsnLoaded" class="hidden lg:block w-[300px] shrink-0">
                     <div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2 scrollbar-thin">
                         <GameFilters :key="filterKey" @update:filters="onFilterChange" />
                     </div>
@@ -34,38 +12,56 @@
 
                 <!-- Main Content -->
                 <main class="flex-1 min-w-0">
-                    <!-- Discover Presets (All Games view only) -->
-                    <div v-if="viewMode === 'all'" class="mb-3 -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto scrollbar-hide sm:overflow-visible">
-                        <div class="flex gap-2 sm:grid sm:grid-cols-5 sm:gap-2">
-                            <button
-                                v-for="preset in presets"
-                                :key="preset.label"
-                                @click="applyPreset(preset)"
-                                :class="[
-                                    'relative overflow-hidden rounded-md py-7 px-5 text-sm font-bold whitespace-nowrap transition-all bg-black min-w-[40vw] sm:min-w-0',
-                                    activePreset === preset.label
-                                        ? preset.activeClass
-                                        : preset.inactiveClass
-                                ]"
-                            >
-                                <img
-                                    :src="preset.image"
-                                    :alt="preset.label"
-                                    class="absolute inset-0 w-full h-full object-cover object-left"
-                                    :class="activePreset === preset.label ? 'opacity-90' : 'opacity-50 dark:opacity-40'"
-                                    :style="activePreset === preset.label
-                                        ? 'mask-image: linear-gradient(to right, black 50%, transparent 95%); -webkit-mask-image: linear-gradient(to right, black 50%, transparent 95%);'
-                                        : 'mask-image: linear-gradient(to right, black 30%, transparent 90%); -webkit-mask-image: linear-gradient(to right, black 30%, transparent 90%);'"
+                    <!-- PSN Loader (before library is loaded) -->
+                    <div v-if="!isPsnLoaded" class="text-center py-16">
+                        <svg class="w-16 h-16 mx-auto text-blue-300 dark:text-blue-600 mb-4" viewBox="0 0 512 512" fill="currentColor">
+                            <path d="M102.49,0c0,27.414,0,104.166,0,137.062c0,112.391,99.33,156.25,153.51,156.25c54.18,0,153.51-43.859,153.51-156.25c0-32.896,0-109.648,0-137.062H102.49z M256.289,50.551l-68.164,29.768v98.474l-0.049,19.53c-0.526-0.112-47.274-10.112-47.274-78.391c0-28.17,0-69.6,0-69.6h60.385L256.289,50.551z"/>
+                            <polygon points="315.473,400.717 291.681,367.482 279.791,318.506 256,322.004 232.209,318.506 220.314,367.482 205.347,388.394 196.527,400.476 196.699,400.476 196.527,400.717"/>
+                            <polygon points="366.93,432.24 366.93,432 145.07,432 145.07,511.598 145.07,511.76 145.07,511.76 145.07,512 366.93,512 366.93,432.402 366.93,432.24"/>
+                            <path d="M511.638,96.668c-0.033-1.268-0.068-2.336-0.068-3.174V45.1h-73.889v38.736h35.152v9.658c0,1.127,0.037,2.557,0.086,4.258c0.389,13.976,1.303,46.707-21.545,70.203c-5.121,5.266-11.221,9.787-18.219,13.613c-3.883,17.635-10.109,33.564-18.104,47.814c26.561-6.406,48.026-17.898,64.096-34.422C513.402,159.734,512.121,113.918,511.638,96.668z"/>
+                            <path d="M60.625,167.955c-22.848-23.496-21.934-56.227-21.541-70.203c0.047-1.701,0.082-3.131,0.082-4.258v-9.658h34.842h0.07h0.24V45.1H0.43v48.394c0,0.838-0.032,1.906-0.068,3.174c-0.482,17.25-1.76,63.066,32.494,98.293c16.068,16.524,37.531,28.014,64.092,34.422c-7.996-14.25-14.22-30.182-18.103-47.816C71.846,177.74,65.746,173.221,60.625,167.955z"/>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">Load a PSN Library</h3>
+                        <p class="text-gray-500 dark:text-gray-400 mb-6">Enter a PSN username to see their game library</p>
+
+                        <form @submit.prevent="handlePsnLookup" class="max-w-sm mx-auto space-y-3">
+                            <div>
+                                <input
+                                    v-model="psnUsernameInput"
+                                    type="text"
+                                    placeholder="PSN Username..."
+                                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 dark:placeholder-gray-500"
+                                    :disabled="psnLoading"
+                                    autofocus
                                 />
-                                <span class="relative z-10 text-white drop-shadow-md text-shadow ml-auto block text-right">
-                                    {{ preset.label }}
-                                </span>
+                            </div>
+                            <button
+                                type="submit"
+                                :disabled="psnLoading || !psnUsernameInput.trim()"
+                                class="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                            >
+                                <svg v-if="psnLoading" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                {{ psnLoading ? 'Loading...' : 'Look Up' }}
                             </button>
-                        </div>
+                            <button
+                                v-if="isAdmin"
+                                type="button"
+                                @click="loadMyPsnLibrary"
+                                :disabled="psnLoading"
+                                class="w-full px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium disabled:opacity-50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            >
+                                Load My PSN Library
+                            </button>
+                        </form>
+
+                        <p v-if="psnError" class="mt-3 text-sm text-red-500 dark:text-red-400 text-center">{{ psnError }}</p>
                     </div>
 
-                    <!-- PSN View Info Bar (when in PSN view mode) -->
-                    <div v-if="viewMode === 'psn' && isPsnLoaded" class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4">
+                    <!-- PSN Info Bar (after library loaded) -->
+                    <div v-if="isPsnLoaded" class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <!-- User Info -->
                             <div class="flex items-center gap-3">
@@ -159,8 +155,8 @@
                         </div>
                     </div>
 
-                    <!-- Sort Bar (All screen sizes) -->
-                    <div class="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3">
+                    <!-- Sort Bar (only when PSN loaded) -->
+                    <div v-if="isPsnLoaded" class="flex items-center justify-between mb-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm p-3">
                         <div class="flex items-center gap-2">
                             <!-- Filter Button (Mobile) -->
                             <button
@@ -210,7 +206,7 @@
                     </div>
 
                     <!-- Loading State -->
-                    <div v-if="loading && games.length === 0" class="space-y-4">
+                    <div v-if="loading && games.length === 0 && isPsnLoaded" class="space-y-4">
                         <div
                             v-for="n in 6"
                             :key="n"
@@ -234,42 +230,20 @@
                         </div>
                     </div>
 
-                    <!-- Empty State -->
+                    <!-- Empty State (PSN loaded but no results after filtering) -->
                     <div
-                        v-else-if="!loading && games.length === 0"
+                        v-else-if="!loading && games.length === 0 && isPsnLoaded"
                         class="text-center py-16"
                     >
-                        <!-- PSN View - Not Loaded -->
-                        <template v-if="viewMode === 'psn' && !isPsnLoaded">
-                            <svg class="w-16 h-16 mx-auto text-blue-300 dark:text-blue-600 mb-4" viewBox="0 0 512 512" fill="currentColor">
-                                <path d="M102.49,0c0,27.414,0,104.166,0,137.062c0,112.391,99.33,156.25,153.51,156.25c54.18,0,153.51-43.859,153.51-156.25c0-32.896,0-109.648,0-137.062H102.49z M256.289,50.551l-68.164,29.768v98.474l-0.049,19.53c-0.526-0.112-47.274-10.112-47.274-78.391c0-28.17,0-69.6,0-69.6h60.385L256.289,50.551z"/>
-                                <polygon points="315.473,400.717 291.681,367.482 279.791,318.506 256,322.004 232.209,318.506 220.314,367.482 205.347,388.394 196.527,400.476 196.699,400.476 196.527,400.717"/>
-                                <polygon points="366.93,432.24 366.93,432 145.07,432 145.07,511.598 145.07,511.76 145.07,511.76 145.07,512 366.93,512 366.93,432.402 366.93,432.24"/>
-                                <path d="M511.638,96.668c-0.033-1.268-0.068-2.336-0.068-3.174V45.1h-73.889v38.736h35.152v9.658c0,1.127,0.037,2.557,0.086,4.258c0.389,13.976,1.303,46.707-21.545,70.203c-5.121,5.266-11.221,9.787-18.219,13.613c-3.883,17.635-10.109,33.564-18.104,47.814c26.561-6.406,48.026-17.898,64.096-34.422C513.402,159.734,512.121,113.918,511.638,96.668z"/>
-                                <path d="M60.625,167.955c-22.848-23.496-21.934-56.227-21.541-70.203c0.047-1.701,0.082-3.131,0.082-4.258v-9.658h34.842h0.07h0.24V45.1H0.43v48.394c0,0.838-0.032,1.906-0.068,3.174c-0.482,17.25-1.76,63.066,32.494,98.293c16.068,16.524,37.531,28.014,64.092,34.422c-7.996-14.25-14.22-30.182-18.103-47.816C71.846,177.74,65.746,173.221,60.625,167.955z"/>
-                            </svg>
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">Load a PSN Library</h3>
-                            <p class="text-gray-500 dark:text-gray-400 mb-4">Enter a PSN username to see their game library</p>
-                            <button
-                                @click="showPsnSearchModal = true"
-                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                            >
-                                Enter PSN Username
-                            </button>
-                        </template>
-
-                        <!-- Default Empty State -->
-                        <template v-else>
-                            <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No games found</h3>
-                            <p class="text-gray-500 dark:text-gray-400">Try adjusting your filters</p>
-                        </template>
+                        <svg class="w-16 h-16 mx-auto text-gray-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No games found</h3>
+                        <p class="text-gray-500 dark:text-gray-400">Try adjusting your filters</p>
                     </div>
 
                     <!-- Games List -->
-                    <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div v-else-if="isPsnLoaded" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <GameCard
                             v-for="game in games"
                             :key="game.id"
@@ -449,90 +423,6 @@
             </Transition>
         </Teleport>
 
-        <!-- PSN Search Modal (works on all screen sizes) -->
-        <Teleport to="body">
-            <Transition name="fade">
-                <div
-                    v-if="showPsnSearchModal && !isPsnLoaded"
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                >
-                    <div class="absolute inset-0 bg-black/50" @click="showPsnSearchModal = false"></div>
-                    <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md p-6">
-                        <button
-                            @click="showPsnSearchModal = false"
-                            class="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                                <svg class="w-6 h-5 text-blue-600 dark:text-blue-400" viewBox="0 0 512 512" fill="currentColor">
-                                    <path d="M102.49,0c0,27.414,0,104.166,0,137.062c0,112.391,99.33,156.25,153.51,156.25c54.18,0,153.51-43.859,153.51-156.25c0-32.896,0-109.648,0-137.062H102.49z M256.289,50.551l-68.164,29.768v98.474l-0.049,19.53c-0.526-0.112-47.274-10.112-47.274-78.391c0-28.17,0-69.6,0-69.6h60.385L256.289,50.551z"/>
-                                    <polygon points="315.473,400.717 291.681,367.482 279.791,318.506 256,322.004 232.209,318.506 220.314,367.482 205.347,388.394 196.527,400.476 196.699,400.476 196.527,400.717"/>
-                                    <polygon points="366.93,432.24 366.93,432 145.07,432 145.07,511.598 145.07,511.76 145.07,511.76 145.07,512 366.93,512 366.93,432.402 366.93,432.24"/>
-                                    <path d="M511.638,96.668c-0.033-1.268-0.068-2.336-0.068-3.174V45.1h-73.889v38.736h35.152v9.658c0,1.127,0.037,2.557,0.086,4.258c0.389,13.976,1.303,46.707-21.545,70.203c-5.121,5.266-11.221,9.787-18.219,13.613c-3.883,17.635-10.109,33.564-18.104,47.814c26.561-6.406,48.026-17.898,64.096-34.422C513.402,159.734,512.121,113.918,511.638,96.668z"/>
-                                    <path d="M60.625,167.955c-22.848-23.496-21.934-56.227-21.541-70.203c0.047-1.701,0.082-3.131,0.082-4.258v-9.658h34.842h0.07h0.24V45.1H0.43v48.394c0,0.838-0.032,1.906-0.068,3.174c-0.482,17.25-1.76,63.066,32.494,98.293c16.068,16.524,37.531,28.014,64.092,34.422c-7.996-14.25-14.22-30.182-18.103-47.816C71.846,177.74,65.746,173.221,60.625,167.955z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Load PSN Library</h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">Enter a PSN username to browse their game library</p>
-                            </div>
-                        </div>
-
-                        <form @submit.prevent="handlePsnLookup" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">PSN Username</label>
-                                <input
-                                    v-model="psnUsernameInput"
-                                    type="text"
-                                    placeholder="Enter username..."
-                                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-lg text-sm dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 dark:placeholder-gray-500"
-                                    :disabled="psnLoading"
-                                    autofocus
-                                />
-                            </div>
-
-                            <div class="flex gap-3">
-                                <button
-                                    type="button"
-                                    @click="showPsnSearchModal = false"
-                                    class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    :disabled="psnLoading || !psnUsernameInput.trim()"
-                                    class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <svg v-if="psnLoading" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    {{ psnLoading ? 'Loading...' : 'Load Library' }}
-                                </button>
-                            </div>
-                        </form>
-
-                        <button
-                            v-if="isAdmin"
-                            @click="loadMyPsnLibrary"
-                            :disabled="psnLoading"
-                            class="w-full mt-3 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium disabled:opacity-50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        >
-                            Load My PSN Library
-                        </button>
-
-                        <p v-if="psnError" class="mt-3 text-sm text-red-500 dark:text-red-400 text-center">{{ psnError }}</p>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
-
         <!-- Unmatched Games Modal -->
         <Teleport to="body">
             <div
@@ -608,9 +498,6 @@ import GameFilters from '../components/GameFilters.vue'
 import { useAuth } from '../composables/useAuth'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
 import { useUserGames } from '../composables/useUserGames'
-import { useTooltip } from '../composables/useTooltip'
-
-const psnTooltip = useTooltip()
 
 const { user, isAuthenticated, isAdmin, loginWithGoogle } = useAuth()
 const {
@@ -633,11 +520,21 @@ const {
 const { bulkAddToList, updateStatus } = useUserGames()
 
 const psnUsernameInput = ref('')
+const showLoginPrompt = ref(false)
+const showUnmatchedModal = ref(false)
+const unmatchedSearch = ref('')
+const bulkAddLoading = ref(false)
+const showBulkAddConfirm = ref(false)
+const showMobileFilters = ref(false)
 
 async function handlePsnLookup() {
     if (psnUsernameInput.value.trim()) {
         await lookupPSN(psnUsernameInput.value.trim())
-        // Modal will be closed by the isPsnLoaded watcher when successful
+        if (isPsnLoaded.value) {
+            currentPage.value = 1
+            games.value = []
+            loadGames()
+        }
     }
 }
 
@@ -648,14 +545,9 @@ function loadMyPsnLibrary() {
 function clearPsnLibrary() {
     clearPSN()
     psnUsernameInput.value = ''
-    // Switch back to 'all' view when clearing PSN
-    if (viewMode.value === 'psn') {
-        viewMode.value = 'all'
-        sessionStorage.setItem('viewMode', 'all')
-        currentPage.value = 1
-        games.value = []
-        loadGames()
-    }
+    currentPage.value = 1
+    games.value = []
+    total.value = 0
 }
 
 // Bulk add all PSN games to user's library
@@ -672,7 +564,6 @@ async function bulkAddPsnGamesToLibrary() {
     try {
         const result = await bulkAddToList(gameIds)
         showBulkAddConfirm.value = false
-        // Show success message or notification could be added here
         alert(`Added ${result.added} games to your library${result.skipped > 0 ? ` (${result.skipped} already in list)` : ''}`)
     } catch (e) {
         alert('Failed to add games: ' + e.message)
@@ -680,46 +571,6 @@ async function bulkAddPsnGamesToLibrary() {
         bulkAddLoading.value = false
     }
 }
-
-const showPsnSearchModal = ref(false)
-const showUnmatchedModal = ref(false)
-const unmatchedSearch = ref('')
-const showLoginPrompt = ref(false)
-const viewMode = ref(sessionStorage.getItem('viewMode') || 'all') // 'all' | 'psn'
-const bulkAddLoading = ref(false)
-const showBulkAddConfirm = ref(false)
-
-// Watch PSN loaded state - auto-switch to PSN view when library loads
-watch(isPsnLoaded, (loaded) => {
-    if (loaded) {
-        showPsnSearchModal.value = false
-        viewMode.value = 'psn'
-        sessionStorage.setItem('viewMode', 'psn')
-        // Reset sidebar filters to defaults so preset filters don't carry over
-        activePreset.value = null
-        const cleanFilters = { ...defaultFilters }
-        Object.assign(filters, cleanFilters)
-        sessionStorage.setItem('gameFilters', JSON.stringify(cleanFilters))
-        currentPage.value = 1
-        games.value = []
-        // Re-mount GameFilters with clean sessionStorage.
-        // GameFilters will emit → onFilterChange → loadGames()
-        filterKey.value++
-    }
-})
-
-
-// Watch PSN game IDs (filtered by guide toggle) and reload games when they change
-// Only fires on subsequent changes (e.g. guide-only toggle), NOT on initial load
-watch(psnGameIds, (newIds, oldIds) => {
-    if (oldIds == null) return
-    if (viewMode.value === 'psn' && JSON.stringify(newIds) !== JSON.stringify(oldIds)) {
-        currentPage.value = 1
-        games.value = []
-        loadGames()
-    }
-})
-
 
 // Filtered unmatched titles for the modal
 const filteredUnmatchedTitles = computed(() => {
@@ -732,11 +583,25 @@ const filteredUnmatchedTitles = computed(() => {
     )
 })
 
+// Watch PSN loaded state — auto-load games when library loads (e.g., from loadMyLibrary)
+watch(isPsnLoaded, (loaded) => {
+    if (loaded) {
+        currentPage.value = 1
+        games.value = []
+        loadGames()
+    }
+})
 
-
+// Watch PSN game IDs (filtered by guide toggle) and reload games when they change
+watch(psnGameIds, (newIds, oldIds) => {
+    if (isPsnLoaded.value && JSON.stringify(newIds) !== JSON.stringify(oldIds)) {
+        currentPage.value = 1
+        games.value = []
+        loadGames()
+    }
+})
 
 // --- Filter ↔ URL query param sync ---
-// Maps internal filter keys to short URL param names
 const FILTER_PARAM_MAP = {
     platform_ids: 'platforms',
     genre_ids: 'genres',
@@ -787,7 +652,7 @@ const BOOL_KEYS = new Set(['has_online_trophies', 'missable_trophies', 'has_guid
 const FLAG_KEYS = new Set(['guide_psnp', 'guide_pst', 'guide_ppx'])
 
 // Non-filter query params we must preserve
-const RESERVED_PARAMS = new Set(['login', 'view'])
+const RESERVED_PARAMS = new Set(['login'])
 
 function queryToFilters(query) {
     const result = {}
@@ -821,17 +686,16 @@ function queryToFilters(query) {
 }
 
 const games = ref([])
-const loading = ref(true)
+const loading = ref(false)
 const total = ref(0)
 const currentPage = ref(1)
 const lastPage = ref(1)
+const filterKey = ref(0)
+
 // Load saved state — URL query params take priority over sessionStorage
 const urlState = queryToFilters(Object.fromEntries(new URLSearchParams(window.location.search)))
-const sortBy = ref(urlState?.sortBy || sessionStorage.getItem('sortBy') || 'critic_score')
-const sortOrder = ref(urlState?.sortOrder || sessionStorage.getItem('sortOrder') || 'desc')
-const showMobileFilters = ref(false)
-const filterKey = ref(0)
-const activePreset = ref(null)
+const sortBy = ref(urlState?.sortBy || sessionStorage.getItem('psnSortBy') || 'critic_score')
+const sortOrder = ref(urlState?.sortOrder || sessionStorage.getItem('psnSortOrder') || 'desc')
 
 const defaultFilters = {
     search: '',
@@ -857,61 +721,13 @@ const defaultFilters = {
     guide_ppx: false,
 }
 
-const presets = [
-    {
-        label: 'Fast & Easy',
-        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co86yv.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
-        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
-        filters: { difficulty_max: 4, time_max: 15, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
-        sort: 'time_min',
-        order: 'asc',
-    },
-    {
-        label: 'Must Play',
-        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/coba3k.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
-        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
-        filters: { user_score_min: 80, critic_score_min: 80, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
-        sort: 'critic_score',
-        order: 'desc',
-    },
-    {
-        label: 'Quality Epics',
-        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/cob9h2.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
-        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
-        filters: { critic_score_min: 80, time_min: 40, genre_ids: [4, 3, 14, 5] },
-        sort: 'critic_score',
-        order: 'desc',
-    },
-    {
-        label: 'Hidden Gems',
-        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co9ihi.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
-        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
-        filters: { user_score_min: 75, critic_score_max: 75 },
-        sort: 'user_score',
-        order: 'desc',
-    },
-    {
-        label: 'No Stress',
-        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2j1g.jpg',
-        activeClass: 'ring-3 ring-primary-400 shadow-md shadow-primary-500/30',
-        inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
-        filters: { has_online_trophies: false, missable_trophies: false },
-        sort: 'critic_score',
-        order: 'desc',
-    },
-]
-
 // Load filters: URL params first (shared link), then sessionStorage (returning user)
 const savedFilters = (() => {
     if (urlState?.filters && Object.keys(urlState.filters).length) {
         return urlState.filters
     }
     try {
-        const saved = sessionStorage.getItem('gameFilters')
+        const saved = sessionStorage.getItem('psnGameFilters')
         return saved ? JSON.parse(saved) : {}
     } catch {
         return {}
@@ -961,62 +777,28 @@ function syncQueryToUrl() {
         params.set(k, v)
     }
     const qs = params.toString()
-    history.replaceState(null, '', qs ? '?' + qs : '/')
+    history.replaceState(null, '', qs ? '/psn?' + qs : '/psn')
 }
 
 const hasMore = computed(() => currentPage.value < lastPage.value)
 
-function applyPreset(preset) {
-    // Preserve "sticky" toggles — these are sensible defaults most users always want on
-    const sticky = { has_platinum: filters.has_platinum, exclude_unobtainable: filters.exclude_unobtainable }
-
-    // Toggle off if already active
-    if (activePreset.value === preset.label) {
-        activePreset.value = null
-        const resetFilters = { ...defaultFilters, ...sticky }
-        sessionStorage.setItem('gameFilters', JSON.stringify(resetFilters))
-        sortBy.value = 'critic_score'
-        sortOrder.value = 'desc'
-    } else {
-        activePreset.value = preset.label
-        const presetFilters = { ...defaultFilters, ...preset.filters, ...sticky }
-        sessionStorage.setItem('gameFilters', JSON.stringify(presetFilters))
-        sortBy.value = preset.sort
-        sortOrder.value = preset.order
-    }
-    sessionStorage.setItem('sortBy', sortBy.value)
-    sessionStorage.setItem('sortOrder', sortOrder.value)
-    filterKey.value++
-    // GameFilters will re-mount, read from sessionStorage, and emit → onFilterChange → loadGames
-}
-
 function onFilterChange(newFilters) {
     Object.assign(filters, newFilters)
-    // Clear active preset when user manually changes filters
-    if (!isMounting && activePreset.value) {
-        const preset = presets.find(p => p.label === activePreset.value)
-        if (preset) {
-            const expected = { ...defaultFilters, ...preset.filters }
-            const mismatch = Object.keys(expected).some(k => JSON.stringify(newFilters[k]) !== JSON.stringify(expected[k]))
-            if (mismatch) activePreset.value = null
-        }
-    }
     // During mount, just sync filter values — parent onMounted will call loadGames()
     if (isMounting) return
-    // Save filters to sessionStorage (exclude game_ids as they're from PSN lookup)
+    // Save filters to sessionStorage
     const filtersToSave = { ...newFilters }
     delete filtersToSave.game_ids
-    sessionStorage.setItem('gameFilters', JSON.stringify(filtersToSave))
+    sessionStorage.setItem('psnGameFilters', JSON.stringify(filtersToSave))
     currentPage.value = 1
     games.value = []
     loadGames()
     syncQueryToUrl()
-    // Don't auto-close mobile filters - let user adjust multiple filters
 }
 
 function toggleSortOrder() {
     sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
-    sessionStorage.setItem('sortOrder', sortOrder.value)
+    sessionStorage.setItem('psnSortOrder', sortOrder.value)
     currentPage.value = 1
     games.value = []
     loadGames()
@@ -1025,28 +807,9 @@ function toggleSortOrder() {
 
 // Watch sortBy changes to save to sessionStorage and sync URL
 watch(sortBy, (newVal) => {
-    sessionStorage.setItem('sortBy', newVal)
+    sessionStorage.setItem('psnSortBy', newVal)
     syncQueryToUrl()
 })
-
-function switchViewMode(mode) {
-    // PSN tab only shows when loaded, but keep safety check
-    if (mode === 'psn' && !isPsnLoaded.value) return
-
-    viewMode.value = mode
-    sessionStorage.setItem('viewMode', mode)
-    currentPage.value = 1
-    games.value = []
-    loadGames()
-}
-
-function handlePsnTabClick() {
-    if (isPsnLoaded.value) {
-        switchViewMode('psn')
-    } else {
-        showPsnSearchModal.value = true
-    }
-}
 
 let loadGamesController = null
 let isMounting = true
@@ -1063,28 +826,22 @@ async function loadGames() {
     try {
         const params = new URLSearchParams()
 
-        // PSN view - show games from PSN library
-        if (viewMode.value === 'psn') {
-            if (psnGameIds.value?.length) {
-                params.append('game_ids', psnGameIds.value.join(','))
-            } else {
-                // No PSN games loaded - will show empty state
-                loading.value = false
-                games.value = []
-                total.value = 0
-                return
-            }
+        // PSN game_ids are required
+        if (psnGameIds.value?.length) {
+            params.append('game_ids', psnGameIds.value.join(','))
+        } else {
+            // No PSN games loaded - show empty state
+            loading.value = false
+            games.value = []
+            total.value = 0
+            return
         }
-        // 'all' mode: no special filters
 
-        // Has guide filter - use explicit filter if set, otherwise default to showing guides only for 'all' mode
+        // Has guide filter — let sidebar control it, no default override
         if (filters.has_guide === true) {
             params.append('has_guide', 'true')
         } else if (filters.has_guide === false) {
             params.append('has_guide', 'false')
-        } else if (viewMode.value === 'all' && !filters.search) {
-            // Default: show games with guides on homepage when browsing (not searching)
-            params.append('has_guide', 'true')
         }
 
         // Add filters
@@ -1137,7 +894,7 @@ async function loadGames() {
         total.value = data.total
         lastPage.value = data.last_page
     } catch (e) {
-        if (e.name === 'AbortError') return // Request was cancelled by a newer one
+        if (e.name === 'AbortError') return
         console.error('Failed to load games:', e)
     } finally {
         loading.value = false
@@ -1152,7 +909,6 @@ function loadMore() {
 async function updateGameStatus(gameId, status) {
     try {
         await updateStatus(gameId, status)
-        // Update local state
         const game = games.value.find(g => g.id === gameId)
         if (game) {
             game.user_status = status
@@ -1169,45 +925,15 @@ onMounted(() => {
     if (mountParams.get('login') === 'required') {
         showLoginPrompt.value = true
         mountParams.delete('login')
-        history.replaceState(null, '', mountParams.toString() ? '?' + mountParams.toString() : '/')
+        history.replaceState(null, '', mountParams.toString() ? '/psn?' + mountParams.toString() : '/psn')
     }
 
-    // Handle view query parameter (e.g., from My Games navigation tabs)
-    const viewParam = mountParams.get('view')
-    if (viewParam === 'psn') {
-        if (isPsnLoaded.value) {
-            viewMode.value = 'psn'
-            sessionStorage.setItem('viewMode', 'psn')
-        } else {
-            // PSN not loaded, show the search modal
-            showPsnSearchModal.value = true
-            viewMode.value = 'all'
-            sessionStorage.setItem('viewMode', 'all')
-        }
-    } else if (viewParam === 'all') {
-        // Explicit "All Games" navigation — always reset to 'all'
-        viewMode.value = 'all'
-        sessionStorage.setItem('viewMode', 'all')
-    } else {
-        // Reset to 'all' view if invalid view mode or PSN view was saved but PSN not loaded
-        if (viewMode.value === 'library' || (viewMode.value === 'psn' && !isPsnLoaded.value)) {
-            viewMode.value = 'all'
-            sessionStorage.setItem('viewMode', 'all')
-        }
-    }
-
-    // Hijack PSN nav links so they open the modal instead of navigating (no page flash)
-    document.querySelectorAll('#home-psn-link, #home-psn-link-desktop').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault()
-            handlePsnTabClick()
-        })
-    })
-
-    // GameFilters.onMounted already synced saved filters via emitFilters → onFilterChange
-    // Now that viewMode is set, do the single initial load
     isMounting = false
-    loadGames()
+
+    // If PSN is already loaded (singleton composable state persists), load games immediately
+    if (isPsnLoaded.value) {
+        loadGames()
+    }
 })
 </script>
 
@@ -1221,16 +947,6 @@ onMounted(() => {
     opacity: 0;
 }
 
-.dropdown-enter-active,
-.dropdown-leave-active {
-    transition: all 0.15s ease;
-}
-.dropdown-enter-from,
-.dropdown-leave-to {
-    opacity: 0;
-    transform: translateY(-8px);
-}
-
 .slide-up-enter-active,
 .slide-up-leave-active {
     transition: transform 0.3s ease;
@@ -1238,18 +954,5 @@ onMounted(() => {
 .slide-up-enter-from,
 .slide-up-leave-to {
     transform: translateY(100%);
-}
-
-.text-shadow {
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-}
-
-/* Hide scrollbar for horizontal scroll */
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
 }
 </style>
