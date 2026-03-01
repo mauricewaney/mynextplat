@@ -64,79 +64,87 @@
                         </div>
                     </div>
 
-                    <!-- Title + Platforms + Developer + Scores -->
-                    <div class="flex-1 min-w-0 flex flex-col justify-between">
-                        <!-- Scores Row (top-right) -->
-                        <div class="flex justify-end gap-3 mb-2">
-                            <!-- User Score -->
-                            <div v-if="displayUserScore !== null" class="group/user relative flex flex-col items-center" @click.stop="toggleScoreTooltip('user')">
-                                <div
-                                    :class="[
-                                        'w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold text-white',
-                                        userScoreClass,
-                                        displayUserScore === 'N/A' ? 'text-xs sm:text-sm' : 'text-lg sm:text-xl'
-                                    ]"
-                                >
-                                    {{ displayUserScore }}
+                    <!-- Info beside cover -->
+                    <div class="flex-1 min-w-0 flex flex-col">
+                        <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                            {{ game.title }}
+                        </h1>
+
+                        <!-- Platforms + Developer / Scores row -->
+                        <div class="flex items-start justify-between gap-4 mb-3">
+                            <div class="min-w-0">
+                                <!-- Platforms -->
+                                <div v-if="game.platforms?.length" class="flex flex-wrap gap-1.5 sm:gap-2 mb-1.5">
+                                    <span
+                                        v-for="platform in game.platforms"
+                                        :key="platform.id"
+                                        class="h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs sm:text-sm font-medium rounded"
+                                    >
+                                        <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-5 sm:h-8" />
+                                    </span>
                                 </div>
-                                <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">User</span>
-                                <div
-                                    :class="[
-                                        'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
-                                        showScoreTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
-                                    ]"
-                                >
-                                    <template v-if="displayUserScore === 'N/A'">Not enough IGDB user ratings</template>
-                                    <template v-else>IGDB User Score ({{ game.user_score_count }} ratings)</template>
+
+                                <!-- Developer/Publisher -->
+                                <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                    <span v-if="game.developer">{{ game.developer }}</span>
+                                    <span v-if="game.developer && game.publisher"> / </span>
+                                    <span v-if="game.publisher">{{ game.publisher }}</span>
                                 </div>
                             </div>
-                            <!-- Critic Score -->
-                            <div v-if="displayCriticScore !== null" class="group/critic relative flex flex-col items-center" @click.stop="toggleScoreTooltip('critic')">
-                                <div
-                                    :class="[
-                                        'w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold border-2',
-                                        criticScoreClass,
-                                        displayCriticScore === 'N/A' ? 'text-xs sm:text-sm' : 'text-lg sm:text-xl'
-                                    ]"
-                                >
-                                    {{ displayCriticScore }}
+
+                            <!-- Scores -->
+                            <div class="flex gap-3 shrink-0">
+                                <!-- User Score -->
+                                <div v-if="displayUserScore !== null" class="group/user relative flex flex-col items-center" @click.stop="toggleScoreTooltip('user')">
+                                    <div
+                                        :class="[
+                                            'w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold text-white',
+                                            userScoreClass,
+                                            displayUserScore === 'N/A' ? 'text-xs sm:text-sm' : 'text-lg sm:text-xl'
+                                        ]"
+                                    >
+                                        {{ displayUserScore }}
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">User</span>
+                                    <div
+                                        :class="[
+                                            'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
+                                            showScoreTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
+                                        ]"
+                                    >
+                                        <template v-if="displayUserScore === 'N/A'">Not enough IGDB user ratings</template>
+                                        <template v-else>IGDB User Score ({{ game.user_score_count }} ratings)</template>
+                                    </div>
                                 </div>
-                                <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Critic</span>
-                                <div
-                                    :class="[
-                                        'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
-                                        showScoreTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
-                                    ]"
-                                >
-                                    <template v-if="displayCriticScore === 'N/A'">Not enough IGDB critic reviews</template>
-                                    <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
+                                <!-- Critic Score -->
+                                <div v-if="displayCriticScore !== null" class="group/critic relative flex flex-col items-center" @click.stop="toggleScoreTooltip('critic')">
+                                    <div
+                                        :class="[
+                                            'w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center font-bold border-2',
+                                            criticScoreClass,
+                                            displayCriticScore === 'N/A' ? 'text-xs sm:text-sm' : 'text-lg sm:text-xl'
+                                        ]"
+                                    >
+                                        {{ displayCriticScore }}
+                                    </div>
+                                    <span class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Critic</span>
+                                    <div
+                                        :class="[
+                                            'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 text-xs rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-50 transition-opacity duration-150',
+                                            showScoreTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
+                                        ]"
+                                    >
+                                        <template v-if="displayCriticScore === 'N/A'">Not enough IGDB critic reviews</template>
+                                        <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                                {{ game.title }}
-                            </h1>
-
-                            <!-- Platforms -->
-                            <div v-if="game.platforms?.length" class="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-4">
-                                <span
-                                    v-for="platform in game.platforms"
-                                    :key="platform.id"
-                                    class="h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs sm:text-sm font-medium rounded"
-                                >
-                                    <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-5 sm:h-8" />
-                                </span>
-                            </div>
-
-                            <!-- Developer/Publisher -->
-                            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                <span v-if="game.developer">{{ game.developer }}</span>
-                                <span v-if="game.developer && game.publisher"> / </span>
-                                <span v-if="game.publisher">{{ game.publisher }}</span>
-                            </div>
-                        </div>
+                        <!-- Description -->
+                        <p v-if="game.description" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-6 sm:line-clamp-none">
+                            {{ game.description }}
+                        </p>
                     </div>
                 </div>
 
@@ -464,11 +472,6 @@
                 </div>
             </div>
 
-            <!-- Description -->
-            <div v-if="game.description" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">About</h2>
-                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ game.description }}</p>
-            </div>
             </div>
         </div>
     </div>
