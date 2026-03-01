@@ -165,20 +165,20 @@ class DirectoryController extends Controller
             $filterService = app(GameFilterService::class);
 
             $presets = collect(self::PRESETS)->map(function ($preset, $slug) use ($filterService) {
-                $query = Game::query();
+                $baseQuery = Game::query();
                 $syntheticRequest = Request::create('/', 'GET', $preset['filters']);
-                $filterService->applyFilters($query, $syntheticRequest);
+                $filterService->applyFilters($baseQuery, $syntheticRequest);
+                $baseQuery->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'));
 
-                $covers = $query
+                $gameCount = (clone $baseQuery)->count();
+
+                $covers = (clone $baseQuery)
                     ->whereNotNull('cover_url')
-                    ->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'))
                     ->orderByRaw('critic_score IS NULL')
                     ->orderBy('critic_score', 'desc')
                     ->limit(4)
                     ->pluck('cover_url')
                     ->toArray();
-
-                $gameCount = $query->count();
 
                 return [
                     'slug' => $slug,
