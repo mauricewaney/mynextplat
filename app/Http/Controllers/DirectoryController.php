@@ -188,6 +188,7 @@ class DirectoryController extends Controller
         $data = Cache::remember($cacheKey, 86400, function () use ($genre, $slug) {
             $games = Game::with(['genres:id,name,slug', 'platforms:id,name,slug,short_name'])
                 ->whereHas('genres', fn ($q) => $q->where('genres.id', $genre->id))
+                ->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'))
                 ->orderByRaw('critic_score IS NULL')
                 ->orderBy('critic_score', 'desc')
                 ->limit(50)
@@ -228,6 +229,7 @@ class DirectoryController extends Controller
         $data = Cache::remember($cacheKey, 86400, function () use ($platform, $slug, $displayName) {
             $games = Game::with(['genres:id,name,slug', 'platforms:id,name,slug,short_name'])
                 ->whereHas('platforms', fn ($q) => $q->where('platforms.id', $platform->id))
+                ->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'))
                 ->orderByRaw('critic_score IS NULL')
                 ->orderBy('critic_score', 'desc')
                 ->limit(50)
@@ -272,6 +274,7 @@ class DirectoryController extends Controller
             $filterService->applyFilters($query, $syntheticRequest);
 
             $games = $query
+                ->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'))
                 ->orderByRaw('critic_score IS NULL')
                 ->orderBy('critic_score', 'desc')
                 ->limit(50)
@@ -325,11 +328,12 @@ class DirectoryController extends Controller
                 }
             }
 
-            // Exclude featured from "All Games" list
-            $listGames = $games->filter(fn ($g) => !in_array($g->id, $featuredGameIds))->values();
+            // Exclude featured from "All Games" list, sort by release date (newest first)
+            $listGames = $games->filter(fn ($g) => !in_array($g->id, $featuredGameIds))
+                ->sortByDesc('release_date')->values();
         } else {
             $featuredGames = $games->take(3);
-            $listGames = $games->slice(3)->values();
+            $listGames = $games->slice(3)->sortByDesc('release_date')->values();
         }
 
         // Resolve curated sections
