@@ -172,13 +172,28 @@ class DirectoryController extends Controller
 
                 $gameCount = (clone $baseQuery)->count();
 
-                $covers = (clone $baseQuery)
-                    ->whereNotNull('cover_url')
-                    ->orderByRaw('critic_score IS NULL')
-                    ->orderBy('critic_score', 'desc')
-                    ->limit(4)
-                    ->pluck('cover_url')
-                    ->toArray();
+                // Use admin-curated featured games if available
+                $page = DirectoryPage::findByKey('preset', $slug);
+                $covers = [];
+
+                if ($page && !empty($page->featured_game_ids)) {
+                    $covers = Game::whereIn('id', $page->featured_game_ids)
+                        ->whereNotNull('cover_url')
+                        ->limit(4)
+                        ->pluck('cover_url')
+                        ->toArray();
+                }
+
+                // Fallback to top-rated if no curated featured games
+                if (empty($covers)) {
+                    $covers = (clone $baseQuery)
+                        ->whereNotNull('cover_url')
+                        ->orderByRaw('critic_score IS NULL')
+                        ->orderBy('critic_score', 'desc')
+                        ->limit(4)
+                        ->pluck('cover_url')
+                        ->toArray();
+                }
 
                 return [
                     'slug' => $slug,
