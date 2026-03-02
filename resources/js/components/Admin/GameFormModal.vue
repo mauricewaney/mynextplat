@@ -305,6 +305,21 @@ Online Trophies: None"
                                 </div>
                             </label>
                         </div>
+
+                        <!-- No Guide Needed -->
+                        <div class="p-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                    v-model="form.no_guide_needed"
+                                    type="checkbox"
+                                    class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <div>
+                                    <span class="text-sm font-semibold text-indigo-700 dark:text-indigo-400">No Guide Needed</span>
+                                    <p class="text-xs text-indigo-600 dark:text-indigo-500">Game can be platinumed by just playing — no external guide required</p>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     <!-- Scores & Reviews -->
@@ -698,6 +713,7 @@ const form = ref({
     is_unobtainable: false,
     server_shutdown_date: '',
     is_verified: false,
+    no_guide_needed: false,
     data_source: '',
     critic_score: null,
     opencritic_score: null,
@@ -746,6 +762,7 @@ watch(() => props.game, (game) => {
             is_unobtainable: game.is_unobtainable || false,
             server_shutdown_date: formatDateForInput(game.server_shutdown_date),
             is_verified: game.is_verified || false,
+            no_guide_needed: game.no_guide_needed || false,
             data_source: game.data_source || '',
             critic_score: game.critic_score || null,
             opencritic_score: game.opencritic_score || null,
@@ -797,6 +814,7 @@ function resetForm() {
         is_unobtainable: false,
         server_shutdown_date: '',
         is_verified: false,
+        no_guide_needed: false,
         data_source: '',
         critic_score: null,
         opencritic_score: null,
