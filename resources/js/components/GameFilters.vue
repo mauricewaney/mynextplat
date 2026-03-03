@@ -483,8 +483,8 @@
                         :class="[
                             'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                             filters.guide_psnp
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50'
                         ]"
                     >
                         PSNP
@@ -494,8 +494,8 @@
                         :class="[
                             'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                             filters.guide_pst
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50'
                         ]"
                     >
                         PST
@@ -505,8 +505,8 @@
                         :class="[
                             'px-3 py-1.5 rounded-lg text-xs font-medium transition-all',
                             filters.guide_ppx
-                                ? 'bg-orange-600 text-white'
-                                : 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/50'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50'
                         ]"
                     >
                         PPX

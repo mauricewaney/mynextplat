@@ -185,11 +185,11 @@
                     <span class="hidden sm:inline">&middot;</span>
                     <span class="hidden sm:inline">Guides from</span>
                     <span class="sm:hidden w-full text-center">Guides from</span>
-                    <a href="https://psnprofiles.com" target="_blank" class="text-blue-500 hover:text-blue-400 font-medium">PSNProfiles</a>
+                    <a href="https://psnprofiles.com" target="_blank" class="text-primary-500 hover:text-primary-400 font-medium">PSNProfiles</a>
                     <span>&middot;</span>
-                    <a href="https://www.playstationtrophies.org" target="_blank" class="text-purple-500 hover:text-purple-400 font-medium">PlayStationTrophies</a>
+                    <a href="https://www.playstationtrophies.org" target="_blank" class="text-primary-500 hover:text-primary-400 font-medium">PlayStationTrophies</a>
                     <span>&middot;</span>
-                    <a href="https://www.powerpyx.com" target="_blank" class="text-orange-500 hover:text-orange-400 font-medium">PowerPyx</a>
+                    <a href="https://www.powerpyx.com" target="_blank" class="text-primary-500 hover:text-primary-400 font-medium">PowerPyx</a>
                 </div>
 
                 {{-- Contact & Links --}}

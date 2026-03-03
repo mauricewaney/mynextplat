@@ -180,9 +180,9 @@
                             <div
                                 class="text-base sm:text-lg font-bold"
                                 :class="
-                                    game.data_source === 'playstationtrophies' ? 'text-purple-600 dark:text-purple-400' :
-                                    game.data_source === 'powerpyx' ? 'text-orange-500 dark:text-orange-400' :
-                                    game.data_source === 'psnprofiles' ? 'text-blue-600 dark:text-blue-400' :
+                                    game.data_source === 'playstationtrophies' ? 'text-teal-600 dark:text-teal-400' :
+                                    game.data_source === 'powerpyx' ? 'text-amber-600 dark:text-amber-400' :
+                                    game.data_source === 'psnprofiles' ? 'text-sky-600 dark:text-sky-400' :
                                     'text-gray-600 dark:text-gray-400'
                                 "
                             >
@@ -287,9 +287,9 @@
                         target="_blank"
                         rel="noopener"
                         @click="trackGuideClick('psnprofiles')"
-                        class="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                        class="flex items-center gap-3 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
                     >
-                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
+                        <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold">
                             P
                         </div>
                         <div>
@@ -305,9 +305,9 @@
                         target="_blank"
                         rel="noopener"
                         @click="trackGuideClick('playstationtrophies')"
-                        class="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                        class="flex items-center gap-3 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
                     >
-                        <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold">
+                        <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold">
                             PST
                         </div>
                         <div>
@@ -323,9 +323,9 @@
                         target="_blank"
                         rel="noopener"
                         @click="trackGuideClick('powerpyx')"
-                        class="flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors"
+                        class="flex items-center gap-3 p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
                     >
-                        <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold">
+                        <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center text-white font-bold">
                             PPX
                         </div>
                         <div>

@@ -199,19 +199,19 @@
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Runs</div>
                     </div>
                     <div>
-                        <div v-if="game.missable_trophies === false" class="font-bold text-primary-600 dark:text-primary-400">No</div>
-                        <div v-else-if="game.missable_trophies === true" class="font-bold text-red-600 dark:text-red-400">Yes</div>
+                        <div v-if="game.missable_trophies === false" class="font-bold text-gray-700 dark:text-gray-300">No</div>
+                        <div v-else-if="game.missable_trophies === true" class="font-bold text-gray-700 dark:text-gray-300">Yes</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Missables</div>
                     </div>
                     <div>
-                        <div v-if="game.has_online_trophies === false" class="font-bold text-primary-600 dark:text-primary-400">No</div>
-                        <div v-else-if="game.has_online_trophies === true" class="font-bold text-red-600 dark:text-red-400">Yes</div>
+                        <div v-if="game.has_online_trophies === false" class="font-bold text-gray-700 dark:text-gray-300">No</div>
+                        <div v-else-if="game.has_online_trophies === true" class="font-bold text-gray-700 dark:text-gray-300">Yes</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Online</div>
                     </div>
                     <div v-if="game.data_source">
-                        <div :class="['font-bold', dataSourceClass]">{{ dataSourceLabel }}</div>
+                        <div class="font-bold text-gray-700 dark:text-gray-300">{{ dataSourceLabel }}</div>
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Source</div>
                     </div>
                 </div>
@@ -234,9 +234,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                     </svg>
                     <div class="flex items-center gap-1">
-                        <a v-if="game.psnprofiles_url" :href="game.psnprofiles_url" target="_blank" @click.stop="trackGuideClick('psnprofiles')" class="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] font-bold hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors" title="PSNProfiles Guide">PSNP</a>
-                        <a v-if="game.playstationtrophies_url" :href="game.playstationtrophies_url" target="_blank" @click.stop="trackGuideClick('playstationtrophies')" class="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-[10px] font-bold hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors" title="PlayStationTrophies Guide">PST</a>
-                        <a v-if="game.powerpyx_url" :href="game.powerpyx_url" target="_blank" @click.stop="trackGuideClick('powerpyx')" class="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-[10px] font-bold hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors" title="PowerPyx Guide">PPX</a>
+                        <a v-if="game.psnprofiles_url" :href="game.psnprofiles_url" target="_blank" @click.stop="trackGuideClick('psnprofiles')" class="guide-badge-psnp px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors" title="PSNProfiles Guide">PSNP</a>
+                        <a v-if="game.playstationtrophies_url" :href="game.playstationtrophies_url" target="_blank" @click.stop="trackGuideClick('playstationtrophies')" class="guide-badge-pst px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors" title="PlayStationTrophies Guide">PST</a>
+                        <a v-if="game.powerpyx_url" :href="game.powerpyx_url" target="_blank" @click.stop="trackGuideClick('powerpyx')" class="guide-badge-ppx px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors" title="PowerPyx Guide">PPX</a>
                     </div>
                 </div>
             </div>
@@ -271,7 +271,7 @@
                         :href="game.psnprofiles_url"
                         target="_blank"
                         @click.stop="trackGuideClick('psnprofiles')"
-                        class="px-1.5 sm:px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold hover:bg-blue-200 dark:hover:bg-blue-900/70 transition-colors"
+                        class="guide-badge-psnp px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold transition-colors"
                         title="PSNProfiles Guide"
                     >PSNP</a>
                     <a
@@ -279,7 +279,7 @@
                         :href="game.playstationtrophies_url"
                         target="_blank"
                         @click.stop="trackGuideClick('playstationtrophies')"
-                        class="px-1.5 sm:px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 text-[10px] sm:text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-900/70 transition-colors"
+                        class="guide-badge-pst px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold transition-colors"
                         title="PlayStationTrophies Guide"
                     >PST</a>
                     <a
@@ -287,7 +287,7 @@
                         :href="game.powerpyx_url"
                         target="_blank"
                         @click.stop="trackGuideClick('powerpyx')"
-                        class="px-1.5 sm:px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-[10px] sm:text-xs font-bold hover:bg-orange-200 dark:hover:bg-orange-900/70 transition-colors"
+                        class="guide-badge-ppx px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold transition-colors"
                         title="PowerPyx Guide"
                     >PPX</a>
                 </div>
@@ -431,12 +431,7 @@ const difficultyBarClass = computed(() => {
 })
 
 const difficultyTextClass = computed(() => {
-    const d = props.game.difficulty
-    if (d <= 2) return 'text-emerald-600'
-    if (d <= 4) return 'text-green-600'
-    if (d <= 6) return 'text-yellow-600'
-    if (d <= 8) return 'text-orange-600'
-    return 'text-red-600'
+    return 'text-gray-700 dark:text-gray-300'
 })
 
 // Time display - returns object with mobile and desktop versions
@@ -460,9 +455,9 @@ const dataSourceLabel = computed(() => {
 
 const dataSourceClass = computed(() => {
     const s = props.game.data_source
-    if (s === 'playstationtrophies') return 'text-purple-600 dark:text-purple-400'
-    if (s === 'powerpyx') return 'text-orange-500 dark:text-orange-400'
-    if (s === 'psnprofiles') return 'text-blue-600 dark:text-blue-400'
+    if (s === 'playstationtrophies') return 'text-teal-600 dark:text-teal-400'
+    if (s === 'powerpyx') return 'text-amber-600 dark:text-amber-400'
+    if (s === 'psnprofiles') return 'text-sky-600 dark:text-sky-400'
     return 'text-gray-600 dark:text-gray-400'
 })
 

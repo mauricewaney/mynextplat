@@ -3,6 +3,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Guide link badge colors — change these to restyle all PSNP/PST/PPX badges site-wide.
+ * Used as pill badges (bg + text) and solid badges (solid bg + white text).
+ */
+@layer components {
+    .guide-badge-psnp { @apply bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400; }
+    .guide-badge-pst  { @apply bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400; }
+    .guide-badge-ppx  { @apply bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400; }
+
+    .guide-badge-psnp:hover { @apply bg-primary-200 dark:bg-primary-900/70; }
+    .guide-badge-pst:hover  { @apply bg-primary-200 dark:bg-primary-900/70; }
+    .guide-badge-ppx:hover  { @apply bg-primary-200 dark:bg-primary-900/70; }
+
+    /* Solid variants (used on cover overlays like Profile page) */
+    .guide-badge-psnp-solid { @apply bg-primary-600/90 text-white hover:bg-primary-700; }
+    .guide-badge-pst-solid  { @apply bg-primary-600/90 text-white hover:bg-primary-700; }
+    .guide-badge-ppx-solid  { @apply bg-primary-600/90 text-white hover:bg-primary-700; }
+}
+
 /*@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views!*.blade.php';*/
 /*@source '../../storage/framework/views!*.php';*/
 /*@source '..!**!*.blade.php';*/

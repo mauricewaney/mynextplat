@@ -1,8 +1,8 @@
 @php
     $guides = array_filter([
-        $game->psnprofiles_url ? ['label' => 'PSNP', 'url' => $game->psnprofiles_url, 'class' => 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'] : null,
-        $game->playstationtrophies_url ? ['label' => 'PST', 'url' => $game->playstationtrophies_url, 'class' => 'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'] : null,
-        $game->powerpyx_url ? ['label' => 'PPX', 'url' => $game->powerpyx_url, 'class' => 'bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400'] : null,
+        $game->psnprofiles_url ? ['label' => 'PSNP', 'url' => $game->psnprofiles_url, 'class' => 'guide-badge-psnp'] : null,
+        $game->playstationtrophies_url ? ['label' => 'PST', 'url' => $game->playstationtrophies_url, 'class' => 'guide-badge-pst'] : null,
+        $game->powerpyx_url ? ['label' => 'PPX', 'url' => $game->powerpyx_url, 'class' => 'guide-badge-ppx'] : null,
     ]);
 
     $diffClass = match(true) {
