@@ -996,7 +996,8 @@ function onFilterChange(newFilters) {
     if (!isMounting && activePreset.value) {
         const preset = presets.find(p => p.label === activePreset.value)
         if (preset) {
-            const expected = { ...defaultFilters, ...preset.filters }
+            const sticky = { has_platinum: filters.has_platinum, exclude_unobtainable: filters.exclude_unobtainable }
+            const expected = { ...defaultFilters, ...preset.filters, ...sticky }
             const mismatch = Object.keys(expected).some(k => JSON.stringify(newFilters[k]) !== JSON.stringify(expected[k]))
             if (mismatch) activePreset.value = null
         }
