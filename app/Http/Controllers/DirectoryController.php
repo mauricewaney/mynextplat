@@ -158,56 +158,80 @@ class DirectoryController extends Controller
         $version = Cache::get('games:cache_version', 1);
         $cacheKey = "directory:browse:v{$version}";
 
-        $data = Cache::remember($cacheKey, 86400, function () {
-            $genres = Genre::withCount('games')->orderBy('name')->get();
-            $platforms = Platform::withCount('games')->orderByDesc('games_count')->get();
-
-            $filterService = app(GameFilterService::class);
-
-            $presets = collect(self::PRESETS)->map(function ($preset, $slug) use ($filterService) {
-                $baseQuery = Game::query();
-                $syntheticRequest = Request::create('/', 'GET', $preset['filters']);
-                $filterService->applyFilters($baseQuery, $syntheticRequest);
-                $baseQuery->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'));
-
-                $gameCount = (clone $baseQuery)->count();
-
-                // Use admin-curated featured games if available
-                $page = DirectoryPage::findByKey('preset', $slug);
-                $covers = [];
-
-                if ($page && !empty($page->featured_game_ids)) {
-                    $covers = Game::whereIn('id', $page->featured_game_ids)
-                        ->whereNotNull('cover_url')
-                        ->limit(4)
-                        ->pluck('cover_url')
-                        ->toArray();
-                }
-
-                // Fallback to top-rated if no curated featured games
-                if (empty($covers)) {
-                    $covers = (clone $baseQuery)
-                        ->whereNotNull('cover_url')
-                        ->orderByRaw('critic_score IS NULL')
-                        ->orderBy('critic_score', 'desc')
-                        ->limit(4)
-                        ->pluck('cover_url')
-                        ->toArray();
-                }
-
-                return [
-                    'slug' => $slug,
-                    'title' => $preset['title'],
-                    'description' => self::PRESET_DESCRIPTIONS[$slug] ?? '',
-                    'covers' => $covers,
-                    'game_count' => $gameCount,
-                ];
-            })->values();
-
-            return compact('genres', 'platforms', 'presets');
-        });
+        $data = Cache::remember($cacheKey, 86400, fn () => $this->buildBrowseData());
 
         return view('pages.browse', $data);
+    }
+
+    /**
+     * Re-warm the browse page cache so the next visitor never hits a cold cache.
+     */
+    public function warmBrowseCache(): void
+    {
+        $version = Cache::get('games:cache_version', 1);
+        $cacheKey = "directory:browse:v{$version}";
+
+        Cache::forget($cacheKey);
+        Cache::put($cacheKey, $this->buildBrowseData(), 86400);
+    }
+
+    /**
+     * Build browse page data (shared by browse() and warmBrowseCache()).
+     */
+    private function buildBrowseData(): array
+    {
+        $genres = Genre::withCount('games')->orderBy('name')->get();
+        $platforms = Platform::withCount('games')->orderByDesc('games_count')->get();
+
+        $filterService = app(GameFilterService::class);
+
+        // Batch-load all preset DirectoryPages in one query instead of 9 separate queries
+        $presetPages = DirectoryPage::where('directory_type', 'preset')
+            ->whereIn('slug', array_keys(self::PRESETS))
+            ->get()
+            ->keyBy('slug');
+
+        $presets = collect(self::PRESETS)->map(function ($preset, $slug) use ($filterService, $presetPages) {
+            $baseQuery = Game::query();
+            $syntheticRequest = Request::create('/', 'GET', $preset['filters']);
+            $filterService->applyFilters($baseQuery, $syntheticRequest);
+            $baseQuery->where(fn ($q) => $q->whereNotNull('psnprofiles_url')->orWhereNotNull('playstationtrophies_url')->orWhereNotNull('powerpyx_url'));
+
+            $gameCount = (clone $baseQuery)->count();
+
+            // Use admin-curated featured games if available
+            $page = $presetPages->get($slug);
+            $covers = [];
+
+            if ($page && !empty($page->featured_game_ids)) {
+                $covers = Game::whereIn('id', $page->featured_game_ids)
+                    ->whereNotNull('cover_url')
+                    ->limit(4)
+                    ->pluck('cover_url')
+                    ->toArray();
+            }
+
+            // Fallback to top-rated if no curated featured games
+            if (empty($covers)) {
+                $covers = (clone $baseQuery)
+                    ->whereNotNull('cover_url')
+                    ->orderByRaw('critic_score IS NULL')
+                    ->orderBy('critic_score', 'desc')
+                    ->limit(4)
+                    ->pluck('cover_url')
+                    ->toArray();
+            }
+
+            return [
+                'slug' => $slug,
+                'title' => $preset['title'],
+                'description' => self::PRESET_DESCRIPTIONS[$slug] ?? '',
+                'covers' => $covers,
+                'game_count' => $gameCount,
+            ];
+        })->values();
+
+        return compact('genres', 'platforms', 'presets');
     }
 
     public function genre(string $slug)

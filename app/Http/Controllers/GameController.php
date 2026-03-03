@@ -713,6 +713,9 @@ class GameController extends Controller
     public static function bustGameCache(): void
     {
         Cache::increment('games:cache_version');
+
+        // Re-warm the browse page cache so the next visitor never hits a cold cache
+        app(DirectoryController::class)->warmBrowseCache();
     }
 
     /**
