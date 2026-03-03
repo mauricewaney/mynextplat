@@ -22,11 +22,6 @@ class Platform extends Model
         return $this->belongsToMany(Game::class);
     }
 
-    // Helper method
-    public function getGamesCountAttribute(): int
-    {
-        return $this->games()->count();
-    }
 
     public function getDisplayNameAttribute(): string
     {

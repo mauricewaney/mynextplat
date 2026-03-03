@@ -21,9 +21,4 @@ class Genre extends Model
         return $this->belongsToMany(Game::class);
     }
 
-    // Helper method
-    public function getGamesCountAttribute(): int
-    {
-        return $this->games()->count();
-    }
 }
