@@ -887,7 +887,7 @@ const presets = [
     },
     {
         label: 'Hidden Gems',
-        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co9ihi.jpg',
+        image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co2i0n.jpg',
         activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
         filters: { user_score_min: 75, critic_score_max: 75 },
