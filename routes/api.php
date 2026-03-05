@@ -14,6 +14,8 @@ use App\Http\Controllers\GuideClickController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\DirectoryPageController as AdminDirectoryPageController;
+use App\Http\Controllers\FeaturedPlacementController;
+use App\Http\Controllers\Admin\FeaturedPlacementController as AdminFeaturedPlacementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +56,9 @@ Route::prefix('corrections')->group(function () {
 
 // Contact Form (public)
 Route::post('/contact', [ContactController::class, 'store']);
+
+// Featured Games (public)
+Route::get('/featured-games', [FeaturedPlacementController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
@@ -166,6 +171,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::put('/{id}/sections/{sectionId}', [AdminDirectoryPageController::class, 'updateSection']);
         Route::delete('/{id}/sections/{sectionId}', [AdminDirectoryPageController::class, 'deleteSection']);
         Route::post('/{id}/sections/{sectionId}/preview', [AdminDirectoryPageController::class, 'previewSection']);
+    });
+
+    // Featured Placements Management
+    Route::prefix('admin/featured-placements')->group(function () {
+        Route::get('/', [AdminFeaturedPlacementController::class, 'index']);
+        Route::post('/', [AdminFeaturedPlacementController::class, 'store']);
+        Route::put('/{id}', [AdminFeaturedPlacementController::class, 'update']);
+        Route::delete('/{id}', [AdminFeaturedPlacementController::class, 'destroy']);
     });
 
     Route::prefix('admin/games')->group(function () {

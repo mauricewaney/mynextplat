@@ -68,6 +68,17 @@
                                 Directories
                             </router-link>
                             <router-link
+                                to="/admin/featured"
+                                :class="[
+                                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                                    isActive('/admin/featured')
+                                        ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white'
+                                ]"
+                            >
+                                Featured
+                            </router-link>
+                            <router-link
                                 to="/admin/corrections"
                                 :class="[
                                     'px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5',
