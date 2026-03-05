@@ -54,6 +54,7 @@ class Game extends Model
         'psnprofiles_url',
         'playstationtrophies_url',
         'powerpyx_url',
+        'psn_store_url',
         'has_guide',
         'no_guide_needed',
         'description',

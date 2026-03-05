@@ -32,6 +32,7 @@ class PSNService
 
     private ?string $accessToken = null;
     private ?string $authenticatedAccountId = null;
+    private array $lastSearchSuggestions = [];
 
     /**
      * Exchange NPSSO token for access token
@@ -231,7 +232,7 @@ class PSNService
             $data = $response->json();
             $results = $data['domainResponses'][0]['results'] ?? [];
 
-            // Find exact match
+            // Find exact match (case-insensitive)
             foreach ($results as $result) {
                 if (strtolower($result['socialMetadata']['onlineId'] ?? '') === strtolower($username)) {
                     return [
@@ -242,14 +243,13 @@ class PSNService
                 }
             }
 
-            // Return first result if no exact match
+            // No exact match — store closest matches for error reporting
             if (!empty($results)) {
-                $first = $results[0];
-                return [
-                    'accountId' => $first['socialMetadata']['accountId'],
-                    'onlineId' => $first['socialMetadata']['onlineId'],
-                    'avatarUrl' => $first['socialMetadata']['avatarUrl'] ?? null,
-                ];
+                $this->lastSearchSuggestions = array_slice(
+                    array_map(fn($r) => $r['socialMetadata']['onlineId'] ?? 'unknown', $results),
+                    0, 5
+                );
+                \Log::info('PSN Search: No exact match for "' . $username . '", suggestions: ' . implode(', ', $this->lastSearchSuggestions));
             }
         }
 
@@ -348,7 +348,11 @@ class PSNService
         // Search for user
         $user = $this->searchUser($username);
         if (!$user) {
-            return ['error' => 'user_not_found', 'message' => 'User not found. Check the username and try again.'];
+            $message = 'No exact match for "' . $username . '".';
+            if (!empty($this->lastSearchSuggestions)) {
+                $message .= ' Did you mean: ' . implode(', ', $this->lastSearchSuggestions) . '?';
+            }
+            return ['error' => 'user_not_found', 'message' => $message];
         }
 
         // Determine account ID to use - "me" for self-lookup bypasses privacy settings

@@ -64,6 +64,9 @@
                         </div>
                     </div>
 
+                    <!-- Featured / Indie Spotlight (All Games view only) -->
+                    <FeaturedGamesBar v-if="viewMode === 'all'" />
+
                     <!-- PSN View Info Bar (when in PSN view mode) -->
                     <div v-if="viewMode === 'psn' && isPsnLoaded" class="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -605,6 +608,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import GameCard from '../components/GameCard.vue'
 import GameFilters from '../components/GameFilters.vue'
+import FeaturedGamesBar from '../components/FeaturedGamesBar.vue'
 import { useAuth } from '../composables/useAuth'
 import { usePSNLibrary } from '../composables/usePSNLibrary'
 import { useUserGames } from '../composables/useUserGames'

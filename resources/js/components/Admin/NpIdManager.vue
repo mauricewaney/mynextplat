@@ -48,9 +48,18 @@
                         <span v-else>Auto-match 100%</span>
                     </button>
                 </div>
-                <p v-if="collectResult" class="mt-2 text-sm" :class="collectResult.success ? 'text-green-600' : 'text-red-600'">
+                <p v-if="collectResult" class="mt-2 text-sm" :class="collectResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
                     {{ collectResult.message }}
                 </p>
+                <div v-if="collectResult && !collectResult.success && collectResult.suggestions?.length" class="mt-1 flex items-center gap-1 flex-wrap">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Try:</span>
+                    <button
+                        v-for="s in collectResult.suggestions"
+                        :key="s"
+                        @click="collectUsername = s; collectFromUser()"
+                        class="text-xs px-2 py-0.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+                    >{{ s }}</button>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -467,11 +476,21 @@ async function collectFromUser() {
         const response = await fetch(`/api/admin/psn/collect/${encodeURIComponent(collectUsername.value.trim())}`)
         const data = await response.json()
 
+        // Extract "Did you mean" suggestions from error message
+        let suggestions = []
+        if (!data.success && data.message) {
+            const match = data.message.match(/Did you mean: (.+)\?/)
+            if (match) {
+                suggestions = match[1].split(', ').map(s => s.trim())
+            }
+        }
+
         collectResult.value = {
             success: data.success,
             message: data.success
                 ? `Collected ${data.new_titles} new titles from ${data.username} (${data.existing_titles} already existed, ${data.auto_matched || 0} auto-matched)`
-                : data.message
+                : data.message,
+            suggestions,
         }
 
         if (data.success) {
