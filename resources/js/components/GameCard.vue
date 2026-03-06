@@ -191,12 +191,12 @@
                     <div>
                         <div v-if="timeValues" class="font-bold text-gray-700 dark:text-gray-300">{{ timeValues.mobile }}</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Time</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Hours</div>
                     </div>
                     <div>
-                        <div v-if="game.playthroughs_required" class="font-bold text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}x</div>
+                        <div v-if="game.playthroughs_required" class="font-bold text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}+</div>
                         <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Runs</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Playthroughs</div>
                     </div>
                     <div>
                         <div v-if="game.missable_trophies === false" class="font-bold text-gray-700 dark:text-gray-300">No</div>
@@ -439,10 +439,10 @@ const timeValues = computed(() => {
     const min = props.game.time_min
     const max = props.game.time_max
     if (!min && !max) return null
-    if (min === max) return { mobile: `${min}h`, desktop: `${min} hours` }
-    if (!min) return { mobile: `~${max}h`, desktop: `~${max} hours` }
-    if (!max) return { mobile: `${min}h+`, desktop: `${min}+ hours` }
-    return { mobile: `${min}-${max}h`, desktop: `${min}-${max} hours` }
+    if (min === max) return { mobile: `${min}`, desktop: `${min} hours` }
+    if (!min) return { mobile: `~${max}`, desktop: `~${max} hours` }
+    if (!max) return { mobile: `${min}+`, desktop: `${min}+ hours` }
+    return { mobile: `${min}-${max}`, desktop: `${min}-${max} hours` }
 })
 
 const dataSourceLabel = computed(() => {

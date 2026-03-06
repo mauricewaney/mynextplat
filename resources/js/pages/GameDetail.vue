@@ -166,9 +166,9 @@
                         </div>
                         <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
                             <div class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                                {{ game.playthroughs_required || '?' }}
+                                {{ game.playthroughs_required ? game.playthroughs_required + '+' : '?' }}
                             </div>
-                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Runs</div>
+                            <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Playthroughs</div>
                         </div>
                         <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
                             <div class="text-lg sm:text-2xl font-bold" :class="game.missable_trophies ? 'text-red-500' : 'text-green-500'">
@@ -445,7 +445,7 @@
                         </h3>
                         <div class="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
                             <span v-if="rec.difficulty">{{ rec.difficulty }}/10</span>
-                            <span v-if="rec.time_min">{{ rec.time_min }}{{ rec.time_max && rec.time_max !== rec.time_min ? `-${rec.time_max}` : '' }}h</span>
+                            <span v-if="rec.time_min">{{ rec.time_min }}{{ rec.time_max && rec.time_max !== rec.time_min ? `-${rec.time_max}` : '' }} hrs</span>
                         </div>
                     </a>
                 </div>
