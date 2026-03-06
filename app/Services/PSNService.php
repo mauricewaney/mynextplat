@@ -343,7 +343,16 @@ class PSNService
      * Returns array with 'user', 'titles' on success, or 'error', 'message' on failure
      * Handles pagination to fetch ALL trophy titles
      */
-    public function getGamesForUser(string $username): array
+    /**
+     * Get games for a username (convenience method)
+     * Returns array with 'user', 'titles' on success, or 'error', 'message' on failure
+     * Handles pagination to fetch ALL trophy titles
+     *
+     * @param string $username PSN username
+     * @param array|null $knownNpIds Set of already-known NP IDs (flipped array for O(1) lookup).
+     *                               When provided, stops early after 2 consecutive pages of all-known titles.
+     */
+    public function getGamesForUser(string $username, ?array $knownNpIds = null): array
     {
         // Search for user
         $user = $this->searchUser($username);
@@ -367,6 +376,7 @@ class PSNService
         $offset = 0;
         $limit = 800;
         $totalCount = 0;
+        $consecutiveKnownPages = 0;
 
         do {
             $result = $this->getUserTitles($accountId, $limit, $offset);
@@ -400,6 +410,30 @@ class PSNService
                 'total_so_far' => count($allTitles),
                 'total_available' => $totalCount
             ]);
+
+            // Early stop: if all titles on this page are already known, count it
+            if ($knownNpIds !== null && !empty($titles)) {
+                $newOnPage = 0;
+                foreach ($titles as $t) {
+                    $npId = $t['npCommunicationId'] ?? null;
+                    if ($npId && !isset($knownNpIds[$npId])) {
+                        $newOnPage++;
+                    }
+                }
+                if ($newOnPage === 0) {
+                    $consecutiveKnownPages++;
+                    if ($consecutiveKnownPages >= 2) {
+                        \Log::info('PSN GamesForUser: Early stop - 2 consecutive pages of known titles', [
+                            'username' => $username,
+                            'fetched' => count($allTitles),
+                            'skipped' => $totalCount - count($allTitles),
+                        ]);
+                        break;
+                    }
+                } else {
+                    $consecutiveKnownPages = 0;
+                }
+            }
 
         } while (count($titles) === $limit && $offset < $totalCount);
 

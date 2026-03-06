@@ -482,8 +482,10 @@ async function collectFromUser() {
                 errorMsg = errData.message || errorMsg
             } catch {
                 // Response wasn't JSON (e.g. HTML 500 page)
-                if (response.status === 500) {
-                    errorMsg = 'Server error — the user\'s library may be too large or the PSN API timed out. Try again.'
+                if (response.status === 504) {
+                    errorMsg = 'Gateway timeout — the PSN library is too large and the request timed out. Try a user with fewer games.'
+                } else if (response.status === 500) {
+                    errorMsg = 'Server error — the PSN API may have timed out. Try again.'
                 }
             }
             collectResult.value = { success: false, message: errorMsg }

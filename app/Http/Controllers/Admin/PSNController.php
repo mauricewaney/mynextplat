@@ -118,7 +118,8 @@ class PSNController extends Controller
      */
     public function collectFromUser(string $username, PSNService $psnService)
     {
-        set_time_limit(300); // Allow up to 5 minutes for large libraries
+        set_time_limit(300);
+        ignore_user_abort(true); // Continue even if Nginx drops the connection
 
         if (!$psnService->authenticateFromConfig()) {
             return response()->json([
@@ -127,7 +128,10 @@ class PSNController extends Controller
             ], 401);
         }
 
-        $data = $psnService->getGamesForUser($username);
+        // Pre-load known NP IDs so PSN fetch can stop early on repeat collections
+        $knownNpIds = PsnTitle::pluck('np_communication_id')->flip()->all();
+
+        $data = $psnService->getGamesForUser($username, $knownNpIds);
 
         if (!$data || isset($data['error'])) {
             return response()->json([
@@ -136,37 +140,91 @@ class PSNController extends Controller
             ], 404);
         }
 
-        // Pre-load game titles once for auto-matching (instead of per-title)
+        // Index fetched titles by NP ID
+        $titlesByNpId = [];
+        foreach ($data['titles'] as $title) {
+            $npId = $title['npCommunicationId'] ?? null;
+            if ($npId) {
+                $titlesByNpId[$npId] = $title;
+            }
+        }
+
+        $allNpIds = array_keys($titlesByNpId);
+
+        // Bulk load ALL existing PSN titles in one query (instead of 1 query per title)
+        $existingNpIds = collect();
+        foreach (array_chunk($allNpIds, 1000) as $chunk) {
+            $existingNpIds = $existingNpIds->merge(
+                PsnTitle::whereIn('np_communication_id', $chunk)->pluck('np_communication_id')
+            );
+        }
+        $existingSet = $existingNpIds->flip()->all();
+
+        // Bulk increment times_seen for existing titles
+        $existingCount = 0;
+        foreach (array_chunk($existingNpIds->all(), 1000) as $chunk) {
+            $existingCount += PsnTitle::whereIn('np_communication_id', $chunk)->increment('times_seen');
+        }
+
+        // Determine new titles (not in DB yet)
+        $newNpIds = array_diff($allNpIds, array_keys($existingSet));
+
+        // Batch insert new titles
+        $newCount = 0;
+        $insertBatch = [];
+        $now = now();
+        foreach ($newNpIds as $npId) {
+            $title = $titlesByNpId[$npId];
+            $defined = $title['definedTrophies'] ?? [];
+            $insertBatch[] = [
+                'np_communication_id' => $npId,
+                'psn_title' => $title['trophyTitleName'] ?? 'Unknown',
+                'platform' => $title['trophyTitlePlatform'] ?? null,
+                'icon_url' => $title['trophyTitleIconUrl'] ?? null,
+                'discovered_from' => $username,
+                'times_seen' => 1,
+                'bronze_count' => $defined['bronze'] ?? null,
+                'silver_count' => $defined['silver'] ?? null,
+                'gold_count' => $defined['gold'] ?? null,
+                'has_platinum' => ($defined['platinum'] ?? 0) > 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+
+            if (count($insertBatch) >= 500) {
+                PsnTitle::insert($insertBatch);
+                $newCount += count($insertBatch);
+                $insertBatch = [];
+            }
+        }
+        if (!empty($insertBatch)) {
+            PsnTitle::insert($insertBatch);
+            $newCount += count($insertBatch);
+        }
+
+        // Auto-match new titles using pre-loaded game titles hashmap
         $gameTitles = Game::select('id', 'title')->get()
             ->mapWithKeys(fn($g) => [strtolower(trim($g->title)) => $g->id])
             ->all();
 
-        $newCount = 0;
-        $existingCount = 0;
         $autoMatchedCount = 0;
+        if ($newCount > 0) {
+            // Load newly inserted titles for auto-matching
+            $newPsnTitles = collect();
+            foreach (array_chunk(array_values($newNpIds), 1000) as $chunk) {
+                $newPsnTitles = $newPsnTitles->merge(
+                    PsnTitle::whereIn('np_communication_id', $chunk)->whereNull('game_id')->get()
+                );
+            }
 
-        foreach ($data['titles'] as $title) {
-            $npId = $title['npCommunicationId'] ?? null;
-            if (!$npId) continue;
-
-            $existing = PsnTitle::where('np_communication_id', $npId)->first();
-            if ($existing) {
-                $existing->incrementSeen();
-                $existingCount++;
-            } else {
-                $psnTitle = PsnTitle::upsertFromTrophy($title, $username);
-                $newCount++;
-
-                // Fast exact-match using pre-loaded titles
-                if ($psnTitle && !$psnTitle->game_id) {
-                    $normalizedPsn = strtolower(trim($psnTitle->psn_title));
-                    $gameId = $gameTitles[$normalizedPsn] ?? null;
-                    if ($gameId) {
-                        $game = Game::find($gameId);
-                        if ($game) {
-                            $psnTitle->linkToGame($game);
-                            $autoMatchedCount++;
-                        }
+            foreach ($newPsnTitles as $psnTitle) {
+                $normalizedPsn = strtolower(trim($psnTitle->psn_title));
+                $gameId = $gameTitles[$normalizedPsn] ?? null;
+                if ($gameId) {
+                    $game = Game::find($gameId);
+                    if ($game) {
+                        $psnTitle->linkToGame($game);
+                        $autoMatchedCount++;
                     }
                 }
             }
