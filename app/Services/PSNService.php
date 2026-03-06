@@ -214,7 +214,7 @@ class PSNService
     {
         $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
             'Authorization' => 'Bearer ' . $this->accessToken,
-        ]))->post(self::SEARCH_URL, [
+        ]))->timeout(30)->post(self::SEARCH_URL, [
             'searchTerm' => $username,
             'domainRequests' => [
                 [
@@ -307,7 +307,7 @@ class PSNService
 
         $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
             'Authorization' => 'Bearer ' . $this->accessToken,
-        ]))->get($url, [
+        ]))->timeout(60)->get($url, [
             'limit' => $limit,
             'offset' => $offset,
         ]);

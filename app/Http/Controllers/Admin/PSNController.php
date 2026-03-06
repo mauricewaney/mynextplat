@@ -118,6 +118,8 @@ class PSNController extends Controller
      */
     public function collectFromUser(string $username, PSNService $psnService)
     {
+        set_time_limit(300); // Allow up to 5 minutes for large libraries
+
         if (!$psnService->authenticateFromConfig()) {
             return response()->json([
                 'success' => false,
@@ -133,6 +135,11 @@ class PSNController extends Controller
                 'message' => $data['message'] ?? 'User not found or profile is private.',
             ], 404);
         }
+
+        // Pre-load game titles once for auto-matching (instead of per-title)
+        $gameTitles = Game::select('id', 'title')->get()
+            ->mapWithKeys(fn($g) => [strtolower(trim($g->title)) => $g->id])
+            ->all();
 
         $newCount = 0;
         $existingCount = 0;
@@ -150,11 +157,16 @@ class PSNController extends Controller
                 $psnTitle = PsnTitle::upsertFromTrophy($title, $username);
                 $newCount++;
 
-                // Try auto-match for new titles
+                // Fast exact-match using pre-loaded titles
                 if ($psnTitle && !$psnTitle->game_id) {
-                    $matched = $this->tryAutoMatch($psnTitle);
-                    if ($matched) {
-                        $autoMatchedCount++;
+                    $normalizedPsn = strtolower(trim($psnTitle->psn_title));
+                    $gameId = $gameTitles[$normalizedPsn] ?? null;
+                    if ($gameId) {
+                        $game = Game::find($gameId);
+                        if ($game) {
+                            $psnTitle->linkToGame($game);
+                            $autoMatchedCount++;
+                        }
                     }
                 }
             }
@@ -199,12 +211,26 @@ class PSNController extends Controller
      */
     public function autoMatchAll()
     {
+        set_time_limit(300);
+
         $unmatched = PsnTitle::unmatched()->get();
+
+        // Pre-load game titles once for fast lookup
+        $gameTitles = Game::select('id', 'title')->get()
+            ->mapWithKeys(fn($g) => [strtolower(trim($g->title)) => $g->id])
+            ->all();
+
         $matchedCount = 0;
 
         foreach ($unmatched as $psnTitle) {
-            if ($this->tryAutoMatch($psnTitle)) {
-                $matchedCount++;
+            $normalizedPsn = strtolower(trim($psnTitle->psn_title));
+            $gameId = $gameTitles[$normalizedPsn] ?? null;
+            if ($gameId) {
+                $game = Game::find($gameId);
+                if ($game) {
+                    $psnTitle->linkToGame($game);
+                    $matchedCount++;
+                }
             }
         }
 
