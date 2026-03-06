@@ -474,6 +474,22 @@ async function collectFromUser() {
 
     try {
         const response = await fetch(`/api/admin/psn/collect/${encodeURIComponent(collectUsername.value.trim())}`)
+
+        if (!response.ok) {
+            let errorMsg = `Server error (${response.status})`
+            try {
+                const errData = await response.json()
+                errorMsg = errData.message || errorMsg
+            } catch {
+                // Response wasn't JSON (e.g. HTML 500 page)
+                if (response.status === 500) {
+                    errorMsg = 'Server error — the user\'s library may be too large or the PSN API timed out. Try again.'
+                }
+            }
+            collectResult.value = { success: false, message: errorMsg }
+            return
+        }
+
         const data = await response.json()
 
         // Extract "Did you mean" suggestions from error message
@@ -500,7 +516,7 @@ async function collectFromUser() {
     } catch (error) {
         collectResult.value = {
             success: false,
-            message: 'Failed to collect NP IDs'
+            message: 'Network error — could not reach server. Check your connection and try again.'
         }
     } finally {
         collecting.value = false
