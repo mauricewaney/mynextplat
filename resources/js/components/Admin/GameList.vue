@@ -1046,7 +1046,7 @@
                                             <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.games.length }} copies)</span>
                                         </h3>
                                         <button
-                                            @click="mergeGroup(exactDuplicateGroups, groupIndex)"
+                                            @click="mergeGroup('exact', groupIndex)"
                                             :disabled="group.merging"
                                             class="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 text-sm font-medium disabled:opacity-50"
                                         >
@@ -1128,7 +1128,7 @@
                                             </span>
                                         </h3>
                                         <button
-                                            @click="mergeGroup(possibleDuplicateGroups, groupIndex)"
+                                            @click="mergeGroup('possible', groupIndex)"
                                             :disabled="group.merging"
                                             class="px-3 py-1 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm font-medium disabled:opacity-50"
                                         >
@@ -1756,7 +1756,8 @@ async function scanDuplicates() {
     }
 }
 
-async function mergeGroup(groupsRef, groupIndex) {
+async function mergeGroup(type, groupIndex) {
+    const groupsRef = type === 'exact' ? exactDuplicateGroups : possibleDuplicateGroups
     const group = groupsRef.value[groupIndex]
     const keeper = group.games.find(g => g.id === group.keeperId)
     const duplicates = group.games.filter(g => g.id !== group.keeperId)
