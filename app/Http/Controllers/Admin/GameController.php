@@ -10,7 +10,7 @@ use App\Models\Platform;
 use App\Services\IGDBService;
 use App\Services\GameFilterService;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class GameController extends Controller
@@ -510,17 +510,44 @@ class GameController extends Controller
             $primary->powerpyx_url = $duplicate->powerpyx_url;
         }
 
+        // If the duplicate has more user ratings, it's the more popular version —
+        // take all its scores as the canonical ones
+        if (($duplicate->user_score_count ?? 0) > ($primary->user_score_count ?? 0)) {
+            $primary->user_score = $duplicate->user_score;
+            $primary->user_score_count = $duplicate->user_score_count;
+            $primary->critic_score = $duplicate->critic_score;
+            $primary->critic_score_count = $duplicate->critic_score_count;
+            $primary->opencritic_score = $duplicate->opencritic_score;
+        }
+
+        // Trophy breakdown — take from whichever actually has counts
+        $primaryTrophyTotal = ($primary->bronze_count ?? 0) + ($primary->silver_count ?? 0)
+            + ($primary->gold_count ?? 0) + ($primary->platinum_count ?? 0);
+        $duplicateTrophyTotal = ($duplicate->bronze_count ?? 0) + ($duplicate->silver_count ?? 0)
+            + ($duplicate->gold_count ?? 0) + ($duplicate->platinum_count ?? 0);
+        if ($duplicateTrophyTotal > 0 && $primaryTrophyTotal === 0) {
+            $primary->bronze_count = $duplicate->bronze_count;
+            $primary->silver_count = $duplicate->silver_count;
+            $primary->gold_count = $duplicate->gold_count;
+            $primary->platinum_count = $duplicate->platinum_count;
+        }
+
         // Merge other fields if primary is missing them
         $fieldsToMerge = [
             'cover_url', 'banner_url', 'description', 'developer', 'publisher',
             'release_date', 'difficulty', 'time_min', 'time_max', 'playthroughs_required',
-            'critic_score', 'opencritic_score', 'trophy_icon_url',
-            'bronze_count', 'silver_count', 'gold_count', 'platinum_count',
+            'user_score', 'user_score_count', 'critic_score', 'critic_score_count',
+            'opencritic_score', 'trophy_icon_url',
         ];
         foreach ($fieldsToMerge as $field) {
             if ($primary->$field === null && $duplicate->$field !== null) {
                 $primary->$field = $duplicate->$field;
             }
+        }
+
+        // Merge igdb_id if primary doesn't have one
+        if (!$primary->igdb_id && $duplicate->igdb_id) {
+            $primary->igdb_id = $duplicate->igdb_id;
         }
 
         // Merge boolean fields (prefer true)
@@ -544,6 +571,28 @@ class GameController extends Controller
         // Update all PSN titles that were linked to duplicate
         \App\Models\PsnTitle::where('game_id', $duplicate->id)
             ->update(['game_id' => $primary->id]);
+
+        // Transfer user_game entries (skip conflicts where user already has primary)
+        DB::table('user_game')
+            ->where('game_id', $duplicate->id)
+            ->whereNotIn('user_id', DB::table('user_game')->where('game_id', $primary->id)->pluck('user_id'))
+            ->update(['game_id' => $primary->id]);
+        DB::table('user_game')->where('game_id', $duplicate->id)->delete();
+
+        // Transfer guide clicks
+        DB::table('guide_clicks')->where('game_id', $duplicate->id)->update(['game_id' => $primary->id]);
+
+        // Transfer featured clicks
+        DB::table('featured_clicks')->where('game_id', $duplicate->id)->update(['game_id' => $primary->id]);
+
+        // Transfer featured placements
+        DB::table('featured_placements')->where('game_id', $duplicate->id)->update(['game_id' => $primary->id]);
+
+        // Transfer game corrections
+        DB::table('game_corrections')->where('game_id', $duplicate->id)->update(['game_id' => $primary->id]);
+
+        // Transfer trophy guide URLs
+        DB::table('trophy_guide_urls')->where('game_id', $duplicate->id)->update(['game_id' => $primary->id]);
 
         // Delete the duplicate
         $duplicateTitle = $duplicate->title;
@@ -601,6 +650,109 @@ class GameController extends Controller
             ->get();
 
         return response()->json($games);
+    }
+
+    /**
+     * Scan all games for potential duplicates by normalized title
+     */
+    public function scanDuplicates()
+    {
+        $games = Game::select(
+            'id', 'title', 'igdb_id', 'cover_url', 'has_platinum',
+            'bronze_count', 'silver_count', 'gold_count', 'platinum_count',
+            'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url',
+            'difficulty', 'time_min', 'time_max', 'description', 'developer',
+            'release_date', 'critic_score'
+        )->get();
+
+        // Normalize and group
+        $groups = [];
+        foreach ($games as $game) {
+            $normalized = $this->normalizeTitle($game->title);
+            if (!isset($groups[$normalized])) {
+                $groups[$normalized] = [];
+            }
+            $groups[$normalized][] = $game;
+        }
+
+        // Filter to groups with 2+ games
+        $duplicateGroups = [];
+        foreach ($groups as $normalized => $group) {
+            if (count($group) < 2) continue;
+
+            $groupData = [];
+            foreach ($group as $game) {
+                $psnTitlesCount = DB::table('psn_titles')->where('game_id', $game->id)->count();
+                $usersCount = DB::table('user_game')->where('game_id', $game->id)->count();
+                $guideUrlsCount = DB::table('trophy_guide_urls')->where('game_id', $game->id)->count();
+
+                $completeness = 0;
+                if ($game->cover_url) $completeness++;
+                if ($game->description) $completeness++;
+                if ($game->developer) $completeness++;
+                if ($game->release_date) $completeness++;
+                if ($game->difficulty) $completeness++;
+                if ($game->time_min) $completeness++;
+                if ($game->critic_score) $completeness++;
+                if ($game->igdb_id) $completeness++;
+                if ($game->psnprofiles_url) $completeness++;
+                if ($game->playstationtrophies_url) $completeness++;
+                if ($game->powerpyx_url) $completeness++;
+                if ($game->bronze_count) $completeness++;
+
+                $groupData[] = [
+                    'id' => $game->id,
+                    'title' => $game->title,
+                    'igdb_id' => $game->igdb_id,
+                    'cover_url' => $game->cover_url,
+                    'has_platinum' => $game->has_platinum,
+                    'bronze_count' => $game->bronze_count,
+                    'silver_count' => $game->silver_count,
+                    'gold_count' => $game->gold_count,
+                    'platinum_count' => $game->platinum_count,
+                    'psnprofiles_url' => $game->psnprofiles_url,
+                    'playstationtrophies_url' => $game->playstationtrophies_url,
+                    'powerpyx_url' => $game->powerpyx_url,
+                    'psn_titles_count' => $psnTitlesCount,
+                    'users_count' => $usersCount,
+                    'guide_urls_count' => $guideUrlsCount,
+                    'completeness' => $completeness,
+                ];
+            }
+
+            // Sort within group by completeness desc so best candidate is first
+            usort($groupData, fn($a, $b) => $b['completeness'] <=> $a['completeness']);
+
+            $duplicateGroups[] = [
+                'normalized_title' => $normalized,
+                'games' => $groupData,
+            ];
+        }
+
+        // Sort groups by count descending
+        usort($duplicateGroups, fn($a, $b) => count($b['games']) <=> count($a['games']));
+
+        return response()->json([
+            'total_groups' => count($duplicateGroups),
+            'groups' => $duplicateGroups,
+        ]);
+    }
+
+    /**
+     * Normalize a game title for duplicate comparison
+     */
+    private function normalizeTitle(string $title): string
+    {
+        $title = mb_strtolower($title);
+        // Strip trademark symbols
+        $title = preg_replace('/[\x{2122}\x{00AE}\x{00A9}]/u', '', $title);
+        // Normalize dashes to hyphens
+        $title = preg_replace('/[\x{2013}\x{2014}]/u', '-', $title);
+        // Normalize quotes
+        $title = preg_replace('/[\x{2018}\x{2019}\x{201C}\x{201D}]/u', '', $title);
+        // Collapse whitespace
+        $title = preg_replace('/\s+/', ' ', $title);
+        return trim($title);
     }
 
     /**

@@ -201,6 +201,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/{id}/psn-titles', [AdminGameController::class, 'getLinkedPsnTitles']);
 
         // Merge duplicates
+        Route::get('/scan-duplicates', [AdminGameController::class, 'scanDuplicates']);
         Route::post('/merge', [AdminGameController::class, 'mergeGames']);
         Route::get('/find-duplicates', [AdminGameController::class, 'findDuplicates']);
 

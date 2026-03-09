@@ -34,6 +34,17 @@
                 </div>
 
                 <div class="flex items-center space-x-2">
+                    <button
+                        @click="scanDuplicates"
+                        :disabled="scanningDuplicates"
+                        class="px-3 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 flex items-center space-x-2 disabled:opacity-50"
+                        title="Scan for Duplicate Games"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                        <span>{{ scanningDuplicates ? 'Scanning...' : 'Duplicates' }}</span>
+                    </button>
                     <router-link
                         to="/admin/trophy-import"
                         class="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center space-x-2"
@@ -976,6 +987,128 @@
             :show="showPSNLookup"
             @close="showPSNLookup = false"
         />
+
+        <!-- Duplicates Panel -->
+        <div
+            v-if="showDuplicatesPanel"
+            class="fixed inset-0 z-50 overflow-hidden"
+        >
+            <div
+                class="absolute inset-0 bg-black bg-opacity-50 transition-opacity"
+                @click="showDuplicatesPanel = false"
+            ></div>
+            <div class="absolute inset-y-0 right-0 max-w-4xl w-full">
+                <div class="h-full bg-white dark:bg-slate-800 shadow-xl overflow-y-auto">
+                    <div class="sticky top-0 bg-amber-600 text-white px-4 py-3 flex justify-between items-center z-10">
+                        <div>
+                            <h2 class="text-xl font-bold">Duplicate Games</h2>
+                            <p class="text-amber-100 text-sm">{{ duplicateGroups.length }} duplicate group(s) found</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button
+                                v-if="duplicateGroups.length > 0"
+                                @click="mergeAll"
+                                :disabled="mergingAll"
+                                class="px-3 py-1.5 bg-white text-amber-700 rounded-md hover:bg-amber-50 text-sm font-medium disabled:opacity-50"
+                            >
+                                {{ mergingAll ? 'Merging...' : 'Merge All' }}
+                            </button>
+                            <button @click="showDuplicatesPanel = false" class="text-white hover:text-amber-200">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 space-y-4">
+                        <div v-if="duplicateGroups.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
+                            No duplicates found!
+                        </div>
+
+                        <div
+                            v-for="(group, groupIndex) in duplicateGroups"
+                            :key="group.normalized_title"
+                            class="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4 border border-gray-200 dark:border-slate-600"
+                        >
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-semibold text-gray-900 dark:text-white">
+                                    "{{ group.games[0].title }}"
+                                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.games.length }} copies)</span>
+                                </h3>
+                                <button
+                                    @click="mergeGroup(groupIndex)"
+                                    :disabled="group.merging"
+                                    class="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 text-sm font-medium disabled:opacity-50"
+                                >
+                                    {{ group.merging ? 'Merging...' : 'Merge' }}
+                                </button>
+                            </div>
+
+                            <div class="grid gap-3" :class="group.games.length === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'">
+                                <div
+                                    v-for="game in group.games"
+                                    :key="game.id"
+                                    class="bg-white dark:bg-slate-800 rounded-lg p-3 border-2 cursor-pointer transition-colors"
+                                    :class="group.keeperId === game.id
+                                        ? 'border-green-500 ring-2 ring-green-200 dark:ring-green-800'
+                                        : 'border-gray-200 dark:border-slate-600 hover:border-amber-300'"
+                                    @click="group.keeperId = game.id"
+                                >
+                                    <div class="flex gap-3">
+                                        <img
+                                            v-if="game.cover_url"
+                                            :src="game.cover_url"
+                                            class="w-14 h-20 object-cover rounded shadow-sm flex-shrink-0"
+                                        />
+                                        <div v-else class="w-14 h-20 bg-gray-200 dark:bg-slate-600 rounded flex items-center justify-center text-gray-400 text-xs flex-shrink-0">
+                                            No Img
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center gap-1 mb-1">
+                                                <span v-if="group.keeperId === game.id" class="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1.5 py-0.5 rounded font-medium">KEEP</span>
+                                                <span v-else class="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-1.5 py-0.5 rounded font-medium">DELETE</span>
+                                            </div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ game.title }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ game.id }}</p>
+                                            <p v-if="game.igdb_id" class="text-xs text-gray-500 dark:text-gray-400">IGDB: {{ game.igdb_id }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-2 grid grid-cols-2 gap-1 text-xs">
+                                        <div class="flex items-center gap-1">
+                                            <span :class="game.completeness >= 8 ? 'text-green-600' : game.completeness >= 4 ? 'text-yellow-600' : 'text-red-600'" class="font-medium">
+                                                {{ game.completeness }}/12
+                                            </span>
+                                            <span class="text-gray-500 dark:text-gray-400">data</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-medium text-gray-700 dark:text-gray-300">{{ game.users_count }}</span>
+                                            <span class="text-gray-500 dark:text-gray-400">users</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-medium text-gray-700 dark:text-gray-300">{{ game.psn_titles_count }}</span>
+                                            <span class="text-gray-500 dark:text-gray-400">PSN</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-medium text-gray-700 dark:text-gray-300">{{ game.guide_urls_count }}</span>
+                                            <span class="text-gray-500 dark:text-gray-400">guides</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-2 flex flex-wrap gap-1">
+                                        <span v-if="game.psnprofiles_url" class="text-[10px] bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1 rounded">PSNP</span>
+                                        <span v-if="game.playstationtrophies_url" class="text-[10px] bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-1 rounded">PST</span>
+                                        <span v-if="game.powerpyx_url" class="text-[10px] bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-1 rounded">PPX</span>
+                                        <span v-if="game.has_platinum" class="text-[10px] bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-1 rounded">PLAT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </AdminLayout>
 </template>
 
@@ -1002,6 +1135,12 @@ const bulkScraping = ref(false)
 const showInstructions = ref(false)
 const showPSNLookup = ref(false)
 const stats = ref(null)
+
+// Duplicates
+const showDuplicatesPanel = ref(false)
+const scanningDuplicates = ref(false)
+const duplicateGroups = ref([])
+const mergingAll = ref(false)
 
 // Form data (genres, tags, platforms)
 const formData = reactive({
@@ -1508,6 +1647,93 @@ const fetchStats = async () => {
     } catch (error) {
         console.error('Error fetching stats:', error)
     }
+}
+
+// Duplicates
+async function scanDuplicates() {
+    scanningDuplicates.value = true
+    try {
+        const response = await fetch('/api/admin/games/scan-duplicates')
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+        const data = await response.json()
+        duplicateGroups.value = data.groups.map(group => ({
+            ...group,
+            keeperId: group.games[0].id, // default to most complete
+            merging: false,
+        }))
+        showDuplicatesPanel.value = true
+    } catch (error) {
+        console.error('Error scanning duplicates:', error)
+        alert('Failed to scan for duplicates')
+    } finally {
+        scanningDuplicates.value = false
+    }
+}
+
+async function mergeGroup(groupIndex) {
+    const group = duplicateGroups.value[groupIndex]
+    const keeper = group.games.find(g => g.id === group.keeperId)
+    const duplicates = group.games.filter(g => g.id !== group.keeperId)
+
+    if (!confirm(`Keep "${keeper.title}" (ID ${keeper.id}) and merge ${duplicates.length} duplicate(s) into it?`)) return
+
+    group.merging = true
+    try {
+        for (const dup of duplicates) {
+            const response = await fetch('/api/admin/games/merge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ primary_id: group.keeperId, duplicate_id: dup.id })
+            })
+            if (!response.ok) {
+                const err = await response.json()
+                throw new Error(err.message || `Failed to merge ID ${dup.id}`)
+            }
+        }
+        // Remove group from list
+        duplicateGroups.value.splice(groupIndex, 1)
+        fetchGames()
+        fetchStats()
+    } catch (error) {
+        console.error('Error merging group:', error)
+        alert('Merge failed: ' + error.message)
+    } finally {
+        group.merging = false
+    }
+}
+
+async function mergeAll() {
+    if (!confirm(`Auto-merge all ${duplicateGroups.value.length} duplicate groups? The game with the most data in each group will be kept.`)) return
+
+    mergingAll.value = true
+    let merged = 0
+    let failed = 0
+
+    // Process groups in reverse so splice indices stay valid
+    for (let i = duplicateGroups.value.length - 1; i >= 0; i--) {
+        const group = duplicateGroups.value[i]
+        const duplicates = group.games.filter(g => g.id !== group.keeperId)
+
+        try {
+            for (const dup of duplicates) {
+                const response = await fetch('/api/admin/games/merge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ primary_id: group.keeperId, duplicate_id: dup.id })
+                })
+                if (!response.ok) throw new Error('merge failed')
+            }
+            duplicateGroups.value.splice(i, 1)
+            merged++
+        } catch {
+            failed++
+        }
+    }
+
+    mergingAll.value = false
+    alert(`Merged ${merged} group(s)` + (failed ? `, ${failed} failed` : ''))
+    fetchGames()
+    fetchStats()
 }
 
 // Load data on mount
