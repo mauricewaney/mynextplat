@@ -665,77 +665,107 @@ class GameController extends Controller
             'release_date', 'critic_score'
         )->get();
 
-        // Normalize and group
-        $groups = [];
+        // Build game data with counts (once, reused for both passes)
+        $gameDataMap = [];
         foreach ($games as $game) {
-            $normalized = $this->normalizeTitle($game->title);
-            if (!isset($groups[$normalized])) {
-                $groups[$normalized] = [];
-            }
-            $groups[$normalized][] = $game;
+            $gameDataMap[$game->id] = $this->buildGameDataForScan($game);
         }
 
-        // Filter to groups with 2+ games
-        $duplicateGroups = [];
-        foreach ($groups as $normalized => $group) {
-            if (count($group) < 2) continue;
+        // Pass 1: Exact duplicates (same normalized title)
+        $exactGroups = [];
+        foreach ($games as $game) {
+            $normalized = $this->normalizeTitle($game->title);
+            $exactGroups[$normalized][] = $game->id;
+        }
 
-            $groupData = [];
-            foreach ($group as $game) {
-                $psnTitlesCount = DB::table('psn_titles')->where('game_id', $game->id)->count();
-                $usersCount = DB::table('user_game')->where('game_id', $game->id)->count();
-                $guideUrlsCount = DB::table('trophy_guide_urls')->where('game_id', $game->id)->count();
-
-                $completeness = 0;
-                if ($game->cover_url) $completeness++;
-                if ($game->description) $completeness++;
-                if ($game->developer) $completeness++;
-                if ($game->release_date) $completeness++;
-                if ($game->difficulty) $completeness++;
-                if ($game->time_min) $completeness++;
-                if ($game->critic_score) $completeness++;
-                if ($game->igdb_id) $completeness++;
-                if ($game->psnprofiles_url) $completeness++;
-                if ($game->playstationtrophies_url) $completeness++;
-                if ($game->powerpyx_url) $completeness++;
-                if ($game->bronze_count) $completeness++;
-
-                $groupData[] = [
-                    'id' => $game->id,
-                    'title' => $game->title,
-                    'igdb_id' => $game->igdb_id,
-                    'cover_url' => $game->cover_url,
-                    'has_platinum' => $game->has_platinum,
-                    'bronze_count' => $game->bronze_count,
-                    'silver_count' => $game->silver_count,
-                    'gold_count' => $game->gold_count,
-                    'platinum_count' => $game->platinum_count,
-                    'psnprofiles_url' => $game->psnprofiles_url,
-                    'playstationtrophies_url' => $game->playstationtrophies_url,
-                    'powerpyx_url' => $game->powerpyx_url,
-                    'psn_titles_count' => $psnTitlesCount,
-                    'users_count' => $usersCount,
-                    'guide_urls_count' => $guideUrlsCount,
-                    'completeness' => $completeness,
-                ];
-            }
-
-            // Sort within group by completeness desc so best candidate is first
+        $exactDuplicates = [];
+        $exactGameIds = []; // Track which games are already in exact duplicates
+        foreach ($exactGroups as $normalized => $ids) {
+            if (count($ids) < 2) continue;
+            $groupData = array_map(fn($id) => $gameDataMap[$id], $ids);
             usort($groupData, fn($a, $b) => $b['completeness'] <=> $a['completeness']);
-
-            $duplicateGroups[] = [
+            $exactDuplicates[] = [
                 'normalized_title' => $normalized,
                 'games' => $groupData,
             ];
+            foreach ($ids as $id) {
+                $exactGameIds[$id] = true;
+            }
+        }
+        usort($exactDuplicates, fn($a, $b) => count($b['games']) <=> count($a['games']));
+
+        // Pass 2: Possible duplicates (same base title after stripping edition suffixes)
+        // Only consider games NOT already in exact duplicate groups
+        $fuzzyGroups = [];
+        foreach ($games as $game) {
+            if (isset($exactGameIds[$game->id])) continue;
+            $base = $this->stripEditionSuffix($this->normalizeTitle($game->title));
+            $fuzzyGroups[$base][] = $game->id;
         }
 
-        // Sort groups by count descending
-        usort($duplicateGroups, fn($a, $b) => count($b['games']) <=> count($a['games']));
+        $possibleDuplicates = [];
+        foreach ($fuzzyGroups as $base => $ids) {
+            if (count($ids) < 2) continue;
+            // Verify titles are actually different (otherwise they'd be exact dupes)
+            $titles = array_map(fn($id) => $gameDataMap[$id]['title'], $ids);
+            if (count(array_unique($titles)) < 2) continue;
+
+            $groupData = array_map(fn($id) => $gameDataMap[$id], $ids);
+            usort($groupData, fn($a, $b) => $b['completeness'] <=> $a['completeness']);
+            $possibleDuplicates[] = [
+                'normalized_title' => $base,
+                'games' => $groupData,
+            ];
+        }
+        usort($possibleDuplicates, fn($a, $b) => count($b['games']) <=> count($a['games']));
 
         return response()->json([
-            'total_groups' => count($duplicateGroups),
-            'groups' => $duplicateGroups,
+            'exact_groups' => $exactDuplicates,
+            'possible_groups' => $possibleDuplicates,
         ]);
+    }
+
+    /**
+     * Build scan data for a single game
+     */
+    private function buildGameDataForScan(Game $game): array
+    {
+        $psnTitlesCount = DB::table('psn_titles')->where('game_id', $game->id)->count();
+        $usersCount = DB::table('user_game')->where('game_id', $game->id)->count();
+        $guideUrlsCount = DB::table('trophy_guide_urls')->where('game_id', $game->id)->count();
+
+        $completeness = 0;
+        if ($game->cover_url) $completeness++;
+        if ($game->description) $completeness++;
+        if ($game->developer) $completeness++;
+        if ($game->release_date) $completeness++;
+        if ($game->difficulty) $completeness++;
+        if ($game->time_min) $completeness++;
+        if ($game->critic_score) $completeness++;
+        if ($game->igdb_id) $completeness++;
+        if ($game->psnprofiles_url) $completeness++;
+        if ($game->playstationtrophies_url) $completeness++;
+        if ($game->powerpyx_url) $completeness++;
+        if ($game->bronze_count) $completeness++;
+
+        return [
+            'id' => $game->id,
+            'title' => $game->title,
+            'igdb_id' => $game->igdb_id,
+            'cover_url' => $game->cover_url,
+            'has_platinum' => $game->has_platinum,
+            'bronze_count' => $game->bronze_count,
+            'silver_count' => $game->silver_count,
+            'gold_count' => $game->gold_count,
+            'platinum_count' => $game->platinum_count,
+            'psnprofiles_url' => $game->psnprofiles_url,
+            'playstationtrophies_url' => $game->playstationtrophies_url,
+            'powerpyx_url' => $game->powerpyx_url,
+            'psn_titles_count' => $psnTitlesCount,
+            'users_count' => $usersCount,
+            'guide_urls_count' => $guideUrlsCount,
+            'completeness' => $completeness,
+        ];
     }
 
     /**
@@ -753,6 +783,44 @@ class GameController extends Controller
         // Collapse whitespace
         $title = preg_replace('/\s+/', ' ', $title);
         return trim($title);
+    }
+
+    /**
+     * Strip common edition/remaster suffixes for fuzzy duplicate matching
+     */
+    private function stripEditionSuffix(string $normalized): string
+    {
+        $suffixes = [
+            // Editions
+            'game of the year edition', 'goty edition', 'goty',
+            'definitive edition', 'complete edition', 'ultimate edition',
+            'deluxe edition', 'gold edition', 'premium edition',
+            'legendary edition', 'enhanced edition', 'special edition',
+            'digital deluxe edition', 'digital edition',
+            // Remasters / remakes
+            'remastered', 'remaster', 'hd remaster',
+            'remake', 'hd', 'hd collection',
+            // Director/final versions
+            "director's cut", 'directors cut', 'final cut',
+            'extended edition', 'expanded edition',
+            // Platform/version markers
+            'ps5 edition', 'ps4 edition',
+            // Common trailing markers
+            'complete', 'ultimate', 'deluxe', 'gold',
+        ];
+
+        // Sort by length desc so longer suffixes match first
+        usort($suffixes, fn($a, $b) => mb_strlen($b) <=> mb_strlen($a));
+
+        foreach ($suffixes as $suffix) {
+            // Strip suffix with optional leading separator (: - –)
+            $title = preg_replace('/\s*[-:\x{2013}\x{2014}]?\s*' . preg_quote($suffix, '/') . '\s*$/u', '', $normalized);
+            if ($title !== $normalized) {
+                return trim($title);
+            }
+        }
+
+        return $normalized;
     }
 
     /**
