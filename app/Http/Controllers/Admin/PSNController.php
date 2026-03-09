@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\GameController;
 use App\Services\PSNService;
 use App\Services\IGDBService;
 use App\Models\Game;
@@ -230,6 +231,11 @@ class PSNController extends Controller
             }
         }
 
+        // Bust game cache if any games were updated via auto-matching
+        if ($autoMatchedCount > 0) {
+            GameController::bustGameCache();
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Collected {$newCount} new titles, updated {$existingCount} existing, auto-matched {$autoMatchedCount}.",
@@ -290,6 +296,10 @@ class PSNController extends Controller
                     $matchedCount++;
                 }
             }
+        }
+
+        if ($matchedCount > 0) {
+            GameController::bustGameCache();
         }
 
         return response()->json([
@@ -389,6 +399,7 @@ class PSNController extends Controller
         $game = Game::findOrFail($request->game_id);
 
         $psnTitle->linkToGame($game);
+        GameController::bustGameCache();
 
         return response()->json([
             'success' => true,
@@ -489,6 +500,10 @@ class PSNController extends Controller
                 $psnTitle->linkToGame($game);
                 $linked++;
             }
+        }
+
+        if ($linked > 0) {
+            GameController::bustGameCache();
         }
 
         return response()->json([
@@ -706,6 +721,7 @@ class PSNController extends Controller
 
         // Link the PSN title
         $psnTitle->linkToGame($game);
+        GameController::bustGameCache();
 
         $action = $wasMerged ? 'Merged into' : 'Created';
         return response()->json([
@@ -839,6 +855,7 @@ class PSNController extends Controller
 
         // Link the PSN title to the game
         $psnTitle->linkToGame($game);
+        GameController::bustGameCache();
 
         $action = $wasExisting ? 'Linked to existing' : ($wasMerged ? 'Merged into' : 'Imported');
         return response()->json([
