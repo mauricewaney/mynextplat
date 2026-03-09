@@ -76,7 +76,21 @@
                     >
                         {{ game.title }}
                     </a>
-                    <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                    <div v-if="hasTrophyData" class="flex items-center gap-1.5">
+                        <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-sm font-bold text-blue-300 dark:text-blue-200">
+                            <TrophyIcon tier="platinum" size="xs" />{{ game.has_platinum ? 1 : 0 }}
+                        </span>
+                        <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-sm font-bold text-yellow-500 dark:text-yellow-400">
+                            <TrophyIcon tier="gold" size="xs" />{{ game.gold_count }}
+                        </span>
+                        <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 text-sm font-bold text-gray-400 dark:text-gray-300">
+                            <TrophyIcon tier="silver" size="xs" />{{ game.silver_count }}
+                        </span>
+                        <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 text-sm font-bold text-amber-700 dark:text-amber-500">
+                            <TrophyIcon tier="bronze" size="xs" />{{ game.bronze_count }}
+                        </span>
+                    </div>
+                    <p v-else class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
                         {{ game.developer || game.publisher || 'Unknown Developer' }}
                     </p>
                 </div>
@@ -303,6 +317,7 @@ import { useAuth } from '../composables/useAuth'
 import { useTooltip } from '../composables/useTooltip'
 import AddToListButton from './AddToListButton.vue'
 import PlatformIcon from './PlatformIcon.vue'
+import TrophyIcon from './TrophyIcon.vue'
 
 const { isAdmin } = useAuth()
 
@@ -443,6 +458,11 @@ const timeValues = computed(() => {
     if (!min) return { mobile: `~${max}`, desktop: `~${max} hours` }
     if (!max) return { mobile: `${min}+`, desktop: `${min}+ hours` }
     return { mobile: `${min}-${max}`, desktop: `${min}-${max} hours` }
+})
+
+const hasTrophyData = computed(() => {
+    const g = props.game
+    return g.has_platinum || g.gold_count || g.silver_count || g.bronze_count
 })
 
 const dataSourceLabel = computed(() => {

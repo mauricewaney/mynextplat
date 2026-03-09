@@ -677,7 +677,8 @@ class GameController extends Controller
         'playthroughs_required', 'has_online_trophies', 'missable_trophies',
         'data_source', 'user_score', 'user_score_count', 'critic_score',
         'critic_score_count', 'psnprofiles_url', 'playstationtrophies_url',
-        'powerpyx_url', 'has_guide', 'has_platinum', 'release_date', 'created_at',
+        'powerpyx_url', 'has_guide', 'has_platinum', 'bronze_count', 'silver_count', 'gold_count',
+        'release_date', 'created_at',
     ];
 
     /**
