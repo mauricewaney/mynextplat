@@ -462,7 +462,7 @@ const timeValues = computed(() => {
 
 const hasTrophyData = computed(() => {
     const g = props.game
-    return g.has_platinum || g.gold_count || g.silver_count || g.bronze_count
+    return g.gold_count || g.silver_count || g.bronze_count
 })
 
 const dataSourceLabel = computed(() => {
