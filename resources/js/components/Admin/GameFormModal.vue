@@ -211,6 +211,94 @@ Online Trophies: None"
                         </div>
                     </div>
 
+                    <!-- PSN Title Linking -->
+                    <div v-if="isEdit" class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-slate-700 pb-2">
+                            PSN Titles
+                            <span v-if="linkedPsnTitles.length" class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ linkedPsnTitles.length }} linked)</span>
+                        </h3>
+
+                        <!-- Currently linked -->
+                        <div v-if="linkedPsnTitles.length > 0" class="space-y-1">
+                            <div
+                                v-for="pt in linkedPsnTitles"
+                                :key="pt.id"
+                                class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded px-3 py-2"
+                            >
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <img v-if="pt.icon_url" :src="pt.icon_url" class="w-8 h-8 rounded flex-shrink-0" />
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ pt.psn_title }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ pt.np_communication_id }} &middot; {{ pt.platform }}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="unlinkPsnTitle(pt)"
+                                    class="text-red-500 hover:text-red-700 text-xs flex-shrink-0 ml-2"
+                                >
+                                    Unlink
+                                </button>
+                            </div>
+                        </div>
+                        <p v-else class="text-sm text-gray-500 dark:text-gray-400">No PSN titles linked yet.</p>
+
+                        <!-- Search to link -->
+                        <div>
+                            <div class="flex gap-2">
+                                <input
+                                    v-model="psnSearch"
+                                    type="text"
+                                    class="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-slate-700 dark:text-white"
+                                    placeholder="Search PSN titles to link..."
+                                    @input="debouncedPsnSearch"
+                                />
+                                <label class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                    <input type="checkbox" v-model="psnSearchUnmatchedOnly" @change="searchPsnTitles" class="rounded border-gray-300 text-blue-600" />
+                                    Unmatched only
+                                </label>
+                            </div>
+
+                            <!-- Search results -->
+                            <div v-if="psnSearchResults.length > 0" class="mt-2 border border-gray-200 dark:border-slate-700 rounded-md max-h-48 overflow-y-auto">
+                                <div
+                                    v-for="result in psnSearchResults"
+                                    :key="result.id"
+                                    class="flex items-center justify-between px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700 last:border-b-0"
+                                >
+                                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                                        <img v-if="result.icon_url" :src="result.icon_url" class="w-7 h-7 rounded flex-shrink-0" />
+                                        <div class="min-w-0">
+                                            <p class="text-sm text-gray-900 dark:text-white truncate">{{ result.psn_title }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ result.np_communication_id }}
+                                                <span v-if="result.platform"> &middot; {{ result.platform }}</span>
+                                                <span v-if="result.linked_game_title" class="text-amber-600 dark:text-amber-400"> &middot; linked to "{{ result.linked_game_title }}"</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                                        <span
+                                            class="text-xs font-medium px-1.5 py-0.5 rounded"
+                                            :class="result.similarity >= 80 ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : result.similarity >= 60 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'"
+                                        >{{ result.similarity }}%</span>
+                                        <button
+                                            type="button"
+                                            @click="linkPsnTitle(result)"
+                                            class="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                                        >
+                                            Link
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p v-else-if="psnSearch && !psnSearchLoading && psnSearchResults.length === 0" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                No matching PSN titles found
+                            </p>
+                            <p v-if="psnSearchLoading" class="text-xs text-gray-500 dark:text-gray-400 mt-1">Searching...</p>
+                        </div>
+                    </div>
+
                     <!-- Basic Information -->
                     <div class="space-y-4">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-slate-700 pb-2">Basic Information</h3>
@@ -695,6 +783,14 @@ const guideSearchLoading = ref(false);
 const guideSearchResults = ref([]);
 let guideSearchTimeout = null;
 
+// PSN title linking
+const linkedPsnTitles = ref([]);
+const psnSearch = ref('');
+const psnSearchLoading = ref(false);
+const psnSearchResults = ref([]);
+const psnSearchUnmatchedOnly = ref(false);
+let psnSearchTimeout = null;
+
 // Form data
 const form = ref({
     title: '',
@@ -783,6 +879,12 @@ watch(() => props.game, (game) => {
         // Clear guide search when loading a game
         guideSearch.value = '';
         guideSearchResults.value = [];
+
+        // Load linked PSN titles and auto-suggest
+        psnSearch.value = '';
+        psnSearchResults.value = [];
+        loadLinkedPsnTitles();
+        searchPsnTitles(); // auto-suggest based on game title
     }
 }, { immediate: true });
 
@@ -794,6 +896,9 @@ watch(() => props.show, (show) => {
     errors.value = {};
     guideText.value = '';
     parsedFields.value = [];
+    linkedPsnTitles.value = [];
+    psnSearch.value = '';
+    psnSearchResults.value = [];
 });
 
 function resetForm() {
@@ -883,6 +988,69 @@ function applyGuide(field, url) {
     if (el) {
         el.classList.add('ring-2', 'ring-green-500');
         setTimeout(() => el.classList.remove('ring-2', 'ring-green-500'), 1000);
+    }
+}
+
+// PSN title linking functions
+async function loadLinkedPsnTitles() {
+    if (!props.game?.id) return;
+    try {
+        const response = await axios.get(`/api/admin/games/${props.game.id}/psn-titles`);
+        linkedPsnTitles.value = response.data.psn_titles || [];
+    } catch (error) {
+        console.error('Error loading linked PSN titles:', error);
+    }
+}
+
+function debouncedPsnSearch() {
+    clearTimeout(psnSearchTimeout);
+    psnSearchTimeout = setTimeout(() => searchPsnTitles(), 300);
+}
+
+async function searchPsnTitles() {
+    if (!props.game?.id) return;
+    psnSearchLoading.value = true;
+    try {
+        const params = {
+            game_id: props.game.id,
+            unmatched_only: psnSearchUnmatchedOnly.value ? 1 : 0,
+        };
+        if (psnSearch.value) params.search = psnSearch.value;
+        const response = await axios.get('/api/admin/psn/search-for-game', { params });
+        psnSearchResults.value = response.data;
+    } catch (error) {
+        console.error('Error searching PSN titles:', error);
+        psnSearchResults.value = [];
+    } finally {
+        psnSearchLoading.value = false;
+    }
+}
+
+async function linkPsnTitle(result) {
+    try {
+        await axios.post('/api/admin/psn/link', {
+            psn_title_id: result.id,
+            game_id: props.game.id,
+        });
+        // Move from search results to linked
+        psnSearchResults.value = psnSearchResults.value.filter(r => r.id !== result.id);
+        await loadLinkedPsnTitles();
+    } catch (error) {
+        console.error('Error linking PSN title:', error);
+        alert('Failed to link PSN title');
+    }
+}
+
+async function unlinkPsnTitle(psnTitle) {
+    if (!confirm(`Unlink "${psnTitle.psn_title}" from this game?`)) return;
+    try {
+        await axios.post('/api/admin/psn/unlink', {
+            psn_title_id: psnTitle.id,
+        });
+        await loadLinkedPsnTitles();
+    } catch (error) {
+        console.error('Error unlinking PSN title:', error);
+        alert('Failed to unlink PSN title');
     }
 }
 

@@ -536,6 +536,73 @@ class PSNController extends Controller
     }
 
     /**
+     * Search unmatched PSN titles for linking to a specific game
+     * Returns titles matching the search query + auto-suggestions based on game title
+     */
+    public function searchUnmatchedForGame(Request $request)
+    {
+        $request->validate([
+            'game_id' => 'required|exists:games,id',
+            'search' => 'nullable|string|min:1',
+        ]);
+
+        $game = Game::findOrFail($request->game_id);
+        $search = $request->get('search', '');
+
+        // If no search term, auto-suggest based on game title
+        if (!$search) {
+            $search = $game->title;
+        }
+
+        $normalizedSearch = $this->normalizeForSearch($search);
+        $onlyUnmatched = $request->boolean('unmatched_only', false);
+
+        // Get PSN titles (optionally filter to unmatched only)
+        $query = PsnTitle::with('game:id,title')->whereNull('skipped_at');
+        if ($onlyUnmatched) {
+            $query->whereNull('game_id');
+        }
+        // Exclude titles already linked to THIS game
+        $query->where(function ($q) use ($game) {
+            $q->whereNull('game_id')->orWhere('game_id', '!=', $game->id);
+        });
+        $unmatchedTitles = $query->get();
+
+        $results = [];
+        foreach ($unmatchedTitles as $psnTitle) {
+            $normalizedPsn = $this->normalizeForSearch($psnTitle->psn_title);
+
+            similar_text($normalizedSearch, $normalizedPsn, $percent);
+
+            if (str_contains($normalizedPsn, $normalizedSearch) || str_contains($normalizedSearch, $normalizedPsn)) {
+                $percent = min(100, $percent + 15);
+            }
+
+            if ($percent >= 40) {
+                $result = [
+                    'id' => $psnTitle->id,
+                    'psn_title' => $psnTitle->psn_title,
+                    'np_communication_id' => $psnTitle->np_communication_id,
+                    'platform' => $psnTitle->platform,
+                    'icon_url' => $psnTitle->icon_url,
+                    'times_seen' => $psnTitle->times_seen,
+                    'similarity' => round($percent),
+                    'linked_game_id' => $psnTitle->game_id,
+                    'linked_game_title' => null,
+                ];
+                if ($psnTitle->game_id) {
+                    $result['linked_game_title'] = $psnTitle->game?->title;
+                }
+                $results[] = $result;
+            }
+        }
+
+        usort($results, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
+
+        return response()->json(array_slice($results, 0, 20));
+    }
+
+    /**
      * Try to find a matching game in the local database
      */
     private function findLocalMatch(string $psnName, ?string $npId = null): ?array
