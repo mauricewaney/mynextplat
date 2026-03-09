@@ -372,10 +372,17 @@ class PSNController extends Controller
             return array_merge($psnTitle->toArray(), [
                 'suggestions' => $suggestions,
                 'is_skipped' => $psnTitle->skipped_at !== null,
+                'best_similarity' => !empty($suggestions) ? $suggestions[0]['similarity'] : 0,
             ]);
         });
 
-        $paginated->setCollection($items);
+        // Sort by best match similarity if requested
+        if ($sortBy === 'similarity') {
+            $sorted = $items->sortByDesc('best_similarity')->values();
+            $paginated->setCollection($sorted);
+        } else {
+            $paginated->setCollection($items);
+        }
 
         // Add skip count to response
         $skipCount = PsnTitle::unmatched()->skipped()->count();

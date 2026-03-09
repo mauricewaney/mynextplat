@@ -125,6 +125,7 @@
                         @change="loadUnmatched"
                         class="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500"
                     >
+                        <option value="similarity">Best Match</option>
                         <option value="times_seen">Most Popular</option>
                         <option value="title">Title A-Z</option>
                         <option value="created_at">Recently Added</option>
@@ -380,7 +381,7 @@ const collectUsername = ref('')
 const collectResult = ref(null)
 const searchQuery = ref('')
 const selectedPlatform = ref('')
-const sortBy = ref('times_seen')
+const sortBy = ref('similarity')
 const currentPage = ref(1)
 const skipCount = ref(0)
 
