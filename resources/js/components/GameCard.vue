@@ -77,16 +77,16 @@
                         {{ game.title }}
                     </a>
                     <div v-if="hasTrophyData" class="flex items-center gap-1.5">
-                        <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-sm font-bold text-blue-300 dark:text-blue-200">
+                        <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-xs font-bold text-blue-300 dark:text-blue-200">
                             <TrophyIcon tier="platinum" size="xs" />{{ game.has_platinum ? 1 : 0 }}
                         </span>
-                        <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-sm font-bold text-yellow-500 dark:text-yellow-400">
+                        <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-500 dark:text-yellow-400">
                             <TrophyIcon tier="gold" size="xs" />{{ game.gold_count }}
                         </span>
-                        <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 text-sm font-bold text-gray-400 dark:text-gray-300">
+                        <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 xs font-bold text-gray-400 dark:text-gray-300">
                             <TrophyIcon tier="silver" size="xs" />{{ game.silver_count }}
                         </span>
-                        <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 text-sm font-bold text-amber-700 dark:text-amber-500">
+                        <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 xs font-bold text-amber-700 dark:text-amber-500">
                             <TrophyIcon tier="bronze" size="xs" />{{ game.bronze_count }}
                         </span>
                     </div>
