@@ -202,7 +202,7 @@ class GameController extends Controller
                 ], $status);
             }
 
-            return $this->processPsnGames($data);
+            return $this->processPsnGames($data, $username);
         } catch (\Exception $e) {
             \Log::error('PSN lookup failed: ' . $e->getMessage(), [
                 'username' => $username,
@@ -375,7 +375,7 @@ class GameController extends Controller
     /**
      * Process PSN games data and return JSON response
      */
-    private function processPsnGames(array $data)
+    private function processPsnGames(array $data, string $discoveredFrom = 'public-lookup')
     {
         // Debug: Log ALL raw PSN titles to file
         $allRawTitles = array_map(function($t) {
@@ -395,6 +395,16 @@ class GameController extends Controller
         foreach ($data['titles'] as $title) {
             $gameName = $title['trophyTitleName'] ?? 'Unknown';
             $npId = $title['npCommunicationId'] ?? null;
+
+            // Collect NP ID into database
+            if ($npId) {
+                $psnTitle = PsnTitle::where('np_communication_id', $npId)->first();
+                if ($psnTitle) {
+                    $psnTitle->incrementSeen();
+                } else {
+                    PsnTitle::upsertFromTrophy($title, $discoveredFrom);
+                }
+            }
 
             // Try to match by NP ID first (most reliable), then by name
             $localMatch = $this->findLocalMatch($gameName, true, $npId);
