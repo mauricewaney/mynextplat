@@ -791,18 +791,14 @@ class GameController extends Controller
     private function stripEditionSuffix(string $normalized): string
     {
         $suffixes = [
-            // Editions
+            // Edition bundles (same trophy list, different packaging)
             'game of the year edition', 'goty edition', 'goty',
-            'definitive edition', 'complete edition', 'ultimate edition',
+            'complete edition', 'ultimate edition',
             'deluxe edition', 'gold edition', 'premium edition',
-            'legendary edition', 'enhanced edition', 'special edition',
+            'legendary edition', 'special edition',
             'digital deluxe edition', 'digital edition',
-            // Remasters / remakes
-            'remastered', 'remaster', 'hd remaster',
-            'remake', 'hd', 'hd collection',
-            // Director/final versions
-            "director's cut", 'directors cut', 'final cut',
-            'extended edition', 'expanded edition',
+            'enhanced edition', 'definitive edition',
+            'expanded edition',
             // Platform/version markers
             'ps5 edition', 'ps4 edition',
             // Common trailing markers
