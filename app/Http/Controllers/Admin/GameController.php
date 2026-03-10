@@ -797,7 +797,7 @@ class GameController extends Controller
             'deluxe edition', 'gold edition', 'premium edition',
             'legendary edition', 'special edition',
             'digital deluxe edition', 'digital edition',
-            'enhanced edition', 'definitive edition',
+            'enhanced edition',
             'expanded edition',
             // Platform/version markers
             'ps5 edition', 'ps4 edition',
