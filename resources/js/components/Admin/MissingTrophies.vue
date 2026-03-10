@@ -105,15 +105,15 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                             </svg>
                                         </button>
-                                        <a
-                                            :href="`/admin/games?edit=${game.id}`"
+                                        <button
+                                            @click="openEditModal(game)"
                                             class="p-1 rounded text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
                                             title="Edit game"
                                         >
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                        </a>
+                                        </button>
                                         <a
                                             href="https://psnprofiles.com/games"
                                             target="_blank"
@@ -304,12 +304,23 @@
                 </div>
             </div>
         </div>
+
+        <GameFormModal
+            :show="showGameModal"
+            :game="editingGame"
+            :genres="formData.genres"
+            :tags="formData.tags"
+            :platforms="formData.platforms"
+            @close="closeGameModal"
+            @saved="handleGameSaved"
+        />
     </AdminLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import AdminLayout from './AdminLayout.vue'
+import GameFormModal from './GameFormModal.vue'
 
 const games = ref([])
 const loading = ref(true)
@@ -332,6 +343,11 @@ const merging = ref(false)
 const mergeSuccess = ref(null)
 const mergeSearchInput = ref(null)
 let mergeDebounceTimer = null
+
+// Edit modal state
+const editingGame = ref(null)
+const showGameModal = computed(() => editingGame.value !== null)
+const formData = reactive({ genres: [], tags: [], platforms: [] })
 
 const paginationPages = computed(() => {
     if (!pagination.value) return []
@@ -548,8 +564,51 @@ async function executeMerge(currentGame) {
     }
 }
 
+// Edit modal
+async function fetchFormData() {
+    try {
+        const response = await fetch('/api/admin/games/form-data')
+        if (!response.ok) throw new Error('Failed to fetch form data')
+        const data = await response.json()
+        formData.genres = Array.isArray(data.genres) ? data.genres : []
+        formData.tags = Array.isArray(data.tags) ? data.tags : []
+        formData.platforms = Array.isArray(data.platforms) ? data.platforms : []
+    } catch (error) {
+        console.error('Error fetching form data:', error)
+    }
+}
+
+async function openEditModal(game) {
+    try {
+        const response = await fetch(`/api/admin/games/${game.id}`)
+        if (!response.ok) throw new Error('Failed to load game')
+        editingGame.value = await response.json()
+    } catch (error) {
+        console.error('Error loading game for edit:', error)
+    }
+}
+
+function closeGameModal() {
+    editingGame.value = null
+}
+
+function handleGameSaved(savedGame) {
+    // Update the game in our list if it still belongs (still missing trophies)
+    const index = games.value.findIndex(g => g.id === savedGame.id)
+    if (index !== -1) {
+        const hasTrophies = (savedGame.bronze_count || 0) + (savedGame.silver_count || 0) + (savedGame.gold_count || 0) + (savedGame.platinum_count || 0) > 0
+        if (hasTrophies) {
+            games.value.splice(index, 1)
+        } else {
+            games.value[index] = { ...games.value[index], ...savedGame }
+        }
+    }
+    editingGame.value = null
+}
+
 onMounted(() => {
     fetchGames()
     fetchGuideCount()
+    fetchFormData()
 })
 </script>
