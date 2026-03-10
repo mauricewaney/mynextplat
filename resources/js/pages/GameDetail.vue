@@ -151,7 +151,7 @@
                 <!-- Bottom: Stats, Genres, Actions (full width) -->
                 <div class="px-4 sm:px-6 pb-4 sm:pb-6">
                     <!-- Trophy Stats Grid -->
-                    <div class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6" :class="game.data_source ? 'sm:grid-cols-5' : ''">
+                    <div v-if="hasGuides" class="grid grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6" :class="game.data_source ? 'sm:grid-cols-5' : ''">
                         <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center">
                             <div class="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
                                 {{ game.difficulty || '?' }}<span class="text-xs sm:text-sm font-normal">/10</span>
@@ -190,6 +190,13 @@
                             </div>
                             <div class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">Source</div>
                         </div>
+                    </div>
+                    <div v-else class="bg-gray-50 dark:bg-slate-700 rounded-lg p-4 mb-4 sm:mb-6 text-center">
+                        <svg class="w-6 h-6 mx-auto mb-1.5 text-gray-300 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <p class="text-sm text-gray-400 dark:text-gray-500">No trophy guide available yet</p>
+                        <p class="text-xs text-gray-300 dark:text-gray-600 mt-0.5">Difficulty, time, and other stats will appear when a guide is added</p>
                     </div>
 
                     <!-- Server Shutdown Warning -->
@@ -276,10 +283,10 @@
             </div>
 
             <!-- Trophy Guides Section -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8">
+            <div v-if="hasGuides" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Trophy Guides</h2>
 
-                <div v-if="hasGuides" class="grid md:grid-cols-3 gap-4">
+                <div class="grid md:grid-cols-3 gap-4">
                     <!-- PSNProfiles -->
                     <a
                         v-if="game.psnprofiles_url"
@@ -333,10 +340,6 @@
                             <div class="text-sm text-gray-500 dark:text-gray-400">View Guide</div>
                         </div>
                     </a>
-                </div>
-
-                <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <p>No trophy guides available yet for this game.</p>
                 </div>
 
                 <!-- Guide Voting (only when 2+ guides available) -->

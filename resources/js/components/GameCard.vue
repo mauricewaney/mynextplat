@@ -8,7 +8,7 @@
             v-if="game.is_unobtainable"
             class="absolute inset-0 flex items-center justify-center pointer-events-none z-[5] overflow-hidden rounded-xl"
         >
-            <div class="unobtainable-stamp">
+            <div class="unobtainable-stamp">is
                 UNOBTAINABLE
             </div>
         </div>
@@ -195,7 +195,7 @@
             </div>
 
             <!-- Stats Group -->
-            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1">
+            <div v-if="hasGuide" class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1">
                 <div class="grid grid-cols-3 gap-x-2 gap-y-2 text-xs">
                     <div>
                         <div v-if="game.difficulty" :class="['font-bold', difficultyTextClass]">{{ game.difficulty }}/10</div>
@@ -229,6 +229,9 @@
                         <div class="text-gray-500 dark:text-gray-400 text-[10px]">Source</div>
                     </div>
                 </div>
+            </div>
+            <div v-else class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1 flex items-center justify-center">
+                <p class="text-xs text-gray-400 dark:text-gray-500">No trophy guide yet</p>
             </div>
 
             <!-- Mobile: Genres + Guides (inside info section, below stats) -->
