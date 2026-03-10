@@ -1008,12 +1008,13 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <button
-                                v-if="exactDuplicateGroups.length > 0"
-                                @click="mergeAll"
-                                :disabled="mergingAll"
+                                v-if="selectedExactGroups.length + selectedPossibleGroups.length > 0"
+                                @click="mergeSelected"
+                                :disabled="mergingSelected"
                                 class="px-3 py-1.5 bg-white text-amber-700 rounded-md hover:bg-amber-50 text-sm font-medium disabled:opacity-50"
                             >
-                                {{ mergingAll ? 'Merging...' : 'Merge All Exact' }}
+                                <span v-if="mergingSelected">{{ mergeProgress.current }}/{{ mergeProgress.total }}...</span>
+                                <span v-else>Merge Selected ({{ selectedExactGroups.length + selectedPossibleGroups.length }})</span>
                             </button>
                             <button @click="showDuplicatesPanel = false" class="text-white hover:text-amber-200">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1030,10 +1031,21 @@
 
                         <!-- Exact Duplicates -->
                         <div v-if="exactDuplicateGroups.length > 0">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                <span class="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded text-sm">Exact</span>
-                                {{ exactDuplicateGroups.length }} duplicate group(s)
-                            </h3>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <span class="bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded text-sm">Exact</span>
+                                    {{ exactDuplicateGroups.length }} duplicate group(s)
+                                </h3>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        :checked="selectedExactGroups.length === exactDuplicateGroups.length"
+                                        @change="toggleAllExact"
+                                        class="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                                    />
+                                    Select all
+                                </label>
+                            </div>
                             <div class="space-y-4">
                                 <div
                                     v-for="(group, groupIndex) in exactDuplicateGroups"
@@ -1041,10 +1053,18 @@
                                     class="bg-gray-50 dark:bg-slate-700/50 rounded-lg p-4 border border-gray-200 dark:border-slate-600"
                                 >
                                     <div class="flex justify-between items-center mb-3">
-                                        <h3 class="font-semibold text-gray-900 dark:text-white">
-                                            "{{ group.games[0].title }}"
-                                            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.games.length }} copies)</span>
-                                        </h3>
+                                        <div class="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                :checked="selectedExactGroups.includes(groupIndex)"
+                                                @change="toggleExactGroup(groupIndex)"
+                                                class="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                                            />
+                                            <h3 class="font-semibold text-gray-900 dark:text-white">
+                                                "{{ group.games[0].title }}"
+                                                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.games.length }} copies)</span>
+                                            </h3>
+                                        </div>
                                         <button
                                             @click="mergeGroup('exact', groupIndex)"
                                             :disabled="group.merging"
@@ -1109,10 +1129,21 @@
 
                         <!-- Possible Duplicates -->
                         <div v-if="possibleDuplicateGroups.length > 0">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded text-sm">Possible</span>
-                                {{ possibleDuplicateGroups.length }} group(s) — edition variants
-                            </h3>
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded text-sm">Possible</span>
+                                    {{ possibleDuplicateGroups.length }} group(s) — edition variants
+                                </h3>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        :checked="selectedPossibleGroups.length === possibleDuplicateGroups.length"
+                                        @change="toggleAllPossible"
+                                        class="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                                    />
+                                    Select all
+                                </label>
+                            </div>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">These have similar base titles but differ by edition/remaster suffix. Review carefully — some may be intentionally separate.</p>
                             <div class="space-y-4">
                                 <div
@@ -1121,12 +1152,20 @@
                                     class="bg-yellow-50 dark:bg-yellow-900/10 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800/30"
                                 >
                                     <div class="flex justify-between items-center mb-3">
-                                        <h3 class="font-semibold text-gray-900 dark:text-white">
-                                            <span v-for="(game, i) in group.games" :key="game.id">
-                                                <span v-if="i > 0" class="text-gray-400 mx-1">/</span>
-                                                "{{ game.title }}"
-                                            </span>
-                                        </h3>
+                                        <div class="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                :checked="selectedPossibleGroups.includes(groupIndex)"
+                                                @change="togglePossibleGroup(groupIndex)"
+                                                class="rounded border-gray-300 text-yellow-600 focus:ring-yellow-500"
+                                            />
+                                            <h3 class="font-semibold text-gray-900 dark:text-white">
+                                                <span v-for="(game, i) in group.games" :key="game.id">
+                                                    <span v-if="i > 0" class="text-gray-400 mx-1">/</span>
+                                                    "{{ game.title }}"
+                                                </span>
+                                            </h3>
+                                        </div>
                                         <button
                                             @click="mergeGroup('possible', groupIndex)"
                                             :disabled="group.merging"
@@ -1224,7 +1263,10 @@ const showDuplicatesPanel = ref(false)
 const scanningDuplicates = ref(false)
 const exactDuplicateGroups = ref([])
 const possibleDuplicateGroups = ref([])
-const mergingAll = ref(false)
+const selectedExactGroups = ref([])
+const selectedPossibleGroups = ref([])
+const mergingSelected = ref(false)
+const mergeProgress = ref({ current: 0, total: 0 })
 
 // Form data (genres, tags, platforms)
 const formData = reactive({
@@ -1788,16 +1830,61 @@ async function mergeGroup(type, groupIndex) {
     }
 }
 
-async function mergeAll() {
-    const total = exactDuplicateGroups.value.length
-    if (!confirm(`Auto-merge all ${total} exact duplicate groups? The game with the most data in each group will be kept.`)) return
+function toggleAllExact() {
+    if (selectedExactGroups.value.length === exactDuplicateGroups.value.length) {
+        selectedExactGroups.value = []
+    } else {
+        selectedExactGroups.value = exactDuplicateGroups.value.map((_, i) => i)
+    }
+}
 
-    mergingAll.value = true
+function toggleAllPossible() {
+    if (selectedPossibleGroups.value.length === possibleDuplicateGroups.value.length) {
+        selectedPossibleGroups.value = []
+    } else {
+        selectedPossibleGroups.value = possibleDuplicateGroups.value.map((_, i) => i)
+    }
+}
+
+function toggleExactGroup(index) {
+    const pos = selectedExactGroups.value.indexOf(index)
+    if (pos > -1) {
+        selectedExactGroups.value.splice(pos, 1)
+    } else {
+        selectedExactGroups.value.push(index)
+    }
+}
+
+function togglePossibleGroup(index) {
+    const pos = selectedPossibleGroups.value.indexOf(index)
+    if (pos > -1) {
+        selectedPossibleGroups.value.splice(pos, 1)
+    } else {
+        selectedPossibleGroups.value.push(index)
+    }
+}
+
+async function mergeSelected() {
+    // Collect all selected groups with their type info
+    const toMerge = []
+    for (const idx of [...selectedExactGroups.value].sort((a, b) => b - a)) {
+        toMerge.push({ type: 'exact', index: idx, group: exactDuplicateGroups.value[idx] })
+    }
+    for (const idx of [...selectedPossibleGroups.value].sort((a, b) => b - a)) {
+        toMerge.push({ type: 'possible', index: idx, group: possibleDuplicateGroups.value[idx] })
+    }
+
+    if (toMerge.length === 0) return
+    if (!confirm(`Merge ${toMerge.length} selected group(s)? This will process them one at a time.`)) return
+
+    mergingSelected.value = true
+    mergeProgress.value = { current: 0, total: toMerge.length }
     let merged = 0
     let failed = 0
 
-    for (let i = exactDuplicateGroups.value.length - 1; i >= 0; i--) {
-        const group = exactDuplicateGroups.value[i]
+    for (const item of toMerge) {
+        mergeProgress.value.current++
+        const group = item.group
         const duplicates = group.games.filter(g => g.id !== group.keeperId)
 
         try {
@@ -1809,14 +1896,21 @@ async function mergeAll() {
                 })
                 if (!response.ok) throw new Error('merge failed')
             }
-            exactDuplicateGroups.value.splice(i, 1)
+            // Remove from the appropriate list
+            const groupsRef = item.type === 'exact' ? exactDuplicateGroups : possibleDuplicateGroups
+            const currentIdx = groupsRef.value.indexOf(group)
+            if (currentIdx > -1) groupsRef.value.splice(currentIdx, 1)
             merged++
         } catch {
             failed++
         }
     }
 
-    mergingAll.value = false
+    // Clear selections (indices are now stale after removals)
+    selectedExactGroups.value = []
+    selectedPossibleGroups.value = []
+    mergingSelected.value = false
+
     alert(`Merged ${merged} group(s)` + (failed ? `, ${failed} failed` : ''))
     fetchGames()
     fetchStats()
