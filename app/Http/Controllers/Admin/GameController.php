@@ -149,6 +149,8 @@ class GameController extends Controller
             ->count();
 
         $verified = Game::where('is_verified', true)->count();
+        $missingTrophyData = Game::whereNull('bronze_count')->count();
+        $guideMissingTrophies = Game::where('has_guide', true)->whereNull('bronze_count')->count();
 
         return response()->json([
             'total_games' => $totalGames,
@@ -156,6 +158,8 @@ class GameController extends Controller
             'with_difficulty' => $gamesWithDifficulty,
             'needs_data' => $gamesNeedingData,
             'verified' => $verified,
+            'missing_trophy_data' => $missingTrophyData,
+            'guide_missing_trophies' => $guideMissingTrophies,
             'verified_percent' => $gamesWithGuide > 0
                 ? round($verified / $gamesWithGuide * 100, 1)
                 : 0,
@@ -163,6 +167,24 @@ class GameController extends Controller
                 ? round(($gamesWithGuide - $gamesNeedingData) / $gamesWithGuide * 100, 1)
                 : 0,
         ]);
+    }
+
+    /**
+     * Games missing trophy data (bronze_count IS NULL)
+     */
+    public function missingTrophies(Request $request)
+    {
+        $query = Game::whereNull('bronze_count')
+            ->select('id', 'title', 'cover_url', 'has_guide', 'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url', 'igdb_id');
+
+        if ($request->boolean('has_guide')) {
+            $query->where('has_guide', true);
+        }
+
+        $query->orderByRaw('CASE WHEN has_guide = 1 THEN 0 ELSE 1 END')
+            ->orderBy('title');
+
+        return response()->json($query->paginate($request->integer('per_page', 50)));
     }
 
     /**

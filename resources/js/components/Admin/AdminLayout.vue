@@ -57,6 +57,17 @@
                                 NP IDs
                             </router-link>
                             <router-link
+                                to="/admin/missing-trophies"
+                                :class="[
+                                    'px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                                    isActive('/admin/missing-trophies')
+                                        ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
+                                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white'
+                                ]"
+                            >
+                                Trophies
+                            </router-link>
+                            <router-link
                                 to="/admin/directory-pages"
                                 :class="[
                                     'px-3 py-2 rounded-md text-sm font-medium transition-colors',

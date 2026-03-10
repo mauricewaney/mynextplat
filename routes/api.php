@@ -195,6 +195,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/form-data', [AdminGameController::class, 'getFormData']);
         Route::get('/stats', [AdminGameController::class, 'getStats']);
         Route::get('/search-guides', [AdminGameController::class, 'searchGuides']);
+        Route::get('/missing-trophies', [AdminGameController::class, 'missingTrophies']);
         Route::get('/search-for-merge', [AdminGameController::class, 'searchGamesForMerge']);
         Route::get('/test-igdb', [AdminGameController::class, 'testIgdb']);
 

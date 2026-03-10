@@ -1,36 +1,11 @@
 <template>
     <AdminLayout>
         <div class="space-y-6">
-            <!-- Header -->
+            <!-- Header Row 1: Title + Action Buttons -->
             <div class="flex justify-between items-center">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Games</h1>
                     <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your PlayStation trophy database</p>
-                </div>
-
-                <!-- Progress Stats -->
-                <div v-if="stats" class="flex items-center gap-6 bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.with_guide - stats.needs_data }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">Completed</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{{ stats.needs_data }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">Need Data</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600">{{ stats.verified }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">Verified</div>
-                    </div>
-                    <div class="flex flex-col items-center">
-                        <div class="w-32 bg-gray-200 dark:bg-slate-600 rounded-full h-2.5">
-                            <div
-                                class="bg-green-600 h-2.5 rounded-full transition-all duration-300"
-                                :style="{ width: stats.completion_percent + '%' }"
-                            ></div>
-                        </div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ stats.completion_percent }}% complete</div>
-                    </div>
                 </div>
 
                 <div class="flex items-center space-x-2">
@@ -84,6 +59,46 @@
                         </svg>
                         <span>Add Game</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Header Row 2: Stats Cards -->
+            <div v-if="stats" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
+                    <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_games }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Total</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
+                    <div class="text-2xl font-bold text-primary-600">{{ stats.with_guide }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">With Guide</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
+                    <div class="text-2xl font-bold text-orange-600">{{ stats.needs_data }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Need Data</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
+                    <div class="text-2xl font-bold text-yellow-600">{{ stats.missing_trophy_data }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Missing Trophies</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center border" :class="stats.guide_missing_trophies > 0 ? 'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20' : 'border-transparent'">
+                    <div class="text-2xl font-bold" :class="stats.guide_missing_trophies > 0 ? 'text-red-600' : 'text-gray-900 dark:text-white'">{{ stats.guide_missing_trophies }}</div>
+                    <div class="text-xs" :class="stats.guide_missing_trophies > 0 ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'">Guide + No Trophies</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
+                    <div class="text-2xl font-bold text-green-600">{{ stats.verified }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Verified</div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
+                    <div class="flex flex-col items-center gap-1">
+                        <div class="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2.5">
+                            <div
+                                class="bg-green-600 h-2.5 rounded-full transition-all duration-300"
+                                :style="{ width: stats.completion_percent + '%' }"
+                            ></div>
+                        </div>
+                        <div class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.completion_percent }}%</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Progress</div>
+                    </div>
                 </div>
             </div>
 
