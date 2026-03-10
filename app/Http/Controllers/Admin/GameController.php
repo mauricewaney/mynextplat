@@ -459,6 +459,31 @@ class GameController extends Controller
     }
 
     /**
+     * Search games for duplicate merge (returns scan-format data)
+     */
+    public function searchGamesForMerge(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2',
+            'exclude_ids' => 'array',
+        ]);
+
+        $query = $request->query('query');
+        $excludeIds = $request->query('exclude_ids', []);
+
+        $games = Game::where('title', 'like', "%{$query}%")
+            ->when(count($excludeIds) > 0, fn($q) => $q->whereNotIn('id', $excludeIds))
+            ->orderByRaw("CASE WHEN title LIKE ? THEN 0 ELSE 1 END", ["{$query}%"])
+            ->orderBy('title')
+            ->limit(10)
+            ->get();
+
+        $results = $games->map(fn($game) => $this->buildGameDataForScan($game));
+
+        return response()->json($results);
+    }
+
+    /**
      * Get PSN titles linked to a specific game
      */
     public function getLinkedPsnTitles(int $gameId)

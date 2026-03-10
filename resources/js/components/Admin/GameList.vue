@@ -1065,13 +1065,59 @@
                                                 <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.games.length }} copies)</span>
                                             </h3>
                                         </div>
-                                        <button
-                                            @click="mergeGroup('exact', groupIndex)"
-                                            :disabled="group.merging"
-                                            class="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 text-sm font-medium disabled:opacity-50"
-                                        >
-                                            {{ group.merging ? 'Merging...' : 'Merge' }}
-                                        </button>
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                @click="openKeeperSearch('exact', groupIndex)"
+                                                class="px-2 py-1 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-slate-500 text-sm"
+                                                title="Search for a different game to keep"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                @click="mergeGroup('exact', groupIndex)"
+                                                :disabled="group.merging"
+                                                class="px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 text-sm font-medium disabled:opacity-50"
+                                            >
+                                                {{ group.merging ? 'Merging...' : 'Merge' }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Keeper search (inline) -->
+                                    <div v-if="keeperSearchGroup && keeperSearchGroup.type === 'exact' && keeperSearchGroup.index === groupIndex" class="mb-3 bg-white dark:bg-slate-800 rounded-lg p-3 border border-blue-300 dark:border-blue-700">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <input
+                                                v-model="keeperSearchQuery"
+                                                @input="debouncedKeeperSearch"
+                                                type="text"
+                                                placeholder="Search for game to keep..."
+                                                class="flex-1 text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            <button @click="closeKeeperSearch" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div v-if="keeperSearching" class="text-xs text-gray-500 dark:text-gray-400">Searching...</div>
+                                        <div v-else-if="keeperSearchResults.length > 0" class="space-y-1 max-h-48 overflow-y-auto">
+                                            <div
+                                                v-for="result in keeperSearchResults"
+                                                :key="result.id"
+                                                @click="addKeeperToGroup(result)"
+                                                class="flex items-center gap-2 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded cursor-pointer text-sm"
+                                            >
+                                                <img v-if="result.cover_url" :src="result.cover_url" class="w-8 h-11 object-cover rounded flex-shrink-0" />
+                                                <div v-else class="w-8 h-11 bg-gray-200 dark:bg-slate-600 rounded flex-shrink-0"></div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-medium text-gray-900 dark:text-white truncate">{{ result.title }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ result.id }} | {{ result.completeness }}/12 data | {{ result.users_count }} users</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-else-if="keeperSearchQuery.length >= 2" class="text-xs text-gray-500 dark:text-gray-400">No results</div>
                                     </div>
 
                                     <div class="grid gap-3" :class="group.games.length === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'">
@@ -1166,13 +1212,59 @@
                                                 </span>
                                             </h3>
                                         </div>
-                                        <button
-                                            @click="mergeGroup('possible', groupIndex)"
-                                            :disabled="group.merging"
-                                            class="px-3 py-1 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm font-medium disabled:opacity-50"
-                                        >
-                                            {{ group.merging ? 'Merging...' : 'Merge' }}
-                                        </button>
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                @click="openKeeperSearch('possible', groupIndex)"
+                                                class="px-2 py-1 bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-slate-500 text-sm"
+                                                title="Search for a different game to keep"
+                                            >
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                                </svg>
+                                            </button>
+                                            <button
+                                                @click="mergeGroup('possible', groupIndex)"
+                                                :disabled="group.merging"
+                                                class="px-3 py-1 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm font-medium disabled:opacity-50"
+                                            >
+                                                {{ group.merging ? 'Merging...' : 'Merge' }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Keeper search (inline) -->
+                                    <div v-if="keeperSearchGroup && keeperSearchGroup.type === 'possible' && keeperSearchGroup.index === groupIndex" class="mb-3 bg-white dark:bg-slate-800 rounded-lg p-3 border border-blue-300 dark:border-blue-700">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <input
+                                                v-model="keeperSearchQuery"
+                                                @input="debouncedKeeperSearch"
+                                                type="text"
+                                                placeholder="Search for game to keep..."
+                                                class="flex-1 text-sm border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                            />
+                                            <button @click="closeKeeperSearch" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div v-if="keeperSearching" class="text-xs text-gray-500 dark:text-gray-400">Searching...</div>
+                                        <div v-else-if="keeperSearchResults.length > 0" class="space-y-1 max-h-48 overflow-y-auto">
+                                            <div
+                                                v-for="result in keeperSearchResults"
+                                                :key="result.id"
+                                                @click="addKeeperToGroup(result)"
+                                                class="flex items-center gap-2 p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded cursor-pointer text-sm"
+                                            >
+                                                <img v-if="result.cover_url" :src="result.cover_url" class="w-8 h-11 object-cover rounded flex-shrink-0" />
+                                                <div v-else class="w-8 h-11 bg-gray-200 dark:bg-slate-600 rounded flex-shrink-0"></div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="font-medium text-gray-900 dark:text-white truncate">{{ result.title }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ result.id }} | {{ result.completeness }}/12 data | {{ result.users_count }} users</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-else-if="keeperSearchQuery.length >= 2" class="text-xs text-gray-500 dark:text-gray-400">No results</div>
                                     </div>
 
                                     <div class="grid gap-3" :class="group.games.length === 2 ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'">
@@ -1267,6 +1359,10 @@ const selectedExactGroups = ref([])
 const selectedPossibleGroups = ref([])
 const mergingSelected = ref(false)
 const mergeProgress = ref({ current: 0, total: 0 })
+const keeperSearchQuery = ref('')
+const keeperSearchResults = ref([])
+const keeperSearching = ref(false)
+const keeperSearchGroup = ref(null) // { type, index }
 
 // Form data (genres, tags, platforms)
 const formData = reactive({
@@ -1914,6 +2010,60 @@ async function mergeSelected() {
     alert(`Merged ${merged} group(s)` + (failed ? `, ${failed} failed` : ''))
     fetchGames()
     fetchStats()
+}
+
+// Keeper search for duplicate groups
+function openKeeperSearch(type, groupIndex) {
+    const groupsRef = type === 'exact' ? exactDuplicateGroups : possibleDuplicateGroups
+    const group = groupsRef.value[groupIndex]
+    keeperSearchGroup.value = { type, index: groupIndex }
+    // Pre-fill with the base title (first game's title, strip common suffixes)
+    keeperSearchQuery.value = group.games[0].title.replace(/\s*[-:]\s*(game of the year|goty|gold|deluxe|special|ultimate|complete|premium|legendary|digital|enhanced|expanded).*$/i, '').trim()
+    keeperSearchResults.value = []
+    searchForKeeper()
+}
+
+function closeKeeperSearch() {
+    keeperSearchGroup.value = null
+    keeperSearchQuery.value = ''
+    keeperSearchResults.value = []
+}
+
+let keeperSearchTimeout = null
+function debouncedKeeperSearch() {
+    clearTimeout(keeperSearchTimeout)
+    keeperSearchTimeout = setTimeout(searchForKeeper, 300)
+}
+
+async function searchForKeeper() {
+    if (!keeperSearchGroup.value || keeperSearchQuery.value.length < 2) return
+    const groupsRef = keeperSearchGroup.value.type === 'exact' ? exactDuplicateGroups : possibleDuplicateGroups
+    const group = groupsRef.value[keeperSearchGroup.value.index]
+    const excludeIds = group.games.map(g => g.id)
+
+    keeperSearching.value = true
+    try {
+        const params = new URLSearchParams({ query: keeperSearchQuery.value })
+        excludeIds.forEach(id => params.append('exclude_ids[]', id))
+        const response = await fetch(`/api/admin/games/search-for-merge?${params}`)
+        if (!response.ok) throw new Error('search failed')
+        keeperSearchResults.value = await response.json()
+    } catch (error) {
+        console.error('Error searching for keeper:', error)
+    } finally {
+        keeperSearching.value = false
+    }
+}
+
+function addKeeperToGroup(game) {
+    if (!keeperSearchGroup.value) return
+    const groupsRef = keeperSearchGroup.value.type === 'exact' ? exactDuplicateGroups : possibleDuplicateGroups
+    const group = groupsRef.value[keeperSearchGroup.value.index]
+    // Don't add if already in the group
+    if (group.games.some(g => g.id === game.id)) return
+    group.games.unshift(game)
+    group.keeperId = game.id
+    closeKeeperSearch()
 }
 
 // Load data on mount
