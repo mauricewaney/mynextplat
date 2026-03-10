@@ -22,6 +22,41 @@
                 </label>
             </div>
 
+            <!-- Collect NP IDs -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Collect NP IDs from PSN User</h3>
+                <div class="flex gap-2">
+                    <input
+                        v-model="collectUsername"
+                        @keyup.enter="collectFromUser"
+                        type="text"
+                        placeholder="Enter PSN username..."
+                        class="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        :disabled="collecting"
+                    />
+                    <button
+                        @click="collectFromUser"
+                        :disabled="collecting || !collectUsername.trim()"
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                    >
+                        <span v-if="collecting">Collecting...</span>
+                        <span v-else>Collect NP IDs</span>
+                    </button>
+                </div>
+                <p v-if="collectResult" class="mt-2 text-sm" :class="collectResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+                    {{ collectResult.message }}
+                </p>
+                <div v-if="collectResult && !collectResult.success && collectResult.suggestions?.length" class="mt-1 flex items-center gap-1 flex-wrap">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Try:</span>
+                    <button
+                        v-for="s in collectResult.suggestions"
+                        :key="s"
+                        @click="collectUsername = s; collectFromUser()"
+                        class="text-xs px-2 py-0.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors"
+                    >{{ s }}</button>
+                </div>
+            </div>
+
             <!-- Games List -->
             <div class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden">
                 <div v-if="loading" class="p-8 text-center text-gray-500 dark:text-gray-400">
@@ -55,12 +90,12 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                         </svg>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1.5">
                                         <span class="text-sm font-medium text-gray-900 dark:text-white">{{ game.title }}</span>
                                         <button
                                             @click="copyTitle(game)"
                                             class="p-1 rounded text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
-                                            :title="'Copy title'"
+                                            title="Copy title"
                                         >
                                             <svg v-if="copiedId === game.id" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -69,6 +104,16 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                                             </svg>
                                         </button>
+                                        <a
+                                            href="https://psnprofiles.com/games"
+                                            target="_blank"
+                                            class="p-1 rounded text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
+                                            title="Search on PSNProfiles"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                            </svg>
+                                        </a>
                                     </div>
                                 </div>
                             </td>
@@ -131,6 +176,9 @@ const hasGuideFilter = ref(true)
 const copiedId = ref(null)
 const pagination = ref(null)
 const guidesOnlyCount = ref(null)
+const collectUsername = ref('')
+const collecting = ref(false)
+const collectResult = ref(null)
 
 const paginationPages = computed(() => {
     if (!pagination.value) return []
@@ -179,6 +227,62 @@ async function fetchGuideCount() {
         }
     } catch (e) {
         // ignore
+    }
+}
+
+async function collectFromUser() {
+    if (!collectUsername.value.trim()) return
+
+    collecting.value = true
+    collectResult.value = null
+
+    try {
+        const response = await fetch(`/api/admin/psn/collect/${encodeURIComponent(collectUsername.value.trim())}`)
+
+        if (!response.ok) {
+            let errorMsg = `Server error (${response.status})`
+            try {
+                const errData = await response.json()
+                errorMsg = errData.message || errorMsg
+            } catch {
+                if (response.status === 504) {
+                    errorMsg = 'Gateway timeout — the PSN library is too large and the request timed out. Try a user with fewer games.'
+                } else if (response.status === 500) {
+                    errorMsg = 'Server error — the PSN API may have timed out. Try again.'
+                }
+            }
+            collectResult.value = { success: false, message: errorMsg }
+            return
+        }
+
+        const data = await response.json()
+
+        let suggestions = []
+        if (!data.success && data.message) {
+            const match = data.message.match(/Did you mean: (.+)\?/)
+            if (match) {
+                suggestions = match[1].split(', ').map(s => s.trim())
+            }
+        }
+
+        collectResult.value = {
+            success: data.success,
+            message: data.success
+                ? `Collected ${data.new_titles} new titles from ${data.username} (${data.existing_titles} already existed, ${data.auto_matched || 0} auto-matched)`
+                : data.message,
+            suggestions,
+        }
+
+        if (data.success) {
+            collectUsername.value = ''
+        }
+    } catch (error) {
+        collectResult.value = {
+            success: false,
+            message: 'Network error — could not reach server. Check your connection and try again.'
+        }
+    } finally {
+        collecting.value = false
     }
 }
 
