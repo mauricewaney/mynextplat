@@ -129,10 +129,7 @@ class PSNController extends Controller
             ], 401);
         }
 
-        // Pre-load known NP IDs so PSN fetch can stop early on repeat collections
-        $knownNpIds = PsnTitle::pluck('np_communication_id')->flip()->all();
-
-        $data = $psnService->getGamesForUser($username, $knownNpIds);
+        $data = $psnService->getGamesForUser($username);
 
         if (!$data || isset($data['error'])) {
             return response()->json([
