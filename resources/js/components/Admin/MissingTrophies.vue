@@ -76,7 +76,8 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
-                        <tr v-for="game in games" :key="game.id" class="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                        <template v-for="game in games" :key="game.id">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     <img
@@ -114,6 +115,18 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                                             </svg>
                                         </a>
+                                        <button
+                                            @click="openMerge(game)"
+                                            class="p-1 rounded transition-colors flex-shrink-0"
+                                            :class="mergeGameId === game.id
+                                                ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30'
+                                                : 'text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-100 dark:hover:bg-slate-700'"
+                                            title="Merge with another game"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                            </svg>
+                                        </button>
                                     </div>
                                 </div>
                             </td>
@@ -137,6 +150,125 @@
                                 {{ game.igdb_id || '—' }}
                             </td>
                         </tr>
+
+                        <!-- Inline Merge Panel -->
+                        <tr v-if="mergeGameId === game.id" class="bg-orange-50/50 dark:bg-orange-900/10">
+                            <td colspan="3" class="px-4 py-3">
+                                <!-- Success flash -->
+                                <div v-if="mergeSuccess" class="mb-3 px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm rounded-lg flex items-center gap-2">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {{ mergeSuccess }}
+                                </div>
+
+                                <!-- Confirmation bar (when target selected) -->
+                                <div v-if="mergeTarget" class="flex flex-wrap items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-lg border border-orange-200 dark:border-orange-800/50">
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            Merge
+                                            <span class="font-semibold text-red-600 dark:text-red-400">{{ mergeDuplicate.title }}</span>
+                                            <span class="text-gray-400 mx-1">(ID {{ mergeDuplicate.id }})</span>
+                                            into
+                                            <span class="font-semibold text-green-600 dark:text-green-400">{{ mergeKeeper.title }}</span>
+                                            <span class="text-gray-400 mx-1">(ID {{ mergeKeeper.id }})</span>
+                                        </p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            The keeper inherits guides, trophies, and stats from the duplicate if missing.
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button
+                                            @click="mergeSwapped = !mergeSwapped"
+                                            class="px-2 py-1 text-xs font-medium rounded bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
+                                            title="Swap keeper and duplicate"
+                                            :disabled="merging"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                                            </svg>
+                                        </button>
+                                        <button
+                                            @click="executeMerge(game)"
+                                            :disabled="merging"
+                                            class="px-3 py-1.5 text-xs font-medium rounded bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                                        >
+                                            <span v-if="merging">Merging...</span>
+                                            <span v-else>Merge</span>
+                                        </button>
+                                        <button
+                                            @click="mergeTarget = null; mergeSwapped = false"
+                                            :disabled="merging"
+                                            class="px-3 py-1.5 text-xs font-medium rounded bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-slate-600 disabled:opacity-50 transition-colors"
+                                        >Cancel</button>
+                                    </div>
+                                </div>
+
+                                <!-- Search input + results (when no target selected) -->
+                                <div v-else>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Merge into:</span>
+                                        <div class="flex-1 relative">
+                                            <input
+                                                ref="mergeSearchInput"
+                                                v-model="mergeQuery"
+                                                @input="debouncedSearchMerge"
+                                                type="text"
+                                                placeholder="Search for the game to keep..."
+                                                class="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            />
+                                            <svg v-if="mergeSearching" class="absolute right-2.5 top-2 w-4 h-4 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                                            </svg>
+                                        </div>
+                                        <button
+                                            @click="closeMerge"
+                                            class="p-1.5 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                                            title="Close"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Search results -->
+                                    <div v-if="mergeResults.length > 0" class="space-y-1">
+                                        <button
+                                            v-for="result in mergeResults"
+                                            :key="result.id"
+                                            @click="selectMergeTarget(result)"
+                                            class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition-colors text-left border border-transparent hover:border-gray-200 dark:hover:border-slate-600"
+                                        >
+                                            <img
+                                                v-if="result.cover_url"
+                                                :src="result.cover_url"
+                                                :alt="result.title"
+                                                class="w-8 h-11 object-cover rounded flex-shrink-0"
+                                            />
+                                            <div v-else class="w-8 h-11 bg-gray-200 dark:bg-slate-600 rounded flex-shrink-0"></div>
+                                            <div class="flex-1 min-w-0">
+                                                <span class="text-sm font-medium text-gray-900 dark:text-white truncate block">{{ result.title }}</span>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <span class="text-xs text-gray-400">ID {{ result.id }}</span>
+                                                    <span v-if="result.bronze_count || result.silver_count || result.gold_count || result.platinum_count" class="text-xs text-gray-500 dark:text-gray-400">
+                                                        {{ (result.bronze_count || 0) + (result.silver_count || 0) + (result.gold_count || 0) + (result.platinum_count || 0) }} trophies
+                                                    </span>
+                                                    <span v-if="result.psnprofiles_url" class="px-1 py-0.5 text-[10px] font-medium rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">PSNP</span>
+                                                    <span v-if="result.playstationtrophies_url" class="px-1 py-0.5 text-[10px] font-medium rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">PST</span>
+                                                    <span v-if="result.powerpyx_url" class="px-1 py-0.5 text-[10px] font-medium rounded bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300">PPX</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                    <p v-else-if="mergeQuery.length >= 2 && !mergeSearching" class="text-xs text-gray-400 dark:text-gray-500 py-2">
+                                        No results found.
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                        </template>
                     </tbody>
                 </table>
 
@@ -167,7 +299,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import AdminLayout from './AdminLayout.vue'
 
 const games = ref([])
@@ -179,6 +311,18 @@ const guidesOnlyCount = ref(null)
 const collectUsername = ref('')
 const collecting = ref(false)
 const collectResult = ref(null)
+
+// Merge state
+const mergeGameId = ref(null)
+const mergeQuery = ref('')
+const mergeResults = ref([])
+const mergeSearching = ref(false)
+const mergeTarget = ref(null)
+const mergeSwapped = ref(false)
+const merging = ref(false)
+const mergeSuccess = ref(null)
+const mergeSearchInput = ref(null)
+let mergeDebounceTimer = null
 
 const paginationPages = computed(() => {
     if (!pagination.value) return []
@@ -292,6 +436,107 @@ function copyTitle(game) {
     setTimeout(() => {
         if (copiedId.value === game.id) copiedId.value = null
     }, 1500)
+}
+
+// Merge helpers
+const mergeKeeper = computed(() => {
+    if (!mergeTarget.value) return null
+    const currentGame = games.value.find(g => g.id === mergeGameId.value)
+    return mergeSwapped.value ? currentGame : mergeTarget.value
+})
+
+const mergeDuplicate = computed(() => {
+    if (!mergeTarget.value) return null
+    const currentGame = games.value.find(g => g.id === mergeGameId.value)
+    return mergeSwapped.value ? mergeTarget.value : currentGame
+})
+
+function openMerge(game) {
+    if (mergeGameId.value === game.id) {
+        closeMerge()
+        return
+    }
+    mergeGameId.value = game.id
+    mergeQuery.value = ''
+    mergeResults.value = []
+    mergeTarget.value = null
+    mergeSwapped.value = false
+    mergeSuccess.value = null
+    nextTick(() => {
+        mergeSearchInput.value?.focus()
+    })
+}
+
+function closeMerge() {
+    mergeGameId.value = null
+    mergeQuery.value = ''
+    mergeResults.value = []
+    mergeTarget.value = null
+    mergeSwapped.value = false
+    mergeSuccess.value = null
+}
+
+function debouncedSearchMerge() {
+    clearTimeout(mergeDebounceTimer)
+    if (mergeQuery.value.length < 2) {
+        mergeResults.value = []
+        return
+    }
+    mergeDebounceTimer = setTimeout(searchMerge, 300)
+}
+
+async function searchMerge() {
+    if (mergeQuery.value.length < 2) return
+    mergeSearching.value = true
+    try {
+        const params = new URLSearchParams({ query: mergeQuery.value })
+        params.append('exclude_ids[]', mergeGameId.value)
+        const response = await fetch(`/api/admin/games/search-for-merge?${params}`)
+        if (!response.ok) throw new Error('search failed')
+        mergeResults.value = await response.json()
+    } catch (error) {
+        console.error('Error searching for merge:', error)
+    } finally {
+        mergeSearching.value = false
+    }
+}
+
+function selectMergeTarget(game) {
+    mergeTarget.value = game
+    mergeSwapped.value = false
+}
+
+async function executeMerge(currentGame) {
+    if (!mergeTarget.value || merging.value) return
+    merging.value = true
+    try {
+        const response = await fetch('/api/admin/games/merge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                primary_id: mergeKeeper.value.id,
+                duplicate_id: mergeDuplicate.value.id,
+            }),
+        })
+        if (!response.ok) {
+            const err = await response.json()
+            throw new Error(err.message || 'Merge failed')
+        }
+        const data = await response.json()
+        mergeSuccess.value = data.message || `Merged successfully`
+        mergeTarget.value = null
+        mergeSwapped.value = false
+        // Remove the current game from the list (it was the duplicate or got merged)
+        setTimeout(() => {
+            games.value = games.value.filter(g => g.id !== currentGame.id)
+            closeMerge()
+        }, 1500)
+    } catch (error) {
+        console.error('Merge failed:', error)
+        alert('Merge failed: ' + error.message)
+    } finally {
+        merging.value = false
+    }
 }
 
 onMounted(() => {
