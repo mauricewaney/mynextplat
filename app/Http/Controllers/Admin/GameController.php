@@ -470,7 +470,10 @@ class GameController extends Controller
 
         $query = $request->query('query');
 
-        $games = Game::where('title', 'like', "%{$query}%")
+        $games = Game::where(function ($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                  ->orWhere('np_communication_ids', 'like', "%{$query}%");
+            })
             ->select('id', 'title', 'np_communication_ids', 'cover_url')
             ->orderByRaw("CASE WHEN title LIKE ? THEN 0 ELSE 1 END", ["{$query}%"])
             ->orderBy('title')
