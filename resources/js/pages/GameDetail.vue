@@ -62,18 +62,18 @@
                         <div v-else class="w-full aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
                             <span class="text-gray-400 text-4xl">?</span>
                         </div>
-                        <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-center gap-2 mt-2">
-                            <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-xs font-bold text-blue-300 dark:text-blue-200">
-                                <TrophyIcon tier="platinum" size="xs" />1
+                        <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-center gap-2 sm:gap-3 mt-2">
+                            <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-bold text-blue-300 dark:text-blue-200">
+                                <TrophyIcon tier="platinum" size="xs" class="sm:!w-4 sm:!h-4" />1
                             </span>
-                            <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-500 dark:text-yellow-400">
-                                <TrophyIcon tier="gold" size="xs" />{{ game.gold_count }}
+                            <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-bold text-yellow-500 dark:text-yellow-400">
+                                <TrophyIcon tier="gold" size="xs" class="sm:!w-4 sm:!h-4" />{{ game.gold_count }}
                             </span>
-                            <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-gray-400 dark:text-gray-300">
-                                <TrophyIcon tier="silver" size="xs" />{{ game.silver_count }}
+                            <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-bold text-gray-400 dark:text-gray-300">
+                                <TrophyIcon tier="silver" size="xs" class="sm:!w-4 sm:!h-4" />{{ game.silver_count }}
                             </span>
-                            <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-amber-700 dark:text-amber-500">
-                                <TrophyIcon tier="bronze" size="xs" />{{ game.bronze_count }}
+                            <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-500">
+                                <TrophyIcon tier="bronze" size="xs" class="sm:!w-4 sm:!h-4" />{{ game.bronze_count }}
                             </span>
                         </div>
                     </div>
