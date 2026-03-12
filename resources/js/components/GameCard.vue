@@ -76,21 +76,7 @@
                     >
                         {{ game.title }}
                     </a>
-                    <div v-if="hasTrophyData" class="flex items-center gap-1.5">
-                        <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-xs font-bold text-blue-300 dark:text-blue-200">
-                            <TrophyIcon tier="platinum" size="xs" />{{ game.has_platinum ? 1 : 0 }}
-                        </span>
-                        <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-500 dark:text-yellow-400">
-                            <TrophyIcon tier="gold" size="xs" />{{ game.gold_count }}
-                        </span>
-                        <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-gray-400 dark:text-gray-300">
-                            <TrophyIcon tier="silver" size="xs" />{{ game.silver_count }}
-                        </span>
-                        <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-amber-700 dark:text-amber-500">
-                            <TrophyIcon tier="bronze" size="xs" />{{ game.bronze_count }}
-                        </span>
-                    </div>
-                    <p v-else class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                    <p class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
                         {{ game.developer || game.publisher || 'Unknown Developer' }}
                     </p>
                 </div>
@@ -195,43 +181,58 @@
             </div>
 
             <!-- Stats Group -->
-            <div v-if="hasGuide" class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1">
-                <div class="grid grid-cols-3 gap-x-2 gap-y-2 text-xs">
+            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 flex-1">
+                <!-- Trophy Breakdown -->
+                <div v-if="hasTrophyData" class="flex items-center gap-1.5 mb-1">
+                    <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-300 dark:text-blue-200">
+                        <TrophyIcon tier="platinum" size="xs" />1
+                    </span>
+                    <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-[10px] font-bold text-yellow-500 dark:text-yellow-400">
+                        <TrophyIcon tier="gold" size="xs" />{{ game.gold_count }}
+                    </span>
+                    <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 text-[10px] font-bold text-gray-400 dark:text-gray-300">
+                        <TrophyIcon tier="silver" size="xs" />{{ game.silver_count }}
+                    </span>
+                    <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-500">
+                        <TrophyIcon tier="bronze" size="xs" />{{ game.bronze_count }}
+                    </span>
+                </div>
+                <div v-if="hasGuide" class="grid grid-cols-3 gap-x-2 gap-y-1 text-[10px] sm:text-xs">
                     <div>
-                        <div v-if="game.difficulty" :class="['font-bold', difficultyTextClass]">{{ game.difficulty }}/10</div>
-                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Difficulty</div>
+                        <div v-if="game.difficulty" :class="['font-bold leading-tight', difficultyTextClass]">{{ game.difficulty }}/10</div>
+                        <div v-else class="font-bold leading-tight text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Difficulty</div>
                     </div>
                     <div>
-                        <div v-if="timeValues" class="font-bold text-gray-700 dark:text-gray-300">{{ timeValues.mobile }}</div>
-                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Hours</div>
+                        <div v-if="timeValues" class="font-bold leading-tight text-gray-700 dark:text-gray-300">{{ timeValues.mobile }}</div>
+                        <div v-else class="font-bold leading-tight text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Hours</div>
                     </div>
                     <div>
-                        <div v-if="game.playthroughs_required" class="font-bold text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}+</div>
-                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Playthroughs</div>
+                        <div v-if="game.playthroughs_required" class="font-bold leading-tight text-gray-700 dark:text-gray-300">{{ game.playthroughs_required }}+</div>
+                        <div v-else class="font-bold leading-tight text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Playthroughs</div>
                     </div>
                     <div>
-                        <div v-if="game.missable_trophies === false" class="font-bold text-gray-700 dark:text-gray-300">No</div>
-                        <div v-else-if="game.missable_trophies === true" class="font-bold text-gray-700 dark:text-gray-300">Yes</div>
-                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Missables</div>
+                        <div v-if="game.missable_trophies === false" class="font-bold leading-tight text-gray-700 dark:text-gray-300">No</div>
+                        <div v-else-if="game.missable_trophies === true" class="font-bold leading-tight text-gray-700 dark:text-gray-300">Yes</div>
+                        <div v-else class="font-bold leading-tight text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Missables</div>
                     </div>
                     <div>
-                        <div v-if="game.has_online_trophies === false" class="font-bold text-gray-700 dark:text-gray-300">No</div>
-                        <div v-else-if="game.has_online_trophies === true" class="font-bold text-gray-700 dark:text-gray-300">Yes</div>
-                        <div v-else class="font-bold text-gray-300 dark:text-gray-600">--</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Online</div>
+                        <div v-if="game.has_online_trophies === false" class="font-bold leading-tight text-gray-700 dark:text-gray-300">No</div>
+                        <div v-else-if="game.has_online_trophies === true" class="font-bold leading-tight text-gray-700 dark:text-gray-300">Yes</div>
+                        <div v-else class="font-bold leading-tight text-gray-300 dark:text-gray-600">--</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Online</div>
                     </div>
                     <div v-if="game.data_source">
-                        <div class="font-bold text-gray-700 dark:text-gray-300">{{ dataSourceLabel }}</div>
-                        <div class="text-gray-500 dark:text-gray-400 text-[10px]">Source</div>
+                        <div class="font-bold leading-tight text-gray-700 dark:text-gray-300">{{ dataSourceLabel }}</div>
+                        <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Source</div>
                     </div>
                 </div>
-            </div>
-            <div v-else class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 flex-1 flex items-center justify-center">
-                <p class="text-xs text-gray-400 dark:text-gray-500">No trophy guide yet</p>
+                <div v-else-if="!hasTrophyData" class="flex items-center justify-center py-1">
+                    <p class="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">No trophy guide yet</p>
+                </div>
             </div>
 
             <!-- Mobile: Genres + Guides (inside info section, below stats) -->
