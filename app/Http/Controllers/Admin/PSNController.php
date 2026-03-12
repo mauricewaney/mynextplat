@@ -200,30 +200,22 @@ class PSNController extends Controller
             $newCount += count($insertBatch);
         }
 
-        // Auto-match new titles using pre-loaded game titles hashmap
-        $gameTitles = Game::select('id', 'title')->get()
-            ->mapWithKeys(fn($g) => [strtolower(trim($g->title)) => $g->id])
-            ->all();
+        // Auto-match ALL unmatched titles (not just newly collected ones)
+        $gameTitleMap = [];
+        foreach (Game::select('id', 'title')->get() as $g) {
+            $key = $this->normalizeForSearch($g->title);
+            $gameTitleMap[$key] = isset($gameTitleMap[$key]) ? null : $g->id;
+        }
 
         $autoMatchedCount = 0;
-        if ($newCount > 0) {
-            // Load newly inserted titles for auto-matching
-            $newPsnTitles = collect();
-            foreach (array_chunk(array_values($newNpIds), 1000) as $chunk) {
-                $newPsnTitles = $newPsnTitles->merge(
-                    PsnTitle::whereIn('np_communication_id', $chunk)->whereNull('game_id')->get()
-                );
-            }
-
-            foreach ($newPsnTitles as $psnTitle) {
-                $normalizedPsn = strtolower(trim($psnTitle->psn_title));
-                $gameId = $gameTitles[$normalizedPsn] ?? null;
-                if ($gameId) {
-                    $game = Game::find($gameId);
-                    if ($game) {
-                        $psnTitle->linkToGame($game);
-                        $autoMatchedCount++;
-                    }
+        foreach (PsnTitle::unmatched()->get() as $psnTitle) {
+            $normalizedPsn = $this->normalizeForSearch($psnTitle->psn_title);
+            $gameId = $gameTitleMap[$normalizedPsn] ?? null;
+            if ($gameId) {
+                $game = Game::find($gameId);
+                if ($game) {
+                    $psnTitle->linkToGame($game);
+                    $autoMatchedCount++;
                 }
             }
         }
