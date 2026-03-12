@@ -741,6 +741,8 @@ class PSNController extends Controller
         $str = preg_replace('/[\x{2018}\x{2019}\x{0060}]/u', "'", $str);
         $str = preg_replace('/[\x{201C}\x{201D}]/u', '"', $str);
         $str = preg_replace('/\s*[:\x{2013}\x{2014}-]\s*/u', ' ', $str);
+        // Strip trailing "Trophies" / "Trophy" (common in PSN trophy list names)
+        $str = preg_replace('/\s+troph(ies|y)\s*$/i', '', $str);
         $str = preg_replace('/\s+/', ' ', $str);
         return strtolower(trim($str));
     }
