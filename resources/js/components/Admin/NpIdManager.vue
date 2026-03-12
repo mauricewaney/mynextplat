@@ -942,6 +942,8 @@ async function startMassCollection() {
     massTotalAutoMatched.value = 0
     massTotalUsers.value = selected.length
 
+    let consecutiveZeroNew = 0
+
     for (let i = 0; i < selected.length; i++) {
         const user = selected[i]
         massCurrentIndex.value = i
@@ -973,6 +975,17 @@ async function startMassCollection() {
                 massTotalNew.value += data.new_titles || 0
                 massTotalAutoMatched.value += data.auto_matched || 0
                 massResults.value.push({ success: true, username: user.username, message: user.message })
+
+                // Stop early if 3 consecutive users had 0 new titles
+                consecutiveZeroNew = (data.new_titles || 0) === 0 ? consecutiveZeroNew + 1 : 0
+                if (consecutiveZeroNew >= 3) {
+                    // Mark remaining as skipped
+                    for (let j = i + 1; j < selected.length; j++) {
+                        selected[j].status = 'skipped'
+                        selected[j].message = 'Skipped (no new titles from previous users)'
+                    }
+                    break
+                }
             } else {
                 user.status = 'error'
                 user.message = data.message || 'Failed'
