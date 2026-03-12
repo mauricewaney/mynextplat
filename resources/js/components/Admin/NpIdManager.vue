@@ -62,6 +62,96 @@
                 </div>
             </div>
 
+            <!-- Mass NP ID Collector -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
+                <button
+                    @click="massShowSection = !massShowSection"
+                    class="flex items-center justify-between w-full text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                    <span>Mass Collect from PSNProfiles Leaderboard</span>
+                    <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': massShowSection }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div v-if="massShowSection" class="mt-3 space-y-3">
+                    <!-- Step 1: Paste HTML -->
+                    <textarea
+                        v-model="massHtml"
+                        placeholder="Paste HTML source from a PSNProfiles leaderboard page..."
+                        rows="4"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono"
+                        :disabled="massCollecting"
+                    />
+                    <button
+                        @click="parseMassHtml"
+                        :disabled="massParsing || !massHtml.trim() || massCollecting"
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors text-sm"
+                    >
+                        {{ massParsing ? 'Parsing...' : 'Parse Usernames' }}
+                    </button>
+
+                    <!-- Step 2: Username list -->
+                    <div v-if="massUsernames.length" class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                {{ massUsernames.filter(u => u.selected).length }} / {{ massUsernames.length }} users selected
+                            </span>
+                            <button
+                                @click="massToggleAll"
+                                class="text-xs text-primary-600 hover:text-primary-700 underline"
+                                :disabled="massCollecting"
+                            >
+                                {{ massUsernames.every(u => u.selected) ? 'Deselect All' : 'Select All' }}
+                            </button>
+                        </div>
+                        <div class="max-h-40 overflow-y-auto border border-gray-200 dark:border-slate-600 rounded-lg p-2 space-y-1">
+                            <label
+                                v-for="u in massUsernames"
+                                :key="u.username"
+                                class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 px-2 py-1 rounded cursor-pointer"
+                            >
+                                <input type="checkbox" v-model="u.selected" :disabled="massCollecting" class="rounded border-gray-300 text-purple-600" />
+                                <span :class="{ 'font-medium text-green-600 dark:text-green-400': u.status === 'success', 'text-red-500': u.status === 'error', 'text-yellow-600 dark:text-yellow-400 animate-pulse': u.status === 'processing' }">
+                                    {{ u.username }}
+                                </span>
+                                <span v-if="u.message" class="text-xs text-gray-400 dark:text-gray-500 ml-auto truncate max-w-[300px]">{{ u.message }}</span>
+                            </label>
+                        </div>
+                        <button
+                            @click="startMassCollection"
+                            :disabled="massCollecting || !massUsernames.some(u => u.selected)"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors text-sm"
+                        >
+                            {{ massCollecting ? 'Collecting...' : `Start Collection (${massUsernames.filter(u => u.selected).length} users)` }}
+                        </button>
+                    </div>
+
+                    <!-- Step 3: Progress -->
+                    <div v-if="massCollecting || massResults.length" class="space-y-2">
+                        <div v-if="massCollecting" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <svg class="w-4 h-4 animate-spin text-purple-600" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25" />
+                                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" class="opacity-75" />
+                            </svg>
+                            <span>Processing <strong>{{ massCurrentUser }}</strong> ({{ massCurrentIndex + 1 }} / {{ massTotalUsers }})</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
+                            <div
+                                class="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                                :style="{ width: (massTotalUsers > 0 ? (massResults.length / massTotalUsers) * 100 : 0) + '%' }"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div v-if="!massCollecting && massResults.length" class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 text-sm text-green-700 dark:text-green-400">
+                        Done: {{ massResults.filter(r => r.success).length }}/{{ massResults.length }} users collected.
+                        {{ massTotalNew }} new titles, {{ massTotalAutoMatched }} auto-matched.
+                    </div>
+                </div>
+            </div>
+
             <!-- Stats -->
             <div v-if="stats" class="grid grid-cols-4 gap-4">
                 <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
@@ -384,6 +474,19 @@ const selectedPlatform = ref('')
 const sortBy = ref('similarity')
 const currentPage = ref(1)
 const skipCount = ref(0)
+
+// Mass collector state
+const massShowSection = ref(false)
+const massHtml = ref('')
+const massParsing = ref(false)
+const massUsernames = ref([])
+const massCollecting = ref(false)
+const massCurrentUser = ref('')
+const massCurrentIndex = ref(0)
+const massTotalUsers = ref(0)
+const massResults = ref([])
+const massTotalNew = ref(0)
+const massTotalAutoMatched = ref(0)
 
 let searchTimeout = null
 let loadTimeout = null
@@ -792,6 +895,98 @@ async function linkToGame(item, gameId) {
         console.error('Link failed:', error)
         alert('Failed to link')
     }
+}
+
+async function parseMassHtml() {
+    massParsing.value = true
+    massUsernames.value = []
+    massResults.value = []
+    massTotalNew.value = 0
+    massTotalAutoMatched.value = 0
+
+    try {
+        const response = await fetch('/api/admin/psn/parse-leaderboard', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({ html: massHtml.value })
+        })
+        const data = await response.json()
+
+        if (data.success) {
+            massUsernames.value = data.usernames.map(u => ({ username: u, selected: true, status: null, message: '' }))
+        } else {
+            alert(data.message || 'Failed to parse usernames')
+        }
+    } catch (error) {
+        alert('Failed to parse HTML')
+    } finally {
+        massParsing.value = false
+    }
+}
+
+function massToggleAll() {
+    const allSelected = massUsernames.value.every(u => u.selected)
+    massUsernames.value.forEach(u => u.selected = !allSelected)
+}
+
+async function startMassCollection() {
+    const selected = massUsernames.value.filter(u => u.selected)
+    if (!selected.length) return
+
+    massCollecting.value = true
+    massResults.value = []
+    massTotalNew.value = 0
+    massTotalAutoMatched.value = 0
+    massTotalUsers.value = selected.length
+
+    for (let i = 0; i < selected.length; i++) {
+        const user = selected[i]
+        massCurrentIndex.value = i
+        massCurrentUser.value = user.username
+        user.status = 'processing'
+        user.message = 'Collecting...'
+
+        try {
+            const response = await fetch(`/api/admin/psn/collect/${encodeURIComponent(user.username)}`)
+
+            if (!response.ok) {
+                let errorMsg = `Error (${response.status})`
+                try {
+                    const errData = await response.json()
+                    errorMsg = errData.message || errorMsg
+                } catch {
+                    if (response.status === 504) errorMsg = 'Timeout'
+                }
+                user.status = 'error'
+                user.message = errorMsg
+                massResults.value.push({ success: false, username: user.username, message: errorMsg })
+                continue
+            }
+
+            const data = await response.json()
+            if (data.success) {
+                user.status = 'success'
+                user.message = `${data.new_titles} new, ${data.auto_matched || 0} matched`
+                massTotalNew.value += data.new_titles || 0
+                massTotalAutoMatched.value += data.auto_matched || 0
+                massResults.value.push({ success: true, username: user.username, message: user.message })
+            } else {
+                user.status = 'error'
+                user.message = data.message || 'Failed'
+                massResults.value.push({ success: false, username: user.username, message: user.message })
+            }
+        } catch (error) {
+            user.status = 'error'
+            user.message = 'Network error'
+            massResults.value.push({ success: false, username: user.username, message: 'Network error' })
+        }
+    }
+
+    massCollecting.value = false
+    await loadData()
 }
 
 onMounted(() => {

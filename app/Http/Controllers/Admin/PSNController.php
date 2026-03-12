@@ -302,6 +302,34 @@ class PSNController extends Controller
     /**
      * Get PSN titles statistics
      */
+    /**
+     * Parse usernames from PSNProfiles leaderboard HTML
+     */
+    public function parseLeaderboardHtml(Request $request)
+    {
+        $request->validate([
+            'html' => 'required|string|min:10',
+        ]);
+
+        preg_match_all('/<a\s+class="title"\s+href="\/([^"\/]+)"/i', $request->html, $matches);
+
+        $usernames = array_values(array_unique($matches[1] ?? []));
+
+        if (empty($usernames)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No usernames found. Make sure you pasted HTML source from a PSNProfiles leaderboard page.',
+                'usernames' => [],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Found ' . count($usernames) . ' unique usernames.',
+            'usernames' => $usernames,
+        ]);
+    }
+
     public function getStats()
     {
         return response()->json([

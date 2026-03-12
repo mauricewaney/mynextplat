@@ -116,6 +116,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/unlink', [PSNController::class, 'unlinkFromGame']);
         Route::post('/bulk-link', [PSNController::class, 'bulkLink']);
         Route::post('/auto-match-all', [PSNController::class, 'autoMatchAll']);
+        Route::post('/parse-leaderboard', [PSNController::class, 'parseLeaderboardHtml']);
 
         // Skipping
         Route::post('/skip', [PSNController::class, 'skip']);
