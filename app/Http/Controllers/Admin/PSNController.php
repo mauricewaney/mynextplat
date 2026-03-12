@@ -334,7 +334,11 @@ class PSNController extends Controller
 
         // Filter by search term
         if ($request->has('search')) {
-            $query->where('psn_title', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('psn_title', 'like', '%' . $search . '%')
+                  ->orWhere('np_communication_id', 'like', '%' . $search . '%');
+            });
         }
 
         // Determine sort field and direction
