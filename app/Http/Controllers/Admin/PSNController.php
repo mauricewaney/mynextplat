@@ -547,7 +547,6 @@ class PSNController extends Controller
             $search = $game->title;
         }
 
-        $normalizedSearch = $this->normalizeForSearch($search);
         $onlyUnmatched = $request->boolean('unmatched_only', false);
 
         // Get PSN titles (optionally filter to unmatched only)
@@ -563,13 +562,7 @@ class PSNController extends Controller
 
         $results = [];
         foreach ($unmatchedTitles as $psnTitle) {
-            $normalizedPsn = $this->normalizeForSearch($psnTitle->psn_title);
-
-            similar_text($normalizedSearch, $normalizedPsn, $percent);
-
-            if (str_contains($normalizedPsn, $normalizedSearch) || str_contains($normalizedSearch, $normalizedPsn)) {
-                $percent = min(100, $percent + 15);
-            }
+            $percent = $this->calculateSimilarity($search, $psnTitle->psn_title, $psnTitle->np_communication_id);
 
             if ($percent >= 40) {
                 $result = [
@@ -667,27 +660,17 @@ class PSNController extends Controller
      */
     private function findSuggestions(string $title): array
     {
-        $normalized = $this->normalizeForSearch($title);
         $suggestions = [];
 
-        $games = Game::select('id', 'title', 'cover_url')->get();
-
-        foreach ($games as $game) {
-            $normalizedDb = $this->normalizeForSearch($game->title);
-
-            similar_text($normalized, $normalizedDb, $percent);
-
-            // Bonus for containment, but cap at 99 so only true exact matches reach 100
-            if (str_contains($normalizedDb, $normalized) || str_contains($normalized, $normalizedDb)) {
-                $percent = min($normalized === $normalizedDb ? 100 : 99, $percent + 15);
-            }
+        foreach (Game::select('id', 'title', 'cover_url')->get() as $game) {
+            $percent = $this->calculateSimilarity($title, $game->title);
 
             if ($percent >= 50) {
                 $suggestions[] = [
                     'id' => $game->id,
                     'title' => $game->title,
                     'cover_url' => $game->cover_url,
-                    'similarity' => round($percent),
+                    'similarity' => $percent,
                 ];
             }
         }
@@ -695,6 +678,30 @@ class PSNController extends Controller
         usort($suggestions, fn($a, $b) => $b['similarity'] <=> $a['similarity']);
 
         return array_slice($suggestions, 0, 10);
+    }
+
+    /**
+     * Calculate similarity between two strings, with containment bonus and NP ID matching.
+     * Returns similarity percentage (0-100). Only true exact normalized matches reach 100.
+     */
+    private function calculateSimilarity(string $searchTerm, string $candidateTitle, ?string $candidateNpId = null): float
+    {
+        $normalizedSearch = $this->normalizeForSearch($searchTerm);
+        $normalizedCandidate = $this->normalizeForSearch($candidateTitle);
+
+        similar_text($normalizedSearch, $normalizedCandidate, $percent);
+
+        // Bonus for containment, but cap at 99 so only true exact matches reach 100
+        if (str_contains($normalizedCandidate, $normalizedSearch) || str_contains($normalizedSearch, $normalizedCandidate)) {
+            $percent = min($normalizedSearch === $normalizedCandidate ? 100 : 99, $percent + 15);
+        }
+
+        // NP communication ID match gets boosted
+        if ($candidateNpId && stripos($candidateNpId, $searchTerm) !== false) {
+            $percent = max($percent, 95);
+        }
+
+        return round($percent);
     }
 
     /**
