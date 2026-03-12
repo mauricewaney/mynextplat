@@ -249,19 +249,16 @@ class PSNController extends Controller
      */
     private function tryAutoMatch(PsnTitle $psnTitle): bool
     {
-        $suggestions = $this->findSuggestions($psnTitle->psn_title);
+        $normalized = $this->normalizeForSearch($psnTitle->psn_title);
 
-        // Only auto-match if there's exactly one 100% match
-        $perfectMatches = array_filter($suggestions, fn($s) => $s['similarity'] >= 100);
+        // Find all games whose normalized title exactly matches
+        $matches = Game::select('id', 'title')->get()
+            ->filter(fn($g) => $this->normalizeForSearch($g->title) === $normalized);
 
-        if (count($perfectMatches) === 1) {
-            $match = reset($perfectMatches);
-            $game = Game::find($match['id']);
-
-            if ($game) {
-                $psnTitle->linkToGame($game);
-                return true;
-            }
+        // Only auto-match if there's exactly one match
+        if ($matches->count() === 1) {
+            $psnTitle->linkToGame($matches->first());
+            return true;
         }
 
         return false;
@@ -276,16 +273,19 @@ class PSNController extends Controller
 
         $unmatched = PsnTitle::unmatched()->get();
 
-        // Pre-load game titles once for fast lookup
-        $gameTitles = Game::select('id', 'title')->get()
-            ->mapWithKeys(fn($g) => [strtolower(trim($g->title)) => $g->id])
-            ->all();
+        // Pre-load game titles once for fast lookup, using normalizeForSearch for consistency
+        $gameTitleMap = [];
+        foreach (Game::select('id', 'title')->get() as $g) {
+            $key = $this->normalizeForSearch($g->title);
+            // Track duplicates — skip auto-match if multiple games share the same normalized title
+            $gameTitleMap[$key] = isset($gameTitleMap[$key]) ? null : $g->id;
+        }
 
         $matchedCount = 0;
 
         foreach ($unmatched as $psnTitle) {
-            $normalizedPsn = strtolower(trim($psnTitle->psn_title));
-            $gameId = $gameTitles[$normalizedPsn] ?? null;
+            $normalizedPsn = $this->normalizeForSearch($psnTitle->psn_title);
+            $gameId = $gameTitleMap[$normalizedPsn] ?? null;
             if ($gameId) {
                 $game = Game::find($gameId);
                 if ($game) {
@@ -681,9 +681,9 @@ class PSNController extends Controller
 
             similar_text($normalized, $normalizedDb, $percent);
 
-            // Bonus for containment
+            // Bonus for containment, but cap at 99 so only true exact matches reach 100
             if (str_contains($normalizedDb, $normalized) || str_contains($normalized, $normalizedDb)) {
-                $percent = min(100, $percent + 15);
+                $percent = min($normalized === $normalizedDb ? 100 : 99, $percent + 15);
             }
 
             if ($percent >= 50) {
