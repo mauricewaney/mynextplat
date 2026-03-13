@@ -116,6 +116,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/unlink', [PSNController::class, 'unlinkFromGame']);
         Route::post('/bulk-link', [PSNController::class, 'bulkLink']);
         Route::post('/auto-match-all', [PSNController::class, 'autoMatchAll']);
+        Route::post('/auto-match-psn-store', [PSNController::class, 'autoMatchViaPsnStore']);
+        Route::post('/auto-match-alt-names', [PSNController::class, 'autoMatchViaAltNames']);
         Route::post('/parse-leaderboard', [PSNController::class, 'parseLeaderboardHtml']);
 
         // Skipping

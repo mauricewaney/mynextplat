@@ -68,6 +68,46 @@ class IGDBService
     }
 
     /**
+     * Fetch alternative names for a batch of IGDB game IDs.
+     *
+     * @return array<int, string[]> Map of igdb_id => [alt_name, alt_name, ...]
+     */
+    public function fetchAlternativeNames(array $igdbIds): array
+    {
+        $accessToken = $this->getAccessToken();
+        if (!$accessToken) {
+            return [];
+        }
+
+        $result = [];
+        foreach (array_chunk($igdbIds, 50) as $chunk) {
+            $body = 'fields game,name; '
+                . 'where game = (' . implode(',', $chunk) . '); '
+                . 'limit 500;';
+
+            $response = Http::withHeaders([
+                'Client-ID' => $this->clientId,
+                'Authorization' => 'Bearer ' . $accessToken,
+            ])->withBody($body, 'text/plain')
+                ->post('https://api.igdb.com/v4/alternative_names');
+
+            if ($response->successful()) {
+                foreach ($response->json() as $alt) {
+                    $gameId = $alt['game'] ?? null;
+                    $name = $alt['name'] ?? null;
+                    if ($gameId && $name) {
+                        $result[$gameId][] = $name;
+                    }
+                }
+            }
+
+            usleep(100000); // 100ms rate limit
+        }
+
+        return $result;
+    }
+
+    /**
      * Fetch summaries for a batch of IGDB IDs.
      *
      * @return array<int, string> Map of igdb_id => summary

@@ -41,11 +41,29 @@
                     </button>
                     <button
                         @click="autoMatchAll"
-                        :disabled="autoMatching"
+                        :disabled="autoMatching || psnStoreMatching"
                         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
                     >
                         <span v-if="autoMatching">Matching...</span>
                         <span v-else>Auto-match 100%</span>
+                    </button>
+                    <button
+                        @click="autoMatchPsnStore"
+                        :disabled="psnStoreMatching || autoMatching || altNamesMatching"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                        title="Search PSN Store for games without NPWR IDs and match them to collected trophy lists"
+                    >
+                        <span v-if="psnStoreMatching">Searching PSN...</span>
+                        <span v-else>Auto-match via PSN Store</span>
+                    </button>
+                    <button
+                        @click="autoMatchAltNames"
+                        :disabled="altNamesMatching || autoMatching || psnStoreMatching"
+                        class="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+                        title="Use IGDB alternative names to find PSN Store matches for remaining games"
+                    >
+                        <span v-if="altNamesMatching">IGDB Alt Names...</span>
+                        <span v-else>Auto-match via Alt Names</span>
                     </button>
                 </div>
                 <p v-if="collectResult" class="mt-2 text-sm" :class="collectResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
@@ -464,6 +482,8 @@ import AdminLayout from './AdminLayout.vue'
 const loading = ref(false)
 const collecting = ref(false)
 const autoMatching = ref(false)
+const psnStoreMatching = ref(false)
+const altNamesMatching = ref(false)
 const unmatched = ref([])
 const stats = ref(null)
 const pagination = ref(null)
@@ -626,6 +646,74 @@ async function collectFromUser() {
         }
     } finally {
         collecting.value = false
+    }
+}
+
+async function autoMatchPsnStore() {
+    psnStoreMatching.value = true
+    collectResult.value = null
+
+    try {
+        const response = await fetch('/api/admin/psn/auto-match-psn-store', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        })
+        const data = await response.json()
+
+        collectResult.value = {
+            success: data.success,
+            message: data.success
+                ? `PSN Store: searched ${data.searched_count} games, matched ${data.matched_count}. ${data.remaining_unmatched} still without NPWR.`
+                : data.message || 'Failed'
+        }
+
+        if (data.success && data.matched_count > 0) {
+            await loadData()
+        }
+    } catch (error) {
+        collectResult.value = {
+            success: false,
+            message: 'Failed to run PSN Store auto-match'
+        }
+    } finally {
+        psnStoreMatching.value = false
+    }
+}
+
+async function autoMatchAltNames() {
+    altNamesMatching.value = true
+    collectResult.value = null
+
+    try {
+        const response = await fetch('/api/admin/psn/auto-match-alt-names', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            }
+        })
+        const data = await response.json()
+
+        collectResult.value = {
+            success: data.success,
+            message: data.success
+                ? `IGDB Alt Names: searched ${data.searched_count} names, matched ${data.matched_count}.`
+                : data.message || 'Failed'
+        }
+
+        if (data.success && data.matched_count > 0) {
+            await loadData()
+        }
+    } catch (error) {
+        collectResult.value = {
+            success: false,
+            message: 'Failed to run alt names auto-match'
+        }
+    } finally {
+        altNamesMatching.value = false
     }
 }
 

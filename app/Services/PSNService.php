@@ -793,6 +793,75 @@ class PSNService
     }
 
     /**
+     * Search PSN Store for games by name.
+     * Returns array of results with name, titleId (CUSA/PPSA), conceptId, etc.
+     */
+    public function searchGameStore(string $query, int $limit = 5): array
+    {
+        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+            'Authorization' => 'Bearer ' . $this->accessToken,
+        ]))->timeout(15)->post(self::SEARCH_URL, [
+            'searchTerm' => $query,
+            'domainRequests' => [
+                ['domain' => 'MobileGames'],
+            ],
+        ]);
+
+        if (!$response->successful()) {
+            return [];
+        }
+
+        $data = $response->json();
+        $results = $data['domainResponses'][0]['results'] ?? [];
+
+        return array_map(function ($r) {
+            $meta = $r['conceptMetadata'] ?? [];
+            $product = $meta['defaultProduct'] ?? [];
+            return [
+                'name' => $meta['nameEn'] ?? $meta['name'] ?? 'Unknown',
+                'concept_id' => $meta['id'] ?? null,
+                'title_id' => $product['titleId'] ?? null,
+                'publisher' => $meta['publisherName'] ?? null,
+            ];
+        }, array_slice($results, 0, $limit));
+    }
+
+    /**
+     * Look up the NPWR (npCommunicationId) for a given title ID (CUSA/PPSA)
+     * by querying a user's trophy data. Returns null if the user hasn't played it.
+     */
+    public function getTrophyNpwrForTitle(string $titleId, string $accountId): ?array
+    {
+        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+            'Authorization' => 'Bearer ' . $this->accessToken,
+        ]))->timeout(15)->get(
+            str_replace('{accountId}', $accountId, self::USER_TITLES_URL) . '/../titles/trophyTitles',
+            ['npTitleIds' => $titleId]
+        );
+
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $titles = $response->json()['titles'] ?? [];
+        foreach ($titles as $title) {
+            $trophyTitles = $title['trophyTitles'] ?? [];
+            if (!empty($trophyTitles)) {
+                $t = $trophyTitles[0];
+                return [
+                    'npwr' => $t['npCommunicationId'],
+                    'trophy_title_name' => $t['trophyTitleName'],
+                    'defined_trophies' => $t['definedTrophies'] ?? [],
+                    'has_trophy_groups' => $t['hasTrophyGroups'] ?? false,
+                    'icon_url' => $t['trophyTitleIconUrl'] ?? null,
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Filter to games without platinum earned
      */
     public function getUnplatinumedGames(string $username): array
