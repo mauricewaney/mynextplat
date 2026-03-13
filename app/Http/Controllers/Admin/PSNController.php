@@ -301,38 +301,55 @@ class PSNController extends Controller
 
     /**
      * Auto-match games to PSN titles via PSN Store search.
-     * For each game without NPWR: search PSN Store → get the PSN name → match against psn_titles.
+     * Processes a batch per request; frontend loops until done.
      */
-    public function autoMatchViaPsnStore(PSNService $psnService)
+    public function autoMatchViaPsnStore(Request $request, PSNService $psnService)
     {
-        set_time_limit(600);
+        set_time_limit(120);
+
+        $batchSize = 50;
+        $offset = (int) $request->get('offset', 0);
 
         if (!$psnService->authenticateFromConfig()) {
             return response()->json(['success' => false, 'message' => 'PSN auth failed.'], 401);
         }
 
-        // Games with guides but no NPWR linked
-        $games = Game::whereNull('np_communication_ids')
+        // Total count for progress
+        $totalQuery = Game::whereNull('np_communication_ids')
             ->where(function ($q) {
                 $q->whereNotNull('psnprofiles_url')
                   ->orWhereNotNull('playstationtrophies_url')
                   ->orWhereNotNull('powerpyx_url');
-            })
+            });
+        $totalGames = $totalQuery->count();
+
+        // Get current batch
+        $games = (clone $totalQuery)
             ->select('id', 'title')
+            ->orderBy('id')
+            ->skip($offset)
+            ->take($batchSize)
             ->get();
 
+        if ($games->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'done' => true,
+                'matched_count' => 0,
+                'total_games' => $totalGames,
+                'message' => 'All games processed.',
+            ]);
+        }
+
         // Pre-load all unmatched PSN titles for fast lookup
-        $psnTitles = PsnTitle::unmatched()->get();
         $psnByNormalized = [];
-        foreach ($psnTitles as $pt) {
+        foreach (PsnTitle::unmatched()->get() as $pt) {
             $key = $this->normalizeForSearch($pt->psn_title);
-            // Only keep if unique normalized name
             $psnByNormalized[$key] = isset($psnByNormalized[$key]) ? null : $pt;
         }
 
         $matched = 0;
         $searched = 0;
-        $errors = 0;
 
         foreach ($games as $game) {
             // First try direct normalized match (cheap, no API call)
@@ -350,18 +367,14 @@ class PSNController extends Controller
             foreach ($results as $result) {
                 $normalizedPsn = $this->normalizeForSearch($result['name']);
 
-                // Check if this PSN Store name matches an unmatched psn_title
                 if (isset($psnByNormalized[$normalizedPsn]) && $psnByNormalized[$normalizedPsn]) {
                     $psnByNormalized[$normalizedPsn]->linkToGame($game);
                     $matched++;
                     break;
                 }
 
-                // Also try matching the PSN Store name against the game title
-                // (in case the PSN Store returns a close variant)
                 $similarity = $this->calculateSimilarity($game->title, $result['name']);
                 if ($similarity >= 90) {
-                    // Find any psn_title with this PSN Store name
                     $psnTitle = PsnTitle::unmatched()
                         ->whereRaw('LOWER(TRIM(psn_title)) = ?', [$normalizedPsn])
                         ->first();
@@ -374,9 +387,8 @@ class PSNController extends Controller
                 }
             }
 
-            // Rate limit: small delay every 5 API calls
             if ($searched % 5 === 0) {
-                usleep(200000); // 200ms
+                usleep(200000);
             }
         }
 
@@ -384,56 +396,69 @@ class PSNController extends Controller
             GameController::bustGameCache();
         }
 
+        $nextOffset = $offset + $batchSize;
+
         return response()->json([
             'success' => true,
-            'message' => "Searched {$searched} games via PSN Store, matched {$matched}.",
+            'done' => $nextOffset >= $totalGames,
             'matched_count' => $matched,
             'searched_count' => $searched,
-            'total_games' => $games->count(),
-            'remaining_unmatched' => Game::whereNull('np_communication_ids')
-                ->where(function ($q) {
-                    $q->whereNotNull('psnprofiles_url')
-                      ->orWhereNotNull('playstationtrophies_url')
-                      ->orWhereNotNull('powerpyx_url');
-                })->count(),
+            'offset' => $offset,
+            'next_offset' => $nextOffset,
+            'total_games' => $totalGames,
         ]);
     }
 
     /**
-     * Second-pass auto-match: uses IGDB alternative names + PSN Store search
-     * for games that the standard PSN Store search couldn't match.
+     * Second-pass auto-match: uses IGDB alternative names + PSN Store search.
+     * Processes a batch per request; frontend loops until done.
      */
-    public function autoMatchViaAltNames(PSNService $psnService, IGDBService $igdbService)
+    public function autoMatchViaAltNames(Request $request, PSNService $psnService, IGDBService $igdbService)
     {
-        set_time_limit(600);
+        set_time_limit(120);
+
+        $batchSize = 50;
+        $offset = (int) $request->get('offset', 0);
 
         if (!$psnService->authenticateFromConfig()) {
             return response()->json(['success' => false, 'message' => 'PSN auth failed.'], 401);
         }
 
-        // Games with guides, IGDB IDs, but no NPWR linked
-        $games = Game::whereNull('np_communication_ids')
+        // Total count for progress
+        $totalQuery = Game::whereNull('np_communication_ids')
             ->whereNotNull('igdb_id')
             ->where(function ($q) {
                 $q->whereNotNull('psnprofiles_url')
                   ->orWhereNotNull('playstationtrophies_url')
                   ->orWhereNotNull('powerpyx_url');
-            })
+            });
+        $totalGames = $totalQuery->count();
+
+        // Get current batch
+        $games = (clone $totalQuery)
             ->select('id', 'title', 'igdb_id')
+            ->orderBy('id')
+            ->skip($offset)
+            ->take($batchSize)
             ->get();
 
         if ($games->isEmpty()) {
-            return response()->json(['success' => true, 'message' => 'No games to process.', 'matched_count' => 0]);
+            return response()->json([
+                'success' => true,
+                'done' => true,
+                'matched_count' => 0,
+                'total_games' => $totalGames,
+                'message' => 'All games processed.',
+            ]);
         }
 
-        // Fetch alt names from IGDB in batches
+        // Fetch alt names from IGDB for this batch
         $igdbIds = $games->pluck('igdb_id')->unique()->values()->all();
         $altNamesMap = $igdbService->fetchAlternativeNames($igdbIds);
 
-        // Pre-load unmatched PSN titles for matching
-        $psnTitles = PsnTitle::unmatched()->get();
+        // Pre-load unmatched PSN titles
         $psnByNormalized = [];
-        foreach ($psnTitles as $pt) {
+        foreach (PsnTitle::unmatched()->get() as $pt) {
             $key = $this->normalizeForSearch($pt->psn_title);
             $psnByNormalized[$key] = isset($psnByNormalized[$key]) ? null : $pt;
         }
@@ -447,14 +472,12 @@ class PSNController extends Controller
                 continue;
             }
 
-            $found = false;
             foreach ($altNames as $altName) {
                 // Try direct normalized match first
                 $normalizedAlt = $this->normalizeForSearch($altName);
                 if (isset($psnByNormalized[$normalizedAlt]) && $psnByNormalized[$normalizedAlt]) {
                     $psnByNormalized[$normalizedAlt]->linkToGame($game);
                     $matched++;
-                    $found = true;
                     break;
                 }
 
@@ -468,7 +491,6 @@ class PSNController extends Controller
                     if (isset($psnByNormalized[$normalizedPsn]) && $psnByNormalized[$normalizedPsn]) {
                         $psnByNormalized[$normalizedPsn]->linkToGame($game);
                         $matched++;
-                        $found = true;
                         break 2;
                     }
                 }
@@ -483,12 +505,16 @@ class PSNController extends Controller
             GameController::bustGameCache();
         }
 
+        $nextOffset = $offset + $batchSize;
+
         return response()->json([
             'success' => true,
-            'message' => "Alt names pass: searched {$searched} names, matched {$matched}.",
+            'done' => $nextOffset >= $totalGames,
             'matched_count' => $matched,
             'searched_count' => $searched,
-            'total_games' => $games->count(),
+            'offset' => $offset,
+            'next_offset' => $nextOffset,
+            'total_games' => $totalGames,
         ]);
     }
 
