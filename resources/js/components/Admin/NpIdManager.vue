@@ -653,30 +653,55 @@ async function autoMatchPsnStore() {
     psnStoreMatching.value = true
     collectResult.value = null
 
-    try {
-        const response = await fetch('/api/admin/psn/auto-match-psn-store', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            }
-        })
-        const data = await response.json()
+    let totalMatched = 0
+    let totalSearched = 0
+    let offset = 0
+    let totalGames = 0
 
-        collectResult.value = {
-            success: data.success,
-            message: data.success
-                ? `PSN Store: searched ${data.searched_count} games, matched ${data.matched_count}. ${data.remaining_unmatched} still without NPWR.`
-                : data.message || 'Failed'
+    try {
+        while (true) {
+            collectResult.value = {
+                success: true,
+                message: `PSN Store: processing batch at ${offset}/${totalGames || '?'}... (${totalMatched} matched so far)`
+            }
+
+            const response = await fetch('/api/admin/psn/auto-match-psn-store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ offset })
+            })
+            const data = await response.json()
+
+            if (!data.success) {
+                collectResult.value = { success: false, message: data.message || 'Failed' }
+                break
+            }
+
+            totalMatched += data.matched_count || 0
+            totalSearched += data.searched_count || 0
+            totalGames = data.total_games
+
+            if (data.done) {
+                collectResult.value = {
+                    success: true,
+                    message: `PSN Store: done. Searched ${totalSearched} games, matched ${totalMatched} of ${totalGames}.`
+                }
+                break
+            }
+
+            offset = data.next_offset
         }
 
-        if (data.success && data.matched_count > 0) {
+        if (totalMatched > 0) {
             await loadData()
         }
     } catch (error) {
         collectResult.value = {
             success: false,
-            message: 'Failed to run PSN Store auto-match'
+            message: `PSN Store: error at batch ${offset}. ${totalMatched} matched so far.`
         }
     } finally {
         psnStoreMatching.value = false
@@ -687,30 +712,55 @@ async function autoMatchAltNames() {
     altNamesMatching.value = true
     collectResult.value = null
 
-    try {
-        const response = await fetch('/api/admin/psn/auto-match-alt-names', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-            }
-        })
-        const data = await response.json()
+    let totalMatched = 0
+    let totalSearched = 0
+    let offset = 0
+    let totalGames = 0
 
-        collectResult.value = {
-            success: data.success,
-            message: data.success
-                ? `IGDB Alt Names: searched ${data.searched_count} names, matched ${data.matched_count}.`
-                : data.message || 'Failed'
+    try {
+        while (true) {
+            collectResult.value = {
+                success: true,
+                message: `IGDB Alt Names: processing batch at ${offset}/${totalGames || '?'}... (${totalMatched} matched so far)`
+            }
+
+            const response = await fetch('/api/admin/psn/auto-match-alt-names', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({ offset })
+            })
+            const data = await response.json()
+
+            if (!data.success) {
+                collectResult.value = { success: false, message: data.message || 'Failed' }
+                break
+            }
+
+            totalMatched += data.matched_count || 0
+            totalSearched += data.searched_count || 0
+            totalGames = data.total_games
+
+            if (data.done) {
+                collectResult.value = {
+                    success: true,
+                    message: `IGDB Alt Names: done. Searched ${totalSearched} names, matched ${totalMatched} of ${totalGames}.`
+                }
+                break
+            }
+
+            offset = data.next_offset
         }
 
-        if (data.success && data.matched_count > 0) {
+        if (totalMatched > 0) {
             await loadData()
         }
     } catch (error) {
         collectResult.value = {
             success: false,
-            message: 'Failed to run alt names auto-match'
+            message: `IGDB Alt Names: error at batch ${offset}. ${totalMatched} matched so far.`
         }
     } finally {
         altNamesMatching.value = false
