@@ -138,11 +138,21 @@ class GameController extends Controller
     public function getStats()
     {
         $totalGames = Game::count();
-        $gamesWithGuide = Game::where('has_guide', true)->count();
+        $gamesWithGuide = Game::where(function ($q) {
+            $q->whereNotNull('psnprofiles_url')
+              ->orWhereNotNull('playstationtrophies_url')
+              ->orWhereNotNull('powerpyx_url');
+        })->count();
         $gamesWithDifficulty = Game::whereNotNull('difficulty')->count();
 
         // needs_data: has a guide but missing ALL of: difficulty, time_min, playthroughs_required
-        $gamesNeedingData = Game::where('has_guide', true)
+        $hasGuideFilter = function ($q) {
+            $q->whereNotNull('psnprofiles_url')
+              ->orWhereNotNull('playstationtrophies_url')
+              ->orWhereNotNull('powerpyx_url');
+        };
+
+        $gamesNeedingData = Game::where($hasGuideFilter)
             ->whereNull('difficulty')
             ->whereNull('time_min')
             ->whereNull('playthroughs_required')
@@ -150,7 +160,7 @@ class GameController extends Controller
 
         $verified = Game::where('is_verified', true)->count();
         $missingTrophyData = Game::whereNull('bronze_count')->count();
-        $guideMissingTrophies = Game::where('has_guide', true)->whereNull('bronze_count')->count();
+        $guideMissingTrophies = Game::where($hasGuideFilter)->whereNull('bronze_count')->count();
 
         return response()->json([
             'total_games' => $totalGames,
