@@ -763,15 +763,30 @@ Online Trophies: None"
                     </button>
                 </div>
 
-                <!-- Search -->
-                <div class="px-5 py-3 border-b dark:border-slate-700 flex-shrink-0">
+                <!-- Search + Alphabet -->
+                <div class="px-5 py-3 border-b dark:border-slate-700 flex-shrink-0 space-y-2">
                     <input
                         v-model="browseSearch"
                         type="text"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        placeholder="Filter by title or NPWR ID... (use Ctrl+F for in-page search)"
+                        placeholder="Filter by title or NPWR ID..."
                         @input="debouncedBrowseSearch"
                     />
+                    <div class="flex flex-wrap gap-1">
+                        <button
+                            v-for="letter in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')"
+                            :key="letter"
+                            @click="jumpToLetter(letter)"
+                            class="w-7 h-7 text-xs font-bold rounded hover:bg-purple-600 hover:text-white transition-colors"
+                            :class="browseLetter === letter ? 'bg-purple-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'"
+                        >{{ letter }}</button>
+                        <button
+                            @click="jumpToLetter('#')"
+                            class="w-7 h-7 text-xs font-bold rounded hover:bg-purple-600 hover:text-white transition-colors"
+                            :class="browseLetter === '#' ? 'bg-purple-600 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300'"
+                            title="Numbers & symbols"
+                        >#</button>
+                    </div>
                 </div>
 
                 <!-- List -->
@@ -810,13 +825,25 @@ Online Trophies: None"
                     <button
                         @click="fetchBrowseUnmatched(browsePage - 1)"
                         :disabled="browsePage <= 1"
-                        class="px-3 py-1 text-sm rounded border dark:border-slate-600 disabled:opacity-30"
+                        class="px-3 py-1 text-sm rounded border dark:border-slate-600 disabled:opacity-30 hover:bg-gray-100 dark:hover:bg-slate-700"
                     >Prev</button>
-                    <span class="text-sm text-gray-600 dark:text-gray-400">Page {{ browsePage }} of {{ browseLastPage }}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Page</span>
+                        <input
+                            type="number"
+                            :value="browsePage"
+                            @keydown.enter="goToBrowsePage($event.target.value)"
+                            @blur="goToBrowsePage($event.target.value)"
+                            min="1"
+                            :max="browseLastPage"
+                            class="w-16 px-2 py-1 text-sm text-center border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 dark:text-white"
+                        />
+                        <span class="text-sm text-gray-600 dark:text-gray-400">of {{ browseLastPage }}</span>
+                    </div>
                     <button
                         @click="fetchBrowseUnmatched(browsePage + 1)"
                         :disabled="browsePage >= browseLastPage"
-                        class="px-3 py-1 text-sm rounded border dark:border-slate-600 disabled:opacity-30"
+                        class="px-3 py-1 text-sm rounded border dark:border-slate-600 disabled:opacity-30 hover:bg-gray-100 dark:hover:bg-slate-700"
                     >Next</button>
                 </div>
             </div>
@@ -877,6 +904,7 @@ const browseSearch = ref('');
 const browsePage = ref(1);
 const browseLastPage = ref(1);
 const browseTotal = ref(0);
+const browseLetter = ref('');
 let psnSearchTimeout = null;
 
 // Form data
@@ -1173,6 +1201,31 @@ function debouncedBrowseSearch() {
         browsePage.value = 1;
         fetchBrowseUnmatched(1);
     }, 300);
+}
+
+async function jumpToLetter(letter) {
+    browseLetter.value = letter;
+    browseSearch.value = '';
+    browseLoading.value = true;
+    try {
+        const params = { per_page: 100, letter: letter === '#' ? '0' : letter };
+        const response = await axios.get('/api/admin/psn/browse-unmatched', { params });
+        browseItems.value = response.data.data;
+        browsePage.value = response.data.current_page;
+        browseLastPage.value = response.data.last_page;
+        browseTotal.value = response.data.total;
+    } catch (error) {
+        console.error('Error jumping to letter:', error);
+    } finally {
+        browseLoading.value = false;
+    }
+}
+
+function goToBrowsePage(val) {
+    const page = Math.max(1, Math.min(parseInt(val) || 1, browseLastPage.value));
+    if (page !== browsePage.value) {
+        fetchBrowseUnmatched(page);
+    }
 }
 
 async function linkFromBrowse(item) {

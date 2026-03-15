@@ -793,6 +793,15 @@ class PSNController extends Controller
 
         $perPage = min($request->get('per_page', 100), 500);
 
+        // If letter param is provided, calculate which page that letter starts on
+        if ($request->has('letter') && !$request->has('search')) {
+            $letter = strtoupper($request->letter);
+            // Count how many unmatched NPWR titles come before this letter
+            $beforeCount = (clone $query)->where('psn_title', '<', $letter)->count();
+            $page = (int) floor($beforeCount / $perPage) + 1;
+            $request->merge(['page' => $page]);
+        }
+
         return $query->select(['id', 'psn_title', 'np_communication_id', 'platform', 'icon_url', 'times_seen'])
             ->paginate($perPage);
     }
