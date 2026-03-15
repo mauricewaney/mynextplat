@@ -257,6 +257,11 @@ Online Trophies: None"
                                     <input type="checkbox" v-model="psnSearchUnmatchedOnly" @change="searchPsnTitles" class="rounded border-gray-300 text-blue-600" />
                                     Unmatched only
                                 </label>
+                                <button
+                                    type="button"
+                                    @click="openBrowseUnmatched"
+                                    class="px-2 py-1.5 text-xs font-medium rounded bg-purple-600 text-white hover:bg-purple-700 whitespace-nowrap"
+                                >Browse All</button>
                             </div>
 
                             <!-- Search results -->
@@ -741,6 +746,82 @@ Online Trophies: None"
             </div>
         </div>
     </div>
+
+    <!-- Browse All Unmatched Modal -->
+    <div v-if="showBrowseModal" class="fixed inset-0 z-[60] overflow-y-auto" @click.self="showBrowseModal = false">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black bg-opacity-60"></div>
+            <div class="relative bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[85vh] flex flex-col">
+                <!-- Header -->
+                <div class="border-b dark:border-slate-700 px-5 py-3 flex justify-between items-center flex-shrink-0">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Browse Unmatched PSN Titles</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ browseTotal }} unmatched NPWR titles</p>
+                    </div>
+                    <button @click="showBrowseModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div class="px-5 py-3 border-b dark:border-slate-700 flex-shrink-0">
+                    <input
+                        v-model="browseSearch"
+                        type="text"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md text-sm bg-white dark:bg-slate-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        placeholder="Filter by title or NPWR ID... (use Ctrl+F for in-page search)"
+                        @input="debouncedBrowseSearch"
+                    />
+                </div>
+
+                <!-- List -->
+                <div class="overflow-y-auto flex-1">
+                    <div v-if="browseLoading" class="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+                    <div v-else-if="browseItems.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">No unmatched titles found</div>
+                    <div v-else>
+                        <div
+                            v-for="item in browseItems"
+                            :key="item.id"
+                            class="flex items-center justify-between px-5 py-2 border-b border-gray-100 dark:border-slate-700 last:border-b-0 hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                        >
+                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                <img v-if="item.icon_url" :src="item.icon_url" class="w-14 h-14 rounded flex-shrink-0" />
+                                <div class="w-14 h-14 bg-gray-200 dark:bg-slate-600 rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-400" v-else>N/A</div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ item.psn_title }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ item.np_communication_id }}
+                                        <span v-if="item.platform"> &middot; {{ item.platform }}</span>
+                                        <span v-if="item.times_seen > 1"> &middot; seen {{ item.times_seen }}x</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                @click="linkFromBrowse(item)"
+                                class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 flex-shrink-0 ml-3"
+                            >Link</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div v-if="browseLastPage > 1" class="border-t dark:border-slate-700 px-5 py-3 flex items-center justify-between flex-shrink-0">
+                    <button
+                        @click="fetchBrowseUnmatched(browsePage - 1)"
+                        :disabled="browsePage <= 1"
+                        class="px-3 py-1 text-sm rounded border dark:border-slate-600 disabled:opacity-30"
+                    >Prev</button>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">Page {{ browsePage }} of {{ browseLastPage }}</span>
+                    <button
+                        @click="fetchBrowseUnmatched(browsePage + 1)"
+                        :disabled="browsePage >= browseLastPage"
+                        class="px-3 py-1 text-sm rounded border dark:border-slate-600 disabled:opacity-30"
+                    >Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -789,6 +870,13 @@ const psnSearch = ref('');
 const psnSearchLoading = ref(false);
 const psnSearchResults = ref([]);
 const psnSearchUnmatchedOnly = ref(false);
+const showBrowseModal = ref(false);
+const browseItems = ref([]);
+const browseLoading = ref(false);
+const browseSearch = ref('');
+const browsePage = ref(1);
+const browseLastPage = ref(1);
+const browseTotal = ref(0);
 let psnSearchTimeout = null;
 
 // Form data
@@ -1051,6 +1139,54 @@ async function unlinkPsnTitle(psnTitle) {
     } catch (error) {
         console.error('Error unlinking PSN title:', error);
         alert('Failed to unlink PSN title');
+    }
+}
+
+async function openBrowseUnmatched() {
+    showBrowseModal.value = true;
+    browseSearch.value = '';
+    browsePage.value = 1;
+    await fetchBrowseUnmatched();
+}
+
+async function fetchBrowseUnmatched(page = 1) {
+    browseLoading.value = true;
+    try {
+        const params = { per_page: 100, page };
+        if (browseSearch.value) params.search = browseSearch.value;
+        const response = await axios.get('/api/admin/psn/browse-unmatched', { params });
+        browseItems.value = response.data.data;
+        browsePage.value = response.data.current_page;
+        browseLastPage.value = response.data.last_page;
+        browseTotal.value = response.data.total;
+    } catch (error) {
+        console.error('Error fetching unmatched titles:', error);
+    } finally {
+        browseLoading.value = false;
+    }
+}
+
+let browseSearchTimeout = null;
+function debouncedBrowseSearch() {
+    clearTimeout(browseSearchTimeout);
+    browseSearchTimeout = setTimeout(() => {
+        browsePage.value = 1;
+        fetchBrowseUnmatched(1);
+    }, 300);
+}
+
+async function linkFromBrowse(item) {
+    try {
+        await axios.post('/api/admin/psn/link', {
+            psn_title_id: item.id,
+            game_id: props.game.id,
+        });
+        browseItems.value = browseItems.value.filter(i => i.id !== item.id);
+        browseTotal.value--;
+        await loadLinkedPsnTitles();
+    } catch (error) {
+        console.error('Error linking PSN title:', error);
+        alert('Failed to link PSN title');
     }
 }
 

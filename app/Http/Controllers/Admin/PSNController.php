@@ -776,6 +776,27 @@ class PSNController extends Controller
      * Search unmatched PSN titles for linking to a specific game
      * Returns titles matching the search query + auto-suggestions based on game title
      */
+    public function browseAllUnmatched(Request $request)
+    {
+        $query = PsnTitle::whereNull('game_id')
+            ->whereNull('skipped_at')
+            ->where('np_communication_id', 'like', 'NPWR%')
+            ->orderBy('psn_title', 'asc');
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('psn_title', 'like', '%' . $search . '%')
+                  ->orWhere('np_communication_id', 'like', '%' . $search . '%');
+            });
+        }
+
+        $perPage = min($request->get('per_page', 100), 500);
+
+        return $query->select(['id', 'psn_title', 'np_communication_id', 'platform', 'icon_url', 'times_seen'])
+            ->paginate($perPage);
+    }
+
     public function searchUnmatchedForGame(Request $request)
     {
         $request->validate([

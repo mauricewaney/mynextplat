@@ -112,6 +112,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
         // Linking
         Route::get('/search-for-game', [PSNController::class, 'searchUnmatchedForGame']);
+        Route::get('/browse-unmatched', [PSNController::class, 'browseAllUnmatched']);
         Route::post('/link', [PSNController::class, 'linkToGame']);
         Route::post('/unlink', [PSNController::class, 'unlinkFromGame']);
         Route::post('/bulk-link', [PSNController::class, 'bulkLink']);
