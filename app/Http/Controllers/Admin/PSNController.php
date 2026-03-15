@@ -1071,9 +1071,25 @@ class PSNController extends Controller
             return response()->json(['success' => false, 'message' => 'PSN auth failed.'], 401);
         }
 
-        $totalGames = Game::whereNotNull('np_communication_ids')->count();
+        // Only process games with discrepancies (has_platinum vs platinum_count disagree)
+        $baseQuery = Game::whereNotNull('np_communication_ids')
+            ->whereNotNull('bronze_count')
+            ->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('has_platinum', 1)
+                        ->where(function ($q3) {
+                            $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
+                        });
+                })
+                ->orWhere(function ($q2) {
+                    $q2->where('has_platinum', 0)
+                        ->where('platinum_count', '>', 0);
+                });
+            });
 
-        $games = Game::whereNotNull('np_communication_ids')
+        $totalGames = (clone $baseQuery)->count();
+
+        $games = (clone $baseQuery)
             ->select('id', 'title', 'np_communication_ids', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count')
             ->orderBy('id')
             ->skip($offset)
