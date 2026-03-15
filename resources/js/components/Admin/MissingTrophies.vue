@@ -72,6 +72,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Game</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Guides</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Trophy Breakdown</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">IGDB ID</th>
                         </tr>
                     </thead>
@@ -155,6 +156,59 @@
                                     >None</span>
                                 </div>
                             </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center gap-1.5">
+                                    <label class="inline-flex items-center gap-0.5">
+                                        <span class="text-[10px] text-blue-300 font-bold">P</span>
+                                        <input
+                                            type="checkbox"
+                                            :checked="game._platinum"
+                                            @change="game._platinum = $event.target.checked"
+                                            class="w-3.5 h-3.5 rounded border-gray-300 text-blue-400 focus:ring-blue-300"
+                                        />
+                                    </label>
+                                    <label class="inline-flex items-center gap-0.5">
+                                        <span class="text-[10px] text-yellow-500 font-bold">G</span>
+                                        <input
+                                            v-model.number="game._gold"
+                                            type="number"
+                                            min="0"
+                                            class="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded focus:ring-1 focus:ring-yellow-500"
+                                            placeholder="0"
+                                        />
+                                    </label>
+                                    <label class="inline-flex items-center gap-0.5">
+                                        <span class="text-[10px] text-gray-400 font-bold">S</span>
+                                        <input
+                                            v-model.number="game._silver"
+                                            type="number"
+                                            min="0"
+                                            class="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded focus:ring-1 focus:ring-gray-400"
+                                            placeholder="0"
+                                        />
+                                    </label>
+                                    <label class="inline-flex items-center gap-0.5">
+                                        <span class="text-[10px] text-amber-700 dark:text-amber-500 font-bold">B</span>
+                                        <input
+                                            v-model.number="game._bronze"
+                                            type="number"
+                                            min="0"
+                                            class="w-10 px-1 py-0.5 text-xs text-center border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded focus:ring-1 focus:ring-amber-500"
+                                            placeholder="0"
+                                        />
+                                    </label>
+                                    <button
+                                        @click="saveTrophies(game)"
+                                        :disabled="game._saving"
+                                        class="px-2 py-0.5 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                                    >
+                                        {{ game._saving ? '...' : 'Save' }}
+                                    </button>
+                                    <svg v-if="game._saved" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                            </td>
                             <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                                 {{ game.igdb_id || '—' }}
                             </td>
@@ -162,7 +216,7 @@
 
                         <!-- Inline Merge Panel -->
                         <tr v-if="mergeGameId === game.id" class="bg-orange-50/50 dark:bg-orange-900/10">
-                            <td colspan="3" class="px-4 py-3">
+                            <td colspan="4" class="px-4 py-3">
                                 <!-- Success flash -->
                                 <div v-if="mergeSuccess" class="mb-3 px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm rounded-lg flex items-center gap-2">
                                     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +425,15 @@ async function fetchGames(page = 1) {
         const response = await fetch(`/api/admin/games/missing-trophies?${params}`, { credentials: 'include' })
         if (response.ok) {
             const data = await response.json()
-            games.value = data.data
+            games.value = data.data.map(g => ({
+                ...g,
+                _platinum: g.has_platinum || false,
+                _gold: g.gold_count || null,
+                _silver: g.silver_count || null,
+                _bronze: g.bronze_count || null,
+                _saving: false,
+                _saved: false,
+            }))
             pagination.value = {
                 current_page: data.current_page,
                 last_page: data.last_page,
@@ -452,6 +514,41 @@ async function collectFromUser() {
         }
     } finally {
         collecting.value = false
+    }
+}
+
+async function saveTrophies(game) {
+    game._saving = true
+    game._saved = false
+    try {
+        const response = await fetch(`/api/admin/games/${game.id}/trophies`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify({
+                has_platinum: game._platinum,
+                gold_count: game._gold || 0,
+                silver_count: game._silver || 0,
+                bronze_count: game._bronze || 0,
+            })
+        })
+
+        if (response.ok) {
+            game._saved = true
+            setTimeout(() => {
+                // Remove from list since it now has trophy data
+                games.value = games.value.filter(g => g.id !== game.id)
+            }, 800)
+        } else {
+            const err = await response.json()
+            alert(err.message || 'Failed to save')
+        }
+    } catch (error) {
+        alert('Failed to save trophy data')
+    } finally {
+        game._saving = false
     }
 }
 

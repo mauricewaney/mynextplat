@@ -199,6 +199,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/stats', [AdminGameController::class, 'getStats']);
         Route::get('/search-guides', [AdminGameController::class, 'searchGuides']);
         Route::get('/missing-trophies', [AdminGameController::class, 'missingTrophies']);
+        Route::get('/platinum-discrepancies', [AdminGameController::class, 'platinumDiscrepancies']);
         Route::get('/search-for-merge', [AdminGameController::class, 'searchGamesForMerge']);
         Route::get('/test-igdb', [AdminGameController::class, 'testIgdb']);
 
@@ -225,6 +226,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::post('/', [AdminGameController::class, 'store']);
         Route::get('/{id}', [AdminGameController::class, 'show']);
         Route::put('/{id}', [AdminGameController::class, 'update']);
+        Route::patch('/{id}/trophies', [AdminGameController::class, 'updateTrophies']);
         Route::delete('/{id}', [AdminGameController::class, 'destroy']);
         Route::post('/{id}/scrape-image', [AdminGameController::class, 'scrapeImage']);
     });

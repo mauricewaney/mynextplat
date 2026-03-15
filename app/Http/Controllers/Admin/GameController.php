@@ -460,6 +460,82 @@ class GameController extends Controller
     }
 
     /**
+     * Show discrepancies between has_platinum and platinum_count
+     */
+    public function platinumDiscrepancies(Request $request)
+    {
+        // Games where has_platinum and platinum_count disagree
+        // Excluding games with no trophy data at all
+        $discrepancies = Game::whereNotNull('bronze_count')
+            ->where(function ($q) {
+                // has_platinum is true but platinum_count is 0 or null
+                $q->where(function ($q2) {
+                    $q2->where('has_platinum', true)
+                        ->where(function ($q3) {
+                            $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
+                        });
+                })
+                // OR has_platinum is false/null but platinum_count > 0
+                ->orWhere(function ($q2) {
+                    $q2->where(function ($q3) {
+                        $q3->whereNull('has_platinum')->orWhere('has_platinum', false);
+                    })->where('platinum_count', '>', 0);
+                });
+            })
+            ->select('id', 'title', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count')
+            ->orderBy('title')
+            ->paginate($request->get('per_page', 50));
+
+        // Also get summary counts
+        $totalWithTrophies = Game::whereNotNull('bronze_count')->count();
+        $bothAgree = Game::whereNotNull('bronze_count')
+            ->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('has_platinum', true)->where('platinum_count', '>', 0);
+                })->orWhere(function ($q2) {
+                    $q2->where(function ($q3) {
+                        $q3->whereNull('has_platinum')->orWhere('has_platinum', false);
+                    })->where(function ($q3) {
+                        $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
+                    });
+                });
+            })->count();
+
+        return response()->json([
+            'data' => $discrepancies->items(),
+            'current_page' => $discrepancies->currentPage(),
+            'last_page' => $discrepancies->lastPage(),
+            'total' => $discrepancies->total(),
+            'summary' => [
+                'total_with_trophies' => $totalWithTrophies,
+                'agree' => $bothAgree,
+                'discrepancies' => $discrepancies->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * Quick-save trophy breakdown for a game
+     */
+    public function updateTrophies(Request $request, $id)
+    {
+        $game = Game::findOrFail($id);
+
+        $validated = $request->validate([
+            'has_platinum' => 'nullable|boolean',
+            'gold_count' => 'nullable|integer|min:0',
+            'silver_count' => 'nullable|integer|min:0',
+            'bronze_count' => 'nullable|integer|min:0',
+        ]);
+
+        $game->update($validated);
+
+        \App\Http\Controllers\GameController::bustGameCache();
+
+        return response()->json(['success' => true, 'game' => $game]);
+    }
+
+    /**
      * Search games for linking (used by PSN title matching UI)
      */
     public function searchGamesForLinking(Request $request)
