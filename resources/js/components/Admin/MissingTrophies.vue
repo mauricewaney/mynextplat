@@ -60,6 +60,7 @@
                         <thead class="bg-gray-50 dark:bg-slate-700/50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Game</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Guides</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">has_platinum</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">platinum_count</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Trophy Counts</th>
@@ -69,6 +70,22 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
                             <tr v-for="game in discrepancyGames" :key="game.id" class="hover:bg-gray-50 dark:hover:bg-slate-700/30">
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ game.title }}</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-1.5">
+                                        <a v-if="game.psnprofiles_url" :href="game.psnprofiles_url" target="_blank"
+                                            class="px-1.5 py-0.5 text-xs font-medium rounded bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60"
+                                        >PSNP</a>
+                                        <a v-if="game.playstationtrophies_url" :href="game.playstationtrophies_url" target="_blank"
+                                            class="px-1.5 py-0.5 text-xs font-medium rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/60"
+                                        >PST</a>
+                                        <a v-if="game.powerpyx_url" :href="game.powerpyx_url" target="_blank"
+                                            class="px-1.5 py-0.5 text-xs font-medium rounded bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/60"
+                                        >PPX</a>
+                                        <span v-if="!game.psnprofiles_url && !game.playstationtrophies_url && !game.powerpyx_url"
+                                            class="text-xs text-gray-400 dark:text-gray-500"
+                                        >None</span>
+                                    </div>
+                                </td>
                                 <td class="px-4 py-3">
                                     <span :class="game.has_platinum ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'" class="text-sm font-medium">
                                         {{ game.has_platinum ? 'true' : 'false' }}
