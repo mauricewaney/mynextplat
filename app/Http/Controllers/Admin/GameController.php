@@ -466,20 +466,20 @@ class GameController extends Controller
     {
         // Games where has_platinum and platinum_count disagree
         // Excluding games with no trophy data at all
+        // Use explicit 1/0 for boolean comparison (MySQL tinyint compatibility)
         $discrepancies = Game::whereNotNull('bronze_count')
             ->where(function ($q) {
                 // has_platinum is true but platinum_count is 0 or null
                 $q->where(function ($q2) {
-                    $q2->where('has_platinum', true)
+                    $q2->where('has_platinum', 1)
                         ->where(function ($q3) {
                             $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
                         });
                 })
-                // OR has_platinum is false/null but platinum_count > 0
+                // OR has_platinum is false but platinum_count > 0
                 ->orWhere(function ($q2) {
-                    $q2->where(function ($q3) {
-                        $q3->whereNull('has_platinum')->orWhere('has_platinum', false);
-                    })->where('platinum_count', '>', 0);
+                    $q2->where('has_platinum', 0)
+                        ->where('platinum_count', '>', 0);
                 });
             })
             ->select('id', 'title', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count')
@@ -491,13 +491,12 @@ class GameController extends Controller
         $bothAgree = Game::whereNotNull('bronze_count')
             ->where(function ($q) {
                 $q->where(function ($q2) {
-                    $q2->where('has_platinum', true)->where('platinum_count', '>', 0);
+                    $q2->where('has_platinum', 1)->where('platinum_count', '>', 0);
                 })->orWhere(function ($q2) {
-                    $q2->where(function ($q3) {
-                        $q3->whereNull('has_platinum')->orWhere('has_platinum', false);
-                    })->where(function ($q3) {
-                        $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
-                    });
+                    $q2->where('has_platinum', 0)
+                        ->where(function ($q3) {
+                            $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
+                        });
                 });
             })->count();
 
