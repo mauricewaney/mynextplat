@@ -477,7 +477,7 @@ class GameController extends Controller
                         ->where('platinum_count', '>', 0);
                 });
             })
-            ->select('id', 'title', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count', 'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url')
+            ->select('id', 'title', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count', 'psnprofiles_url', 'playstationtrophies_url', 'powerpyx_url', 'np_communication_ids')
             ->orderBy('title')
             ->paginate($request->get('per_page', 50));
 
