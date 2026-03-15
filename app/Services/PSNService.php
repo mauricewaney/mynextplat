@@ -874,20 +874,24 @@ class PSNService
 
         $url = "https://m.np.playstation.com/api/trophy/v1/npCommunicationIds/{$npCommunicationId}/trophyGroups";
 
-        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
-            'Authorization' => 'Bearer ' . $this->accessToken,
-        ]))->timeout(15)->get($url);
+        // Try both service names — trophy2 for PS3/PS4/Vita, trophy for PS5
+        foreach (['trophy2', 'trophy'] as $serviceName) {
+            $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+                'Authorization' => 'Bearer ' . $this->accessToken,
+            ]))->timeout(15)->get($url, ['npServiceName' => $serviceName]);
 
-        if (!$response->successful()) {
-            \Log::error('PSN getTrophyGroups failed', [
-                'npwr' => $npCommunicationId,
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
-            return null;
+            if ($response->successful()) {
+                $data = $response->json();
+                $data['_npServiceName'] = $serviceName;
+                return $data;
+            }
         }
 
-        return $response->json();
+        \Log::error('PSN getTrophyGroups failed for both service names', [
+            'npwr' => $npCommunicationId,
+        ]);
+
+        return null;
     }
 
     /**
