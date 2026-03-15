@@ -189,25 +189,60 @@ class Game extends Model
     {
         $updated = false;
 
-        // Sync trophy counts if not set
-        if ($this->bronze_count === null && $psnTitle->bronze_count !== null) {
-            $this->bronze_count = $psnTitle->bronze_count;
-            $updated = true;
-        }
-        if ($this->silver_count === null && $psnTitle->silver_count !== null) {
-            $this->silver_count = $psnTitle->silver_count;
-            $updated = true;
-        }
-        if ($this->gold_count === null && $psnTitle->gold_count !== null) {
-            $this->gold_count = $psnTitle->gold_count;
-            $updated = true;
+        // Fetch accurate trophy data from trophyGroups endpoint
+        $psnService = app(\App\Services\PSNService::class);
+        $trophyData = null;
+        $npwr = $psnTitle->np_communication_id;
+        if ($psnService->authenticateFromConfig() && $npwr && str_starts_with($npwr, 'NPWR')) {
+            $raw = $psnService->getTrophyGroups($psnTitle->np_communication_id);
+            if ($raw && isset($raw['trophyGroups'])) {
+                $platinum = 0; $gold = 0; $silver = 0; $bronze = 0;
+                foreach ($raw['trophyGroups'] as $group) {
+                    $d = $group['definedTrophies'] ?? [];
+                    $platinum += $d['platinum'] ?? 0;
+                    $gold += $d['gold'] ?? 0;
+                    $silver += $d['silver'] ?? 0;
+                    $bronze += $d['bronze'] ?? 0;
+                }
+                $trophyData = compact('platinum', 'gold', 'silver', 'bronze');
+
+                // Also fix the psn_title record
+                $psnTitle->update([
+                    'has_platinum' => $platinum > 0,
+                    'bronze_count' => $bronze,
+                    'silver_count' => $silver,
+                    'gold_count' => $gold,
+                ]);
+            }
         }
 
-        // Sync has_platinum
-        if (!$this->has_platinum && $psnTitle->has_platinum) {
-            $this->has_platinum = true;
-            $this->platinum_count = 1;
+        if ($trophyData) {
+            // Use accurate API data
+            $this->bronze_count = $trophyData['bronze'];
+            $this->silver_count = $trophyData['silver'];
+            $this->gold_count = $trophyData['gold'];
+            $this->platinum_count = $trophyData['platinum'];
+            $this->has_platinum = $trophyData['platinum'] > 0;
             $updated = true;
+        } else {
+            // Fallback to psn_title stored data if API call fails
+            if ($this->bronze_count === null && $psnTitle->bronze_count !== null) {
+                $this->bronze_count = $psnTitle->bronze_count;
+                $updated = true;
+            }
+            if ($this->silver_count === null && $psnTitle->silver_count !== null) {
+                $this->silver_count = $psnTitle->silver_count;
+                $updated = true;
+            }
+            if ($this->gold_count === null && $psnTitle->gold_count !== null) {
+                $this->gold_count = $psnTitle->gold_count;
+                $updated = true;
+            }
+            if (!$this->has_platinum && $psnTitle->has_platinum) {
+                $this->has_platinum = true;
+                $this->platinum_count = 1;
+                $updated = true;
+            }
         }
 
         // Use trophy icon as fallback if no cover

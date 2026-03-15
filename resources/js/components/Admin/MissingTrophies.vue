@@ -50,29 +50,6 @@
                     <div><span class="font-medium text-gray-700 dark:text-gray-300">Games with trophy data:</span> <span class="text-gray-900 dark:text-white">{{ discrepancySummary.total_with_trophies }}</span></div>
                     <div><span class="font-medium text-green-600 dark:text-green-400">Agree:</span> {{ discrepancySummary.agree }}</div>
                     <div><span class="font-medium text-orange-600 dark:text-orange-400">Discrepancies:</span> {{ discrepancySummary.discrepancies }}</div>
-                    <div class="ml-auto flex items-center gap-2">
-                        <label class="text-xs text-gray-500 dark:text-gray-400">Skip:</label>
-                        <input
-                            v-model.number="repairLastOffset"
-                            type="number"
-                            min="0"
-                            step="30"
-                            :disabled="repairRunning"
-                            class="w-20 px-2 py-1.5 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg"
-                        />
-                        <button
-                            @click="runRepairTrophyCounts"
-                            :disabled="repairRunning"
-                            class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                        >
-                            <span v-if="repairRunning">Repairing... {{ repairProgress }}</span>
-                            <span v-else-if="repairLastOffset > 0">Resume from {{ repairLastOffset }}</span>
-                            <span v-else>Repair All Trophy Counts</span>
-                        </button>
-                    </div>
-                </div>
-                <div v-if="repairResult" class="bg-white dark:bg-slate-800 rounded-lg shadow p-4 text-sm text-gray-700 dark:text-gray-300">
-                    {{ repairResult }}
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden">
@@ -129,31 +106,10 @@
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ game.platinum_count ?? 'null' }}</td>
                                 <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                                    <div>G:{{ game.gold_count ?? '–' }} S:{{ game.silver_count ?? '–' }} B:{{ game.bronze_count ?? '–' }}</div>
-                                    <div v-if="game.np_communication_ids?.length" class="text-[10px] text-gray-400 mt-0.5">{{ game.np_communication_ids.join(', ') }}</div>
+                                    G:{{ game.gold_count ?? '–' }} S:{{ game.silver_count ?? '–' }} B:{{ game.bronze_count ?? '–' }}
                                 </td>
                                 <td class="px-4 py-3">
-                                    <div class="space-y-1">
-                                        <!-- Verify button -->
-                                        <div v-if="game.np_communication_ids?.length">
-                                            <button
-                                                v-if="!game._verified"
-                                                @click="verifyTrophyGroups(game)"
-                                                :disabled="game._verifying"
-                                                class="px-2 py-1 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                                            >{{ game._verifying ? 'Checking...' : 'Verify PSN' }}</button>
-                                            <div v-else class="text-xs space-y-0.5">
-                                                <div class="font-medium" :class="game._psnPlatinum ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'">
-                                                    PSN says: {{ game._psnPlatinum ? 'Has Platinum' : 'No Platinum' }}
-                                                </div>
-                                                <div class="text-gray-500 dark:text-gray-400">
-                                                    P:{{ game._psnCounts.platinum }} G:{{ game._psnCounts.gold }} S:{{ game._psnCounts.silver }} B:{{ game._psnCounts.bronze }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div v-else class="text-xs text-gray-400">No NPWR linked</div>
-                                        <!-- Resolve buttons -->
-                                        <div class="flex items-center gap-1">
+                                    <div class="flex items-center gap-1">
                                         <button
                                             v-if="game.has_platinum && !game.platinum_count"
                                             @click="resolveDiscrepancy(game, 'set-platinum')"
@@ -185,7 +141,6 @@
                                         <svg v-if="game._resolved" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                         </svg>
-                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -586,11 +541,6 @@ const discrepancyLoading = ref(false)
 const discrepancyPagination = ref(null)
 const discrepancySummary = ref(null)
 
-// Repair state
-const repairRunning = ref(false)
-const repairProgress = ref('')
-const repairResult = ref(null)
-const repairLastOffset = ref(0)
 
 // Merge state
 const mergeGameId = ref(null)
@@ -927,7 +877,7 @@ async function fetchDiscrepancies(page = 1) {
         const response = await fetch(`/api/admin/games/platinum-discrepancies?page=${page}&per_page=50`, { credentials: 'include' })
         if (response.ok) {
             const data = await response.json()
-            discrepancyGames.value = data.data.map(g => ({ ...g, _resolving: false, _resolved: false, _verifying: false, _verified: false, _psnPlatinum: null, _psnCounts: null }))
+            discrepancyGames.value = data.data.map(g => ({ ...g, _resolving: false, _resolved: false }))
             discrepancyPagination.value = { current_page: data.current_page, last_page: data.last_page, total: data.total }
             discrepancySummary.value = data.summary
         }
@@ -978,91 +928,6 @@ async function resolveDiscrepancy(game, action) {
         alert('Failed to resolve discrepancy')
     } finally {
         game._resolving = false
-    }
-}
-
-async function runRepairTrophyCounts() {
-    repairRunning.value = true
-    repairResult.value = null
-    let offset = repairLastOffset.value
-    let totalUpdated = 0
-    let totalFailed = 0
-    let totalGames = 0
-
-    try {
-        while (true) {
-            repairProgress.value = `${offset}/${totalGames || '?'} processed, ${totalUpdated} updated`
-            const response = await fetch('/api/admin/psn/repair-trophy-counts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-                },
-                credentials: 'include',
-                body: JSON.stringify({ offset })
-            })
-
-            if (!response.ok) {
-                const err = await response.json().catch(() => ({}))
-                throw new Error(err.message || `Server error ${response.status}`)
-            }
-
-            const data = await response.json()
-            totalGames = data.total_games
-            totalUpdated += data.updated
-            totalFailed += data.failed
-            repairLastOffset.value = data.offset || offset
-
-            if (data.done) {
-                repairLastOffset.value = 0
-                break
-            }
-            offset = data.offset
-        }
-
-        repairResult.value = `Done! ${totalUpdated} games updated, ${totalFailed} failed out of ${totalGames} total.`
-        fetchDiscrepancies(1)
-    } catch (e) {
-        repairResult.value = `Error at offset ${offset}: ${e.message}. Updated ${totalUpdated} so far. Click again to resume.`
-    } finally {
-        repairRunning.value = false
-        repairProgress.value = ''
-    }
-}
-
-async function verifyTrophyGroups(game) {
-    if (!game.np_communication_ids?.length) return
-    game._verifying = true
-    try {
-        const npwr = game.np_communication_ids[0]
-        const response = await fetch(`/api/admin/psn/debug-trophy-groups?npwr=${encodeURIComponent(npwr)}`, { credentials: 'include' })
-        if (!response.ok) throw new Error('Failed')
-        const data = await response.json()
-
-        // Parse the trophy groups response
-        const raw = data.psn_api_raw
-        if (raw && raw.trophyGroups) {
-            // Sum up defined trophies across all groups (base + DLC)
-            let platinum = 0, gold = 0, silver = 0, bronze = 0
-            for (const group of raw.trophyGroups) {
-                const d = group.definedTrophies || {}
-                platinum += d.platinum || 0
-                gold += d.gold || 0
-                silver += d.silver || 0
-                bronze += d.bronze || 0
-            }
-            game._psnPlatinum = platinum > 0
-            game._psnCounts = { platinum, gold, silver, bronze }
-        } else {
-            game._psnPlatinum = null
-            game._psnCounts = { platinum: '?', gold: '?', silver: '?', bronze: '?' }
-        }
-        game._verified = true
-    } catch (e) {
-        console.error('Verify failed:', e)
-        alert('Failed to verify trophy groups from PSN')
-    } finally {
-        game._verifying = false
     }
 }
 

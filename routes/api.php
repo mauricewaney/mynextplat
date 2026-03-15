@@ -132,9 +132,6 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         Route::get('/search-igdb', [PSNController::class, 'searchIgdb']);
         Route::post('/import-igdb-and-link', [PSNController::class, 'importFromIgdbAndLink']);
 
-        // Trophy data tools
-        Route::get('/debug-trophy-groups', [PSNController::class, 'debugTrophyGroups']);
-        Route::post('/repair-trophy-counts', [PSNController::class, 'repairTrophyCounts']);
     });
 
     // Trophy URL Import

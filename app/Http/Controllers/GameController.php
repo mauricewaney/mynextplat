@@ -654,8 +654,8 @@ class GameController extends Controller
                 }
             }
 
-            // Auto-populate NP ID for future matching
-            if ($game && $npId && !$matchedByNpId) {
+            // Auto-populate NP ID for future matching (only NPWR IDs, not CUSA/PPSA)
+            if ($game && $npId && !$matchedByNpId && str_starts_with($npId, 'NPWR')) {
                 $this->addNpIdToGame($game, $npId);
             }
         }
