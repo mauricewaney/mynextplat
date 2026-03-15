@@ -1087,6 +1087,133 @@ class PSNController extends Controller
         ]);
     }
 
+    /**
+     * Batch repair trophy counts using the trophyGroups endpoint (source of truth).
+     * Processes N games per request; frontend loops until done.
+     */
+    public function repairTrophyCounts(Request $request, PSNService $psnService)
+    {
+        set_time_limit(120);
+
+        $batchSize = 30;
+        $offset = (int) $request->get('offset', 0);
+
+        if (!$psnService->authenticateFromConfig()) {
+            return response()->json(['success' => false, 'message' => 'PSN auth failed.'], 401);
+        }
+
+        // All games with linked NPWRs
+        $totalGames = Game::whereNotNull('np_communication_ids')->count();
+
+        $games = Game::whereNotNull('np_communication_ids')
+            ->select('id', 'title', 'np_communication_ids', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count')
+            ->orderBy('id')
+            ->skip($offset)
+            ->take($batchSize)
+            ->get();
+
+        if ($games->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'done' => true,
+                'updated' => 0,
+                'failed' => 0,
+                'total_games' => $totalGames,
+                'message' => 'All games processed.',
+            ]);
+        }
+
+        $updated = 0;
+        $failed = 0;
+        $details = [];
+
+        foreach ($games as $game) {
+            $npIds = $game->np_communication_ids;
+            if (empty($npIds)) continue;
+
+            $npwr = $npIds[0]; // Use the first linked NPWR
+            $data = $psnService->getTrophyGroups($npwr);
+
+            if (!$data || !isset($data['trophyGroups'])) {
+                $failed++;
+                $details[] = ['id' => $game->id, 'title' => $game->title, 'status' => 'api_failed'];
+                continue;
+            }
+
+            // Sum trophies across all groups (base + DLC)
+            $platinum = 0;
+            $gold = 0;
+            $silver = 0;
+            $bronze = 0;
+            foreach ($data['trophyGroups'] as $group) {
+                $d = $group['definedTrophies'] ?? [];
+                $platinum += $d['platinum'] ?? 0;
+                $gold += $d['gold'] ?? 0;
+                $silver += $d['silver'] ?? 0;
+                $bronze += $d['bronze'] ?? 0;
+            }
+
+            $hasPlatinum = $platinum > 0;
+            $changed = false;
+
+            if ($game->has_platinum !== $hasPlatinum ||
+                $game->platinum_count != $platinum ||
+                $game->gold_count != $gold ||
+                $game->silver_count != $silver ||
+                $game->bronze_count != $bronze) {
+                $changed = true;
+            }
+
+            if ($changed) {
+                $game->update([
+                    'has_platinum' => $hasPlatinum,
+                    'platinum_count' => $platinum,
+                    'gold_count' => $gold,
+                    'silver_count' => $silver,
+                    'bronze_count' => $bronze,
+                ]);
+
+                // Also update the psn_title record
+                PsnTitle::where('np_communication_id', $npwr)->update([
+                    'has_platinum' => $hasPlatinum,
+                    'bronze_count' => $bronze,
+                    'silver_count' => $silver,
+                    'gold_count' => $gold,
+                ]);
+
+                $updated++;
+                $details[] = [
+                    'id' => $game->id,
+                    'title' => $game->title,
+                    'status' => 'updated',
+                    'old' => [
+                        'has_platinum' => $game->getOriginal('has_platinum'),
+                        'platinum' => $game->getOriginal('platinum_count'),
+                        'gold' => $game->getOriginal('gold_count'),
+                        'silver' => $game->getOriginal('silver_count'),
+                        'bronze' => $game->getOriginal('bronze_count'),
+                    ],
+                    'new' => compact('hasPlatinum', 'platinum', 'gold', 'silver', 'bronze'),
+                ];
+            }
+        }
+
+        if ($updated > 0) {
+            GameController::bustGameCache();
+        }
+
+        return response()->json([
+            'success' => true,
+            'done' => false,
+            'offset' => $offset + $batchSize,
+            'updated' => $updated,
+            'failed' => $failed,
+            'total_games' => $totalGames,
+            'processed' => $offset + $games->count(),
+            'details' => $details,
+        ]);
+    }
+
     public function searchIgdb(Request $request, IGDBService $igdbService)
     {
         $request->validate([
