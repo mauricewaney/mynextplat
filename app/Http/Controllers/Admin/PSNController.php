@@ -1063,8 +1063,7 @@ class PSNController extends Controller
     {
         $request->validate(['npwr' => 'required|string']);
 
-        $npsso = config('services.psn.npsso_token');
-        if (!$npsso || !$psnService->authenticate($npsso)) {
+        if (!$psnService->authenticateFromConfig()) {
             return response()->json(['error' => 'PSN authentication failed'], 500);
         }
 
