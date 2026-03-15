@@ -50,6 +50,29 @@
                     <div><span class="font-medium text-gray-700 dark:text-gray-300">Games with trophy data:</span> <span class="text-gray-900 dark:text-white">{{ discrepancySummary.total_with_trophies }}</span></div>
                     <div><span class="font-medium text-green-600 dark:text-green-400">Agree:</span> {{ discrepancySummary.agree }}</div>
                     <div><span class="font-medium text-orange-600 dark:text-orange-400">Discrepancies:</span> {{ discrepancySummary.discrepancies }}</div>
+                    <div class="ml-auto flex items-center gap-2">
+                        <label class="text-xs text-gray-500 dark:text-gray-400">Skip:</label>
+                        <input
+                            v-model.number="repairLastOffset"
+                            type="number"
+                            min="0"
+                            step="30"
+                            :disabled="repairRunning"
+                            class="w-20 px-2 py-1.5 text-sm border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg"
+                        />
+                        <button
+                            @click="runRepairTrophyCounts"
+                            :disabled="repairRunning"
+                            class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        >
+                            <span v-if="repairRunning">Repairing... {{ repairProgress }}</span>
+                            <span v-else-if="repairLastOffset > 0">Resume from {{ repairLastOffset }}</span>
+                            <span v-else>Repair Trophy Counts</span>
+                        </button>
+                    </div>
+                </div>
+                <div v-if="repairResult" class="bg-white dark:bg-slate-800 rounded-lg shadow p-4 text-sm text-gray-700 dark:text-gray-300">
+                    {{ repairResult }}
                 </div>
 
                 <div class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden">
@@ -541,6 +564,12 @@ const discrepancyLoading = ref(false)
 const discrepancyPagination = ref(null)
 const discrepancySummary = ref(null)
 
+// Repair state
+const repairRunning = ref(false)
+const repairProgress = ref('')
+const repairResult = ref(null)
+const repairLastOffset = ref(0)
+
 
 // Merge state
 const mergeGameId = ref(null)
@@ -929,6 +958,55 @@ async function resolveDiscrepancy(game, action) {
         alert('Failed to resolve discrepancy')
     } finally {
         game._resolving = false
+    }
+}
+
+async function runRepairTrophyCounts() {
+    repairRunning.value = true
+    repairResult.value = null
+    let offset = repairLastOffset.value
+    let totalUpdated = 0
+    let totalFailed = 0
+    let totalGames = 0
+
+    try {
+        while (true) {
+            repairProgress.value = `${offset}/${totalGames || '?'} processed, ${totalUpdated} updated`
+            const response = await fetch('/api/admin/psn/repair-trophy-counts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                credentials: 'include',
+                body: JSON.stringify({ offset })
+            })
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}))
+                throw new Error(err.message || `Server error ${response.status}`)
+            }
+
+            const data = await response.json()
+            totalGames = data.total_games
+            totalUpdated += data.updated
+            totalFailed += data.failed
+            repairLastOffset.value = data.offset || offset
+
+            if (data.done) {
+                repairLastOffset.value = 0
+                break
+            }
+            offset = data.offset
+        }
+
+        repairResult.value = `Done! ${totalUpdated} games updated, ${totalFailed} failed out of ${totalGames} total.`
+        fetchDiscrepancies(1)
+    } catch (e) {
+        repairResult.value = `Error at offset ${offset}: ${e.message}. Updated ${totalUpdated} so far. Click again to resume.`
+    } finally {
+        repairRunning.value = false
+        repairProgress.value = ''
     }
 }
 
