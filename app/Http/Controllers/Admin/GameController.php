@@ -464,6 +464,7 @@ class GameController extends Controller
      */
     public function platinumDiscrepancies(Request $request)
     {
+        try {
         // Games where has_platinum and platinum_count disagree
         // Excluding games with no trophy data at all
         // Use explicit 1/0 for boolean comparison (MySQL tinyint compatibility)
@@ -511,6 +512,13 @@ class GameController extends Controller
                 'discrepancies' => $discrepancies->total(),
             ],
         ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
