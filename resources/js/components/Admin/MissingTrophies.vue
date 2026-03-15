@@ -685,6 +685,7 @@ async function saveTrophies(game) {
             },
             body: JSON.stringify({
                 has_platinum: game._platinum,
+                platinum_count: game._platinum ? 1 : 0,
                 gold_count: game._gold || 0,
                 silver_count: game._silver || 0,
                 bronze_count: game._bronze || 0,
