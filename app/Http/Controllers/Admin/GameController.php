@@ -464,20 +464,14 @@ class GameController extends Controller
      */
     public function platinumDiscrepancies(Request $request)
     {
-        try {
-        // Games where has_platinum and platinum_count disagree
-        // Excluding games with no trophy data at all
-        // Use explicit 1/0 for boolean comparison (MySQL tinyint compatibility)
         $discrepancies = Game::whereNotNull('bronze_count')
             ->where(function ($q) {
-                // has_platinum is true but platinum_count is 0 or null
                 $q->where(function ($q2) {
                     $q2->where('has_platinum', 1)
                         ->where(function ($q3) {
                             $q3->whereNull('platinum_count')->orWhere('platinum_count', 0);
                         });
                 })
-                // OR has_platinum is false but platinum_count > 0
                 ->orWhere(function ($q2) {
                     $q2->where('has_platinum', 0)
                         ->where('platinum_count', '>', 0);
@@ -487,7 +481,6 @@ class GameController extends Controller
             ->orderBy('title')
             ->paginate($request->get('per_page', 50));
 
-        // Also get summary counts
         $totalWithTrophies = Game::whereNotNull('bronze_count')->count();
         $bothAgree = Game::whereNotNull('bronze_count')
             ->where(function ($q) {
@@ -512,13 +505,6 @@ class GameController extends Controller
                 'discrepancies' => $discrepancies->total(),
             ],
         ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ], 500);
-        }
     }
 
     /**
@@ -530,6 +516,7 @@ class GameController extends Controller
 
         $validated = $request->validate([
             'has_platinum' => 'nullable|boolean',
+            'platinum_count' => 'nullable|integer|min:0',
             'gold_count' => 'nullable|integer|min:0',
             'silver_count' => 'nullable|integer|min:0',
             'bronze_count' => 'nullable|integer|min:0',

@@ -1,17 +1,39 @@
 <template>
     <AdminLayout>
         <div class="space-y-6">
-            <!-- Header -->
+            <!-- Header with tabs -->
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Missing Trophy Data</h1>
-                    <p class="text-gray-600 dark:text-gray-400 mt-1" v-if="pagination">
-                        {{ pagination.total }} games missing trophy data
-                        <span v-if="guidesOnlyCount !== null"> ({{ guidesOnlyCount }} with guides)</span>
-                    </p>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Trophy Data</h1>
+                    <div class="flex gap-1 mt-2">
+                        <button
+                            @click="activeTab = 'missing'"
+                            :class="[
+                                'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
+                                activeTab === 'missing'
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 shadow'
+                            ]"
+                        >
+                            Missing
+                            <span v-if="pagination" class="ml-1 text-xs opacity-75">({{ pagination.total }})</span>
+                        </button>
+                        <button
+                            @click="activeTab = 'discrepancies'; fetchDiscrepancies(1)"
+                            :class="[
+                                'px-3 py-1.5 text-sm font-medium rounded-lg transition-colors',
+                                activeTab === 'discrepancies'
+                                    ? 'bg-orange-600 text-white'
+                                    : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 shadow'
+                            ]"
+                        >
+                            Discrepancies
+                            <span v-if="discrepancySummary" class="ml-1 text-xs opacity-75">({{ discrepancySummary.discrepancies }})</span>
+                        </button>
+                    </div>
                 </div>
 
-                <label class="flex items-center gap-2 cursor-pointer bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-2">
+                <label v-if="activeTab === 'missing'" class="flex items-center gap-2 cursor-pointer bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-2">
                     <input
                         type="checkbox"
                         v-model="hasGuideFilter"
@@ -22,8 +44,104 @@
                 </label>
             </div>
 
+            <!-- ===== DISCREPANCIES TAB ===== -->
+            <div v-if="activeTab === 'discrepancies'" class="space-y-4">
+                <div v-if="discrepancySummary" class="bg-white dark:bg-slate-800 rounded-lg shadow p-4 flex gap-6 text-sm">
+                    <div><span class="font-medium text-gray-700 dark:text-gray-300">Games with trophy data:</span> <span class="text-gray-900 dark:text-white">{{ discrepancySummary.total_with_trophies }}</span></div>
+                    <div><span class="font-medium text-green-600 dark:text-green-400">Agree:</span> {{ discrepancySummary.agree }}</div>
+                    <div><span class="font-medium text-orange-600 dark:text-orange-400">Discrepancies:</span> {{ discrepancySummary.discrepancies }}</div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden">
+                    <div v-if="discrepancyLoading" class="p-8 text-center text-gray-500 dark:text-gray-400">Loading...</div>
+                    <div v-else-if="discrepancyGames.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">No discrepancies found.</div>
+
+                    <table v-else class="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+                        <thead class="bg-gray-50 dark:bg-slate-700/50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Game</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">has_platinum</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">platinum_count</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Trophy Counts</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-slate-700">
+                            <tr v-for="game in discrepancyGames" :key="game.id" class="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                                <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ game.title }}</td>
+                                <td class="px-4 py-3">
+                                    <span :class="game.has_platinum ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'" class="text-sm font-medium">
+                                        {{ game.has_platinum ? 'true' : 'false' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{ game.platinum_count ?? 'null' }}</td>
+                                <td class="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                                    G:{{ game.gold_count ?? '–' }} S:{{ game.silver_count ?? '–' }} B:{{ game.bronze_count ?? '–' }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-1">
+                                        <button
+                                            v-if="game.has_platinum && !game.platinum_count"
+                                            @click="resolveDiscrepancy(game, 'set-platinum')"
+                                            :disabled="game._resolving"
+                                            class="px-2 py-1 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                                            title="Set platinum_count = 1"
+                                        >Set P=1</button>
+                                        <button
+                                            v-if="game.has_platinum && !game.platinum_count"
+                                            @click="resolveDiscrepancy(game, 'remove-platinum')"
+                                            :disabled="game._resolving"
+                                            class="px-2 py-1 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                                            title="Set has_platinum = false"
+                                        >No Plat</button>
+                                        <button
+                                            v-if="!game.has_platinum && game.platinum_count > 0"
+                                            @click="resolveDiscrepancy(game, 'mark-platinum')"
+                                            :disabled="game._resolving"
+                                            class="px-2 py-1 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                                            title="Set has_platinum = true"
+                                        >Has Plat</button>
+                                        <button
+                                            v-if="!game.has_platinum && game.platinum_count > 0"
+                                            @click="resolveDiscrepancy(game, 'clear-count')"
+                                            :disabled="game._resolving"
+                                            class="px-2 py-1 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                                            title="Set platinum_count = 0"
+                                        >P=0</button>
+                                        <svg v-if="game._resolved" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Discrepancy Pagination -->
+                    <div v-if="discrepancyPagination && discrepancyPagination.last_page > 1" class="px-4 py-3 bg-gray-50 dark:bg-slate-700/50 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between">
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            Page {{ discrepancyPagination.current_page }} of {{ discrepancyPagination.last_page }}
+                        </div>
+                        <div class="flex gap-1">
+                            <button
+                                v-for="page in discrepancyPages"
+                                :key="page"
+                                @click="fetchDiscrepancies(page)"
+                                :class="[
+                                    'px-3 py-1 text-sm rounded',
+                                    page === discrepancyPagination.current_page
+                                        ? 'bg-orange-600 text-white'
+                                        : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 border border-gray-300 dark:border-slate-600'
+                                ]"
+                            >{{ page }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== MISSING TAB ===== -->
             <!-- Collect NP IDs -->
-            <div class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
+            <div v-if="activeTab === 'missing'" class="bg-white dark:bg-slate-800 rounded-lg shadow p-4">
                 <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Collect NP IDs from PSN User</h3>
                 <div class="flex gap-2">
                     <input
@@ -58,7 +176,7 @@
             </div>
 
             <!-- Games List -->
-            <div class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden">
+            <div v-if="activeTab === 'missing'" class="bg-white dark:bg-slate-800 shadow rounded-lg overflow-hidden">
                 <div v-if="loading" class="p-8 text-center text-gray-500 dark:text-gray-400">
                     Loading...
                 </div>
@@ -376,6 +494,7 @@ import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import AdminLayout from './AdminLayout.vue'
 import GameFormModal from './GameFormModal.vue'
 
+const activeTab = ref('missing')
 const games = ref([])
 const loading = ref(true)
 const hasGuideFilter = ref(true)
@@ -385,6 +504,12 @@ const guidesOnlyCount = ref(null)
 const collectUsername = ref('')
 const collecting = ref(false)
 const collectResult = ref(null)
+
+// Discrepancy state
+const discrepancyGames = ref([])
+const discrepancyLoading = ref(false)
+const discrepancyPagination = ref(null)
+const discrepancySummary = ref(null)
 
 // Merge state
 const mergeGameId = ref(null)
@@ -701,6 +826,78 @@ function handleGameSaved(savedGame) {
         }
     }
     editingGame.value = null
+}
+
+// Discrepancy helpers
+const discrepancyPages = computed(() => {
+    if (!discrepancyPagination.value) return []
+    const current = discrepancyPagination.value.current_page
+    const last = discrepancyPagination.value.last_page
+    const pages = []
+    for (let i = Math.max(1, current - 2); i <= Math.min(last, current + 2); i++) {
+        pages.push(i)
+    }
+    return pages
+})
+
+async function fetchDiscrepancies(page = 1) {
+    discrepancyLoading.value = true
+    try {
+        const response = await fetch(`/api/admin/games/platinum-discrepancies?page=${page}&per_page=50`, { credentials: 'include' })
+        if (response.ok) {
+            const data = await response.json()
+            discrepancyGames.value = data.data.map(g => ({ ...g, _resolving: false, _resolved: false }))
+            discrepancyPagination.value = { current_page: data.current_page, last_page: data.last_page, total: data.total }
+            discrepancySummary.value = data.summary
+        }
+    } catch (e) {
+        console.error('Failed to fetch discrepancies:', e)
+    } finally {
+        discrepancyLoading.value = false
+    }
+}
+
+async function resolveDiscrepancy(game, action) {
+    game._resolving = true
+    const payload = {}
+    if (action === 'set-platinum') {
+        payload.has_platinum = true
+        payload.platinum_count = 1
+    } else if (action === 'remove-platinum') {
+        payload.has_platinum = false
+    } else if (action === 'mark-platinum') {
+        payload.has_platinum = true
+    } else if (action === 'clear-count') {
+        payload.platinum_count = 0
+    }
+    // Include existing trophy counts
+    payload.gold_count = game.gold_count ?? 0
+    payload.silver_count = game.silver_count ?? 0
+    payload.bronze_count = game.bronze_count ?? 0
+
+    try {
+        const response = await fetch(`/api/admin/games/${game.id}/trophies`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            },
+            body: JSON.stringify(payload)
+        })
+        if (response.ok) {
+            game._resolved = true
+            setTimeout(() => {
+                discrepancyGames.value = discrepancyGames.value.filter(g => g.id !== game.id)
+                if (discrepancySummary.value) discrepancySummary.value.discrepancies--
+            }, 800)
+        } else {
+            alert('Failed to resolve discrepancy')
+        }
+    } catch (e) {
+        alert('Failed to resolve discrepancy')
+    } finally {
+        game._resolving = false
+    }
 }
 
 onMounted(() => {
