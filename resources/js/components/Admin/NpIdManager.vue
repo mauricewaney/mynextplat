@@ -283,10 +283,10 @@
                         <img
                             v-if="item.icon_url"
                             :src="item.icon_url"
-                            class="w-12 h-12 rounded object-cover bg-gray-100"
+                            class="w-24 h-24 rounded object-cover bg-gray-100"
                             @error="$event.target.style.display = 'none'"
                         />
-                        <div v-else class="w-12 h-12 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
+                        <div v-else class="w-24 h-24 rounded bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
                             <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -334,7 +334,7 @@
                                                     ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100'
                                                     : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'"
                                         >
-                                            <img v-if="suggestion.cover_url" :src="suggestion.cover_url" class="w-6 h-8 rounded object-cover" />
+                                            <img v-if="suggestion.cover_url" :src="suggestion.cover_url" class="w-10 h-14 rounded object-cover" />
                                             <span>{{ suggestion.title }}</span>
                                             <span class="px-1.5 py-0.5 rounded text-xs font-medium"
                                                 :class="suggestion.similarity >= 80
@@ -370,7 +370,7 @@
                                             @click="linkToGame(item, result.id)"
                                             class="inline-flex items-center gap-2 px-2 py-1 bg-gray-50 text-gray-700 text-sm rounded hover:bg-green-50 hover:text-green-700 transition-colors border border-gray-200"
                                         >
-                                            <img v-if="result.cover_url" :src="result.cover_url" class="w-5 h-5 rounded object-cover" />
+                                            <img v-if="result.cover_url" :src="result.cover_url" class="w-10 h-14 rounded object-cover" />
                                             {{ result.title }}
                                         </button>
                                     </div>
@@ -399,7 +399,7 @@
                                             :disabled="item.importing"
                                             class="inline-flex items-center gap-2 px-2 py-1 bg-purple-50 text-purple-700 text-sm rounded hover:bg-purple-100 transition-colors border border-purple-200"
                                         >
-                                            <img v-if="result.cover_url" :src="result.cover_url" class="w-5 h-7 rounded object-cover" />
+                                            <img v-if="result.cover_url" :src="result.cover_url" class="w-10 h-14 rounded object-cover" />
                                             <div class="text-left">
                                                 <div>{{ result.title }}</div>
                                                 <div class="text-xs text-purple-400">
