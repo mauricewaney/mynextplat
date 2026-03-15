@@ -1056,6 +1056,38 @@ class PSNController extends Controller
     /**
      * Search IGDB for games
      */
+    /**
+     * Debug: Fetch raw trophy group data for a specific NPWR from PSN API
+     */
+    public function debugTrophyGroups(Request $request, PSNService $psnService)
+    {
+        $request->validate(['npwr' => 'required|string']);
+
+        $npsso = config('services.psn.npsso_token');
+        if (!$npsso || !$psnService->authenticate($npsso)) {
+            return response()->json(['error' => 'PSN authentication failed'], 500);
+        }
+
+        $npwr = $request->query('npwr');
+        $raw = $psnService->getTrophyGroups($npwr);
+
+        // Also get what we have stored locally
+        $local = PsnTitle::where('np_communication_id', $npwr)->first();
+
+        return response()->json([
+            'npwr' => $npwr,
+            'psn_api_raw' => $raw,
+            'local_psn_title' => $local ? [
+                'psn_title' => $local->psn_title,
+                'has_platinum' => $local->has_platinum,
+                'bronze_count' => $local->bronze_count,
+                'silver_count' => $local->silver_count,
+                'gold_count' => $local->gold_count,
+                'game_id' => $local->game_id,
+            ] : null,
+        ]);
+    }
+
     public function searchIgdb(Request $request, IGDBService $igdbService)
     {
         $request->validate([

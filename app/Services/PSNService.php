@@ -862,6 +862,35 @@ class PSNService
     }
 
     /**
+     * Get trophy group details for a specific NPWR directly from PSN.
+     * This is the definitive source of truth for a game's trophy breakdown,
+     * independent of any user's data.
+     */
+    public function getTrophyGroups(string $npCommunicationId): ?array
+    {
+        if (!$this->accessToken) {
+            return null;
+        }
+
+        $url = "https://m.np.playstation.com/api/trophy/v1/npCommunicationIds/{$npCommunicationId}/trophyGroups";
+
+        $response = Http::withHeaders(array_merge(self::DEFAULT_HEADERS, [
+            'Authorization' => 'Bearer ' . $this->accessToken,
+        ]))->timeout(15)->get($url);
+
+        if (!$response->successful()) {
+            \Log::error('PSN getTrophyGroups failed', [
+                'npwr' => $npCommunicationId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return null;
+        }
+
+        return $response->json();
+    }
+
+    /**
      * Filter to games without platinum earned
      */
     public function getUnplatinumedGames(string $username): array
