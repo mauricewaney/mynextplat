@@ -1056,6 +1056,112 @@ class PSNController extends Controller
     /**
      * Search IGDB for games
      */
+    /**
+     * Batch repair trophy counts using the trophyGroups endpoint (source of truth).
+     * Processes N games per request; frontend loops until done.
+     */
+    public function repairTrophyCounts(Request $request, PSNService $psnService)
+    {
+        set_time_limit(120);
+
+        $batchSize = 30;
+        $offset = (int) $request->get('offset', 0);
+
+        if (!$psnService->authenticateFromConfig()) {
+            return response()->json(['success' => false, 'message' => 'PSN auth failed.'], 401);
+        }
+
+        $totalGames = Game::whereNotNull('np_communication_ids')->count();
+
+        $games = Game::whereNotNull('np_communication_ids')
+            ->select('id', 'title', 'np_communication_ids', 'has_platinum', 'platinum_count', 'gold_count', 'silver_count', 'bronze_count')
+            ->orderBy('id')
+            ->skip($offset)
+            ->take($batchSize)
+            ->get();
+
+        if ($games->isEmpty()) {
+            return response()->json([
+                'success' => true,
+                'done' => true,
+                'updated' => 0,
+                'failed' => 0,
+                'total_games' => $totalGames,
+                'message' => 'All games processed.',
+            ]);
+        }
+
+        $updated = 0;
+        $failed = 0;
+
+        foreach ($games as $game) {
+            $npIds = $game->np_communication_ids;
+            if (empty($npIds)) continue;
+
+            $npwr = collect($npIds)->first(fn($id) => str_starts_with($id, 'NPWR'));
+            if (!$npwr) continue;
+
+            $data = $psnService->getTrophyGroups($npwr);
+
+            if (!$data || !isset($data['trophyGroups'])) {
+                $failed++;
+                continue;
+            }
+
+            $platinum = 0;
+            $gold = 0;
+            $silver = 0;
+            $bronze = 0;
+            foreach ($data['trophyGroups'] as $group) {
+                $d = $group['definedTrophies'] ?? [];
+                $platinum += $d['platinum'] ?? 0;
+                $gold += $d['gold'] ?? 0;
+                $silver += $d['silver'] ?? 0;
+                $bronze += $d['bronze'] ?? 0;
+            }
+
+            $hasPlatinum = $platinum > 0;
+
+            if ($game->has_platinum !== $hasPlatinum ||
+                $game->platinum_count != $platinum ||
+                $game->gold_count != $gold ||
+                $game->silver_count != $silver ||
+                $game->bronze_count != $bronze) {
+
+                $game->update([
+                    'has_platinum' => $hasPlatinum,
+                    'platinum_count' => $platinum,
+                    'gold_count' => $gold,
+                    'silver_count' => $silver,
+                    'bronze_count' => $bronze,
+                ]);
+
+                PsnTitle::where('np_communication_id', $npwr)->update([
+                    'has_platinum' => $hasPlatinum,
+                    'bronze_count' => $bronze,
+                    'silver_count' => $silver,
+                    'gold_count' => $gold,
+                ]);
+
+                $updated++;
+            }
+        }
+
+        if ($updated > 0) {
+            GameController::bustGameCache();
+        }
+
+        return response()->json([
+            'success' => true,
+            'done' => false,
+            'offset' => $offset + $batchSize,
+            'updated' => $updated,
+            'failed' => $failed,
+            'total_games' => $totalGames,
+            'processed' => $offset + $games->count(),
+        ]);
+    }
+
     public function searchIgdb(Request $request, IGDBService $igdbService)
     {
         $request->validate([
