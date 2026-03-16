@@ -1402,15 +1402,15 @@ const filters = reactive({
     no_genres: false,
     no_platforms: false,
     has_guide: true,
-    needs_data: true,
+    needs_data: false,
     semi_filled: false,
-    needs_verification: false,
+    needs_verification: true,
     is_verified: false,
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
     psnp_only: false,
-    sort_by: 'created_at',
+    sort_by: 'user_score_count',
     sort_order: 'desc'
 })
 
@@ -1532,9 +1532,9 @@ const resetFilters = () => {
     filters.no_genres = false
     filters.no_platforms = false
     filters.has_guide = true
-    filters.needs_data = true
+    filters.needs_data = false
     filters.semi_filled = false
-    filters.needs_verification = false
+    filters.needs_verification = true
     filters.is_verified = false
     filters.guide_psnp = false
     filters.guide_pst = false
