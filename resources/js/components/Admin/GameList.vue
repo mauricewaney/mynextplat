@@ -89,16 +89,8 @@
                     <div class="text-xs text-gray-500 dark:text-gray-400">Verified</div>
                 </div>
                 <div class="bg-white dark:bg-slate-800 rounded-lg shadow px-4 py-3 text-center">
-                    <div class="flex flex-col items-center gap-1">
-                        <div class="w-full bg-gray-200 dark:bg-slate-600 rounded-full h-2.5">
-                            <div
-                                class="bg-green-600 h-2.5 rounded-full transition-all duration-300"
-                                :style="{ width: stats.completion_percent + '%' }"
-                            ></div>
-                        </div>
-                        <div class="text-sm font-bold text-gray-900 dark:text-white">{{ stats.completion_percent }}%</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">Progress</div>
-                    </div>
+                    <div class="text-2xl font-bold text-amber-600">{{ stats.with_guide - stats.verified }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Left to Verify</div>
                 </div>
             </div>
 
