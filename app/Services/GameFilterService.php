@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 
 class GameFilterService
 {
+    // Score display thresholds — must match resources/js/constants.js
+    public const MIN_USER_RATINGS = 3;
+    public const MIN_CRITIC_SOURCES = 3;
+
     /**
      * Apply filters to a game query
      *
@@ -176,8 +180,8 @@ class GameFilterService
      */
     protected function applyScoreFilter(Builder $query, Request $request): void
     {
-        $minUserRatings = 3;
-        $minCriticSources = 3;
+        $minUserRatings = self::MIN_USER_RATINGS;
+        $minCriticSources = self::MIN_CRITIC_SOURCES;
 
         // IGDB User Score range filter
         if ($request->filled('user_score_min') && $request->input('user_score_min') > 0) {
@@ -355,7 +359,20 @@ class GameFilterService
         // Handle NULL values for nullable sort columns - push NULLs to the end
         $nullableColumns = ['difficulty', 'time_min', 'time_max', 'critic_score', 'user_score', 'opencritic_score', 'release_date', 'playthroughs_required', 'missable_trophies', 'user_score_count'];
 
-        if (in_array($sortBy, $nullableColumns)) {
+        // Score columns: push below-threshold games to the bottom alongside NULLs
+        $scoreThresholdColumns = [
+            'user_score' => ['count_col' => 'user_score_count', 'min' => self::MIN_USER_RATINGS],
+            'critic_score' => ['count_col' => 'critic_score_count', 'min' => self::MIN_CRITIC_SOURCES],
+        ];
+
+        if (isset($scoreThresholdColumns[$sortBy])) {
+            $cfg = $scoreThresholdColumns[$sortBy];
+            $countCol = $cfg['count_col'];
+            $min = $cfg['min'];
+            // First: games meeting threshold, then everything else
+            $query->orderByRaw("CASE WHEN {$sortBy} IS NOT NULL AND ({$countCol} IS NULL OR {$countCol} >= ?) THEN 0 ELSE 1 END", [$min])
+                  ->orderBy($sortBy, $sortOrder);
+        } elseif (in_array($sortBy, $nullableColumns)) {
             $query->orderByRaw("{$sortBy} IS NULL")
                   ->orderBy($sortBy, $sortOrder);
         } else {

@@ -531,8 +531,7 @@ const hasGuides = computed(() => {
 })
 
 // Score display
-const MIN_USER_RATINGS = 3
-const MIN_CRITIC_SOURCES = 3
+import { MIN_USER_RATINGS, MIN_CRITIC_SOURCES } from '../constants'
 
 const displayUserScore = computed(() => {
     if (!game.value?.user_score) return null
