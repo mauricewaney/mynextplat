@@ -305,11 +305,26 @@
                             </div>
 
                             <!-- Trophy info -->
-                            <div v-if="item.has_platinum || item.bronze_count" class="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                                <span v-if="item.has_platinum" class="text-yellow-600">Platinum</span>
-                                <span v-if="item.gold_count">{{ item.gold_count }} Gold</span>
-                                <span v-if="item.silver_count">{{ item.silver_count }} Silver</span>
-                                <span v-if="item.bronze_count">{{ item.bronze_count }} Bronze</span>
+                            <div class="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                <template v-if="item._liveTrophies">
+                                    <span v-if="item._liveTrophies.has_platinum" class="text-yellow-600 font-medium">Platinum</span>
+                                    <span v-else class="text-gray-400">No Platinum</span>
+                                    <span>{{ item._liveTrophies.gold }} Gold</span>
+                                    <span>{{ item._liveTrophies.silver }} Silver</span>
+                                    <span>{{ item._liveTrophies.bronze }} Bronze</span>
+                                    <span class="text-green-500">(live)</span>
+                                </template>
+                                <template v-else-if="item.has_platinum || item.bronze_count">
+                                    <span v-if="item.has_platinum" class="text-yellow-600">Platinum</span>
+                                    <span v-if="item.gold_count">{{ item.gold_count }} Gold</span>
+                                    <span v-if="item.silver_count">{{ item.silver_count }} Silver</span>
+                                    <span v-if="item.bronze_count">{{ item.bronze_count }} Bronze</span>
+                                </template>
+                                <button
+                                    @click="fetchLiveTrophies(item)"
+                                    :disabled="item._trophyLoading"
+                                    class="px-1.5 py-0.5 text-xs rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 disabled:opacity-50"
+                                >{{ item._trophyLoading ? '...' : item._liveTrophies ? '↻' : 'Trophies' }}</button>
                             </div>
 
                             <!-- Discovered from -->
@@ -999,6 +1014,24 @@ async function importAndLink(item, igdbGame) {
         alert('Failed to import game from IGDB')
     } finally {
         item.importing = false
+    }
+}
+
+async function fetchLiveTrophies(item) {
+    if (!item.np_communication_id?.startsWith('NPWR')) return
+    item._trophyLoading = true
+    try {
+        const response = await fetch(`/api/admin/psn/fetch-trophies/${item.np_communication_id}`)
+        if (response.ok) {
+            item._liveTrophies = await response.json()
+        } else {
+            const err = await response.json()
+            alert(err.error || 'Failed to fetch trophies')
+        }
+    } catch (error) {
+        console.error('Failed to fetch trophies:', error)
+    } finally {
+        item._trophyLoading = false
     }
 }
 

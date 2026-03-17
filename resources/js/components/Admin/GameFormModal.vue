@@ -280,9 +280,21 @@ Online Trophies: None"
                                                 <span v-if="result.platform"> &middot; {{ result.platform }}</span>
                                                 <span v-if="result.linked_game_title" class="text-amber-600 dark:text-amber-400"> &middot; linked to "{{ result.linked_game_title }}"</span>
                                             </p>
+                                            <p v-if="result._liveTrophies" class="text-xs mt-0.5">
+                                                <span v-if="result._liveTrophies.has_platinum" class="text-yellow-600">Plat</span>
+                                                <span v-else class="text-gray-400">No Plat</span>
+                                                &middot; {{ result._liveTrophies.gold }}G {{ result._liveTrophies.silver }}S {{ result._liveTrophies.bronze }}B
+                                                <span class="text-green-500">(live)</span>
+                                            </p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                                        <button
+                                            type="button"
+                                            @click="fetchTrophiesForResult(result)"
+                                            :disabled="result._trophyLoading"
+                                            class="px-1.5 py-1 text-xs rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 disabled:opacity-50"
+                                        >{{ result._trophyLoading ? '...' : result._liveTrophies ? '↻' : '🏆' }}</button>
                                         <span
                                             class="text-xs font-medium px-1.5 py-0.5 rounded"
                                             :class="result.similarity >= 80 ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' : result.similarity >= 60 ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'"
@@ -809,13 +821,27 @@ Online Trophies: None"
                                         <span v-if="item.platform"> &middot; {{ item.platform }}</span>
                                         <span v-if="item.times_seen > 1"> &middot; seen {{ item.times_seen }}x</span>
                                     </p>
+                                    <p v-if="item._liveTrophies" class="text-xs mt-0.5">
+                                        <span v-if="item._liveTrophies.has_platinum" class="text-yellow-600 font-medium">Plat</span>
+                                        <span v-else class="text-gray-400">No Plat</span>
+                                        &middot; {{ item._liveTrophies.gold }}G {{ item._liveTrophies.silver }}S {{ item._liveTrophies.bronze }}B
+                                        <span class="text-green-500">(live)</span>
+                                    </p>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                @click="linkFromBrowse(item)"
-                                class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 flex-shrink-0 ml-3"
-                            >Link</button>
+                            <div class="flex items-center gap-2 flex-shrink-0 ml-3">
+                                <button
+                                    type="button"
+                                    @click="fetchTrophiesForResult(item)"
+                                    :disabled="item._trophyLoading"
+                                    class="px-1.5 py-1 text-xs rounded bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-900/60 disabled:opacity-50"
+                                >{{ item._trophyLoading ? '...' : item._liveTrophies ? '↻' : '🏆' }}</button>
+                                <button
+                                    type="button"
+                                    @click="linkFromBrowse(item)"
+                                    class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                                >Link</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1167,6 +1193,19 @@ async function unlinkPsnTitle(psnTitle) {
     } catch (error) {
         console.error('Error unlinking PSN title:', error);
         alert('Failed to unlink PSN title');
+    }
+}
+
+async function fetchTrophiesForResult(item) {
+    if (!item.np_communication_id?.startsWith('NPWR')) return;
+    item._trophyLoading = true;
+    try {
+        const response = await axios.get(`/api/admin/psn/fetch-trophies/${item.np_communication_id}`);
+        item._liveTrophies = response.data;
+    } catch (error) {
+        alert(error.response?.data?.error || 'Failed to fetch trophies');
+    } finally {
+        item._trophyLoading = false;
     }
 }
 

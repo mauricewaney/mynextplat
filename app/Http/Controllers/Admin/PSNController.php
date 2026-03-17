@@ -1084,8 +1084,44 @@ class PSNController extends Controller
     }
 
     /**
-     * Search IGDB for games
+     * Fetch live trophy breakdown for an NPWR ID from PSN API.
      */
+    public function fetchTrophies(string $npwr, PSNService $psnService)
+    {
+        if (!str_starts_with($npwr, 'NPWR')) {
+            return response()->json(['error' => 'Invalid NPWR ID'], 400);
+        }
+
+        if (!$psnService->authenticateFromConfig()) {
+            return response()->json(['error' => 'PSN auth failed'], 401);
+        }
+
+        $data = $psnService->getTrophyGroups($npwr);
+
+        if (!$data || !isset($data['trophyGroups'])) {
+            return response()->json(['error' => 'No trophy data found'], 404);
+        }
+
+        $platinum = 0; $gold = 0; $silver = 0; $bronze = 0;
+        foreach ($data['trophyGroups'] as $group) {
+            $d = $group['definedTrophies'] ?? [];
+            $platinum += $d['platinum'] ?? 0;
+            $gold += $d['gold'] ?? 0;
+            $silver += $d['silver'] ?? 0;
+            $bronze += $d['bronze'] ?? 0;
+        }
+
+        return response()->json([
+            'npwr' => $npwr,
+            'has_platinum' => $platinum > 0,
+            'platinum' => $platinum,
+            'gold' => $gold,
+            'silver' => $silver,
+            'bronze' => $bronze,
+            'service_name' => $data['_npServiceName'] ?? null,
+        ]);
+    }
+
     /**
      * Batch repair trophy counts using the trophyGroups endpoint (source of truth).
      * Processes N games per request; frontend loops until done.
