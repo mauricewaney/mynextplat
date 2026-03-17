@@ -212,17 +212,6 @@
                     >
                         No Guide
                     </button>
-                    <button
-                        @click="filters.has_guide = null; emitFilters()"
-                        :class="[
-                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
-                            filters.has_guide === null
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
-                        ]"
-                    >
-                        Any
-                    </button>
                 </div>
             </div>
 
@@ -628,7 +617,7 @@ const filters = reactive({
     has_platinum: true,
     has_online_trophies: null,
     missable_trophies: null,
-    has_guide: null, // null = any, true = only with guides, false = only without guides
+    has_guide: true, // true = only with guides, false = only without guides
     exclude_unobtainable: true,
     guide_psnp: false,
     guide_pst: false,
@@ -707,7 +696,7 @@ const activeFilterCount = computed(() => {
     if (filters.has_online_trophies === false) count++
     if (filters.missable_trophies === false) count++
     if (filters.exclude_unobtainable === true) count++
-    if (filters.has_guide !== null) count++
+    if (filters.has_guide === false) count++
     if (filters.guide_psnp || filters.guide_pst || filters.guide_ppx) count++
     return count
 })
@@ -832,7 +821,7 @@ function clearAllFilters() {
     filters.has_online_trophies = null
     filters.missable_trophies = null
     filters.exclude_unobtainable = null
-    filters.has_guide = null
+    filters.has_guide = true
     filters.guide_psnp = false
     filters.guide_pst = false
     filters.guide_ppx = false

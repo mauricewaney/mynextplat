@@ -780,7 +780,7 @@ const FILTER_DEFAULTS = {
     critic_score_max: 100,
     has_online_trophies: null,
     missable_trophies: null,
-    has_guide: null,
+    has_guide: true,
     guide_psnp: false,
     guide_pst: false,
     guide_ppx: false,
@@ -854,7 +854,7 @@ const defaultFilters = {
     has_platinum: true,
     has_online_trophies: null,
     missable_trophies: null,
-    has_guide: null,
+    has_guide: true,
     exclude_unobtainable: true,
     guide_psnp: false,
     guide_pst: false,
@@ -1082,14 +1082,11 @@ async function loadGames() {
         }
         // 'all' mode: no special filters
 
-        // Has guide filter - use explicit filter if set, otherwise default to showing guides only for 'all' mode
+        // Has guide filter
         if (filters.has_guide === true) {
             params.append('has_guide', 'true')
         } else if (filters.has_guide === false) {
             params.append('has_guide', 'false')
-        } else if (viewMode.value === 'all' && !filters.search) {
-            // Default: show games with guides on homepage when browsing (not searching)
-            params.append('has_guide', 'true')
         }
 
         // Add filters
