@@ -346,8 +346,16 @@ class GameFilterService
      */
     protected function applySorting(Builder $query, Request $request): void
     {
+        $allowedSortColumns = [
+            'title', 'release_date', 'created_at', 'difficulty', 'time_min', 'time_max',
+            'critic_score', 'user_score', 'opencritic_score', 'playthroughs_required',
+            'missable_trophies', 'user_score_count',
+        ];
         $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'created_at';
+        }
+        $sortOrder = in_array(strtolower($request->get('sort_order', 'desc')), ['asc', 'desc']) ? $request->get('sort_order', 'desc') : 'desc';
 
         // When searching, prioritize shorter titles (base games before DLC)
         // unless explicit sorting is requested
