@@ -187,7 +187,6 @@
                             >
                                 <option value="title">Title</option>
                                 <option value="release_date">Release Date</option>
-                                <option value="added_at">Date Added</option>
                                 <option value="difficulty">Difficulty</option>
                                 <option value="time_min">Completion Time</option>
                                 <option value="user_score">User Score</option>

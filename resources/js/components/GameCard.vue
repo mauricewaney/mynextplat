@@ -181,7 +181,7 @@
             </div>
 
             <!-- Stats Group -->
-            <div class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 flex-1">
+            <div :class="['bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 flex-1', !hasTrophyData && !hasGuide ? 'flex flex-col justify-center' : '']">
                 <!-- Trophy Breakdown -->
                 <div v-if="hasTrophyData" class="flex items-center gap-1.5 mb-1">
                     <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-300 dark:text-blue-200">
@@ -230,8 +230,14 @@
                         <div class="text-gray-500 dark:text-gray-400 text-[9px] sm:text-[10px]">Source</div>
                     </div>
                 </div>
-                <div v-else-if="!hasTrophyData" class="flex items-center justify-center py-1">
-                    <p class="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">No trophy guide yet</p>
+                <div v-else-if="!hasTrophyData" class="flex flex-col items-center justify-center flex-1">
+                    <template v-if="futureReleaseDate">
+                        <div class="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wide">Release Date</div>
+                        <div class="text-xs sm:text-sm font-medium text-primary-500 dark:text-primary-400">{{ futureReleaseDate }}</div>
+                    </template>
+                    <p v-else class="text-xs sm:text-sm font-medium text-gray-400 dark:text-gray-500">
+                        No trophy guide yet
+                    </p>
                 </div>
             </div>
 
@@ -406,6 +412,17 @@ onBeforeUnmount(() => {
 
 // Minimum rating counts to display (filter out unreliable scores)
 import { MIN_USER_RATINGS, MIN_CRITIC_SOURCES } from '../constants'
+
+const futureReleaseDate = computed(() => {
+    if (!props.game.release_date) return null
+    const d = new Date(props.game.release_date)
+    if (d <= new Date()) return null
+    // Dec 31 = unknown exact date, just show year
+    if (d.getMonth() === 11 && d.getDate() === 31) {
+        return String(d.getFullYear())
+    }
+    return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+})
 
 const displayUserScore = computed(() => {
     if (!props.game.user_score) return null

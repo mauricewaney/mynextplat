@@ -212,6 +212,17 @@
                     >
                         No Guide
                     </button>
+                    <button
+                        @click="filters.has_guide = null; emitFilters()"
+                        :class="[
+                            'flex-1 py-1 rounded-lg text-xs font-medium transition-all',
+                            filters.has_guide === null
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                        ]"
+                    >
+                        Any
+                    </button>
                 </div>
             </div>
 
