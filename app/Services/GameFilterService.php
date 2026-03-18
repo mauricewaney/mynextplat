@@ -37,6 +37,14 @@ class GameFilterService
         $this->applyScoreFilter($query, $request);
         $this->applyBooleanFilters($query, $request);
 
+        // Exclude unreleased games from public results
+        if (!$isAdmin) {
+            $query->where(function ($q) {
+                $q->whereNull('release_date')
+                  ->orWhere('release_date', '<=', now());
+            });
+        }
+
         // Admin-only filters
         if ($isAdmin) {
             $this->applyAdminFilters($query, $request);
