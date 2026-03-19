@@ -866,7 +866,7 @@ const presets = [
         image: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co86yv.jpg',
         activeClass: 'ring ring-primary-400 shadow-md shadow-primary-500/30',
         inactiveClass: 'ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600',
-        filters: { difficulty_max: 4, time_max: 15, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
+        filters: { difficulty_max: 4, time_max: 9, has_online_trophies: false, missable_trophies: false, max_playthroughs: 1 },
         sort: 'time_min',
         order: 'asc',
     },

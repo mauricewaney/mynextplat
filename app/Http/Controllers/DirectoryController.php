@@ -19,12 +19,12 @@ class DirectoryController extends Controller
             'title' => 'Fast & Easy Platinum Trophies',
             'filters' => [
                 'difficulty_max' => 4,
-                'time_max' => 15,
+                'time_max' => 9,
                 'has_online_trophies' => 'false',
                 'missable_trophies' => 'false',
                 'max_playthroughs' => 1,
             ],
-            'cta_params' => ['diff_max' => '4', 'time_max' => '15', 'online' => 'false', 'missable' => 'false', 'runs' => '1'],
+            'cta_params' => ['diff_max' => '4', 'time_max' => '9', 'online' => 'false', 'missable' => 'false', 'runs' => '1'],
         ],
         'must-play' => [
             'title' => 'Must Play Trophy Games',
