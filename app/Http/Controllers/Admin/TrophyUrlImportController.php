@@ -306,11 +306,26 @@ class TrophyUrlImportController extends Controller
     public function searchIgdb(Request $request, IGDBService $igdbService)
     {
         $request->validate([
-            'query' => 'required|string|min:2',
+            'query' => 'required|string|min:1',
         ]);
 
+        $query = trim($request->query('query'));
+
         try {
-            $games = $igdbService->searchGames($request->query('query'), 10);
+            // If the query is purely numeric, fetch by IGDB ID directly
+            if (ctype_digit($query)) {
+                $igdbGame = $igdbService->fetchGameById((int) $query);
+
+                if ($igdbGame) {
+                    $parsed = $igdbService->parseGameData($igdbGame);
+                    $parsed['igdb_id'] = $igdbGame['id'];
+                    $games = [$parsed];
+                } else {
+                    $games = [];
+                }
+            } else {
+                $games = $igdbService->searchGames($query, 10);
+            }
 
             return response()->json([
                 'success' => true,
