@@ -278,7 +278,7 @@
                                         <input
                                             v-model="item.igdbSearch"
                                             type="text"
-                                            placeholder="Search IGDB..."
+                                            placeholder="Search IGDB or enter ID..."
                                             class="w-full border-gray-300 dark:border-slate-600 rounded text-sm py-1.5 px-2 focus:ring-orange-500 focus:border-orange-500 bg-orange-50 dark:bg-slate-700 dark:text-gray-300 dark:placeholder-gray-500"
                                             @focus="setActiveItem(item); item.searchMode = 'igdb'"
                                             @input="searchIgdb(item)"
@@ -517,7 +517,7 @@ async function searchGames(item) {
 let igdbSearchTimeout = null
 async function searchIgdb(item) {
     clearTimeout(igdbSearchTimeout)
-    if (!item.igdbSearch || item.igdbSearch.length < 2) {
+    if (!item.igdbSearch || (!(/^\d+$/.test(item.igdbSearch.trim())) && item.igdbSearch.length < 2)) {
         item.igdbResults = []
         return
     }

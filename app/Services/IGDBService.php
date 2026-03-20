@@ -491,6 +491,39 @@ class IGDBService
     }
 
     /**
+     * Fetch a single game from IGDB by its ID
+     */
+    public function fetchGameById(int $igdbId): ?array
+    {
+        $accessToken = $this->getAccessToken();
+
+        if (!$accessToken) {
+            throw new \Exception('Failed to get IGDB access token.');
+        }
+
+        $fields = 'fields name,slug,summary,cover.url,screenshots.url,platforms,genres.name,'
+            . 'involved_companies.company.name,involved_companies.developer,involved_companies.publisher,'
+            . 'first_release_date,aggregated_rating,aggregated_rating_count,rating,rating_count,'
+            . 'release_dates.date,release_dates.platform,release_dates.region; ';
+
+        $query = $fields . 'where id = ' . $igdbId . '; limit 1;';
+
+        $response = Http::withHeaders([
+            'Client-ID' => $this->clientId,
+            'Authorization' => 'Bearer ' . $accessToken,
+        ])->withBody($query, 'text/plain')
+          ->post('https://api.igdb.com/v4/games');
+
+        if (!$response->successful()) {
+            throw new \Exception('IGDB API error: ' . $response->body());
+        }
+
+        $games = $response->json() ?? [];
+
+        return $games[0] ?? null;
+    }
+
+    /**
      * Search IGDB for games matching a query (returns multiple results for user selection)
      */
     public function searchGames(string $query, int $limit = 10): array
