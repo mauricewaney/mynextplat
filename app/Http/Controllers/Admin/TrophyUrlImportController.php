@@ -437,6 +437,39 @@ class TrophyUrlImportController extends Controller
             ]);
         }
 
+        // Check for slug collision — if a game with this slug exists (without an igdb_id),
+        // update it with the IGDB data instead of creating a duplicate
+        $slugGame = Game::where('slug', $request->slug)->first();
+        if ($slugGame) {
+            $slugGame->update([
+                'igdb_id' => $request->igdb_id,
+                'cover_url' => $request->cover_url ?? $slugGame->cover_url,
+                'banner_url' => $request->banner_url ?? $slugGame->banner_url,
+                'developer' => $request->developer ?? $slugGame->developer,
+                'publisher' => $request->publisher ?? $slugGame->publisher,
+                'release_date' => $request->release_date ?? $slugGame->release_date,
+                'critic_score' => $request->critic_score ?? $slugGame->critic_score,
+            ]);
+
+            $trophyUrl->game_id = $slugGame->id;
+            $trophyUrl->matched_at = now();
+            $trophyUrl->save();
+
+            $urlField = match($trophyUrl->source) {
+                'psnprofiles' => 'psnprofiles_url',
+                'playstationtrophies' => 'playstationtrophies_url',
+                'powerpyx' => 'powerpyx_url',
+            };
+            $slugGame->$urlField = $trophyUrl->url;
+            $slugGame->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Updated existing game: {$slugGame->title}",
+                'game' => $slugGame->load('platforms'),
+            ]);
+        }
+
         // Create new game
         $game = Game::create([
             'igdb_id' => $request->igdb_id,
