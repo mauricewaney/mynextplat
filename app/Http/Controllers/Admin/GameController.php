@@ -158,7 +158,7 @@ class GameController extends Controller
             ->whereNull('playthroughs_required')
             ->count();
 
-        $verified = Game::where('is_verified', true)->count();
+        $verified = Game::where('is_verified', true)->where($hasGuideFilter)->count();
         $missingTrophyData = Game::whereNull('bronze_count')->count();
         $guideMissingTrophies = Game::where($hasGuideFilter)->whereNull('bronze_count')->count();
 
