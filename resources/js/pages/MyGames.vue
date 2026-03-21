@@ -156,7 +156,7 @@
                     </div>
 
                     <!-- Loading State -->
-                    <div v-if="loading && games.length === 0" class="space-y-4">
+                    <div v-if="loading && games.length === 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div
                             v-for="n in 6"
                             :key="n"
