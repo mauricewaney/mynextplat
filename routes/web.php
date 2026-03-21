@@ -5,8 +5,13 @@ use App\Http\Controllers\DirectoryController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
-// API auth fallback — prevents "Route [login] not defined" when Sanctum rejects unauthenticated API requests
-Route::get('/login', fn () => response()->json(['message' => 'Unauthenticated'], 401))->name('login');
+// Auth fallback — API requests get JSON 401, web requests redirect to homepage with login prompt
+Route::get('/login', function (\Illuminate\Http\Request $request) {
+    if ($request->expectsJson()) {
+        return response()->json(['message' => 'Unauthenticated'], 401);
+    }
+    return redirect('/?login=required');
+})->name('login');
 
 // Google OAuth routes
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
