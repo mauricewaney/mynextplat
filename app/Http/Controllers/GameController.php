@@ -698,7 +698,7 @@ class GameController extends Controller
     {
         // Version-based cache: all queries cached for 24h, invalidated when data changes
         $version = Cache::get('games:cache_version', 1);
-        $cacheKey = "games:v{$version}:" . md5($request->getQueryString() ?? 'default');
+        $cacheKey = "games:v{$version}:" . md5(static::normalizeQueryString($request));
 
         $result = Cache::remember($cacheKey, 86400, function () use ($request) {
             $query = Game::select(self::LIST_COLUMNS)
@@ -727,6 +727,64 @@ class GameController extends Controller
 
         // Re-warm the browse page cache so the next visitor never hits a cold cache
         app(DirectoryController::class)->warmBrowseCache();
+
+        // Pre-warm the most common game list queries (default + homepage presets)
+        static::warmCommonQueries();
+    }
+
+    /**
+     * Pre-warm cache for the default page load and homepage preset filters.
+     */
+    private static function warmCommonQueries(): void
+    {
+        // Param order doesn't matter — normalizeQueryString() sorts keys before hashing
+        $commonQueries = [
+            // Default landing (no filters, default sort)
+            'has_guide=true&has_platinum=true&exclude_unobtainable=true&sort_by=critic_score&sort_order=desc&page=1&per_page=24',
+            // Fast & Easy preset
+            'has_guide=true&difficulty_max=4&time_max=9&max_playthroughs=1&has_platinum=true&has_online_trophies=false&missable_trophies=false&exclude_unobtainable=true&sort_by=time_min&sort_order=asc&page=1&per_page=24',
+            // Must Play preset
+            'has_guide=true&user_score_min=80&critic_score_min=80&has_platinum=true&has_online_trophies=false&missable_trophies=false&exclude_unobtainable=true&sort_by=critic_score&sort_order=desc&page=1&per_page=24',
+            // Quality Epics preset
+            'has_guide=true&genre_ids%5B%5D=4&genre_ids%5B%5D=3&genre_ids%5B%5D=14&genre_ids%5B%5D=5&time_min=40&critic_score_min=80&has_platinum=true&exclude_unobtainable=true&sort_by=critic_score&sort_order=desc&page=1&per_page=24',
+            // Hidden Gems preset
+            'has_guide=true&user_score_min=75&critic_score_max=75&has_platinum=true&exclude_unobtainable=true&sort_by=user_score&sort_order=desc&page=1&per_page=24',
+            // No Stress preset
+            'has_guide=true&has_platinum=true&has_online_trophies=false&missable_trophies=false&exclude_unobtainable=true&sort_by=critic_score&sort_order=desc&page=1&per_page=24',
+        ];
+
+        $version = Cache::get('games:cache_version', 1);
+        $controller = app(static::class);
+
+        foreach ($commonQueries as $qs) {
+            $request = Request::create('/api/games?' . $qs);
+            $cacheKey = "games:v{$version}:" . md5(static::normalizeQueryString($request));
+
+            if (!Cache::has($cacheKey)) {
+                $query = Game::select(self::LIST_COLUMNS)
+                    ->with(['genres:id,name,slug', 'platforms:id,name,slug,short_name']);
+                $controller->filterService->applyFilters($query, $request, false);
+                $result = $controller->filterService->paginate($query, $request, 24, 100);
+
+                // Strip appended attributes to match index() behavior
+                foreach ($result['data'] as $game) {
+                    $game->setAppends([]);
+                }
+
+                Cache::put($cacheKey, $result, 86400);
+            }
+        }
+    }
+
+    /**
+     * Normalize query string for consistent cache keys regardless of param order.
+     */
+    private static function normalizeQueryString(Request $request): string
+    {
+        $params = $request->query();
+        ksort($params);
+
+        return http_build_query($params);
     }
 
     /**
