@@ -328,7 +328,7 @@ class PSNService
 
         // Parse specific error codes from Sony
         if ($status === 403 || $errorCode === 2240525) {
-            return ['error' => 'private_trophies', 'message' => 'Trophy data is private. Enable "Trophies" visibility in PSN privacy settings.'];
+            return ['error' => 'private_trophies', 'message' => 'This user\'s PlayStation library is private.'];
         }
 
         if ($status === 404) {
