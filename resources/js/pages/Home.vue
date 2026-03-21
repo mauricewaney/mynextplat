@@ -53,6 +53,7 @@
                                     :alt="preset.label"
                                     width="264"
                                     height="374"
+                                    :fetchpriority="preset === presets[0] ? 'high' : 'auto'"
                                     class="absolute inset-0 w-full h-full object-cover object-left"
                                     :class="activePreset === preset.label ? 'opacity-90' : 'opacity-50 dark:opacity-40'"
                                     :style="activePreset === preset.label

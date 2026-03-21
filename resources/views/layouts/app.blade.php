@@ -154,8 +154,8 @@
         </div>
     </header>
 
-    {{-- Main Content --}}
-    <main class="flex-1">
+    {{-- Main Content — min-h-screen keeps the footer below the fold during async loads, preventing CLS --}}
+    <main class="flex-1 min-h-screen">
         @yield('content')
     </main>
 

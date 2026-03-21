@@ -4,6 +4,8 @@
             v-if="iconExists"
             :src="`/images/platforms/${slug}.svg`"
             :alt="fallback"
+            width="24"
+            height="24"
             :class="[sizeClass, 'dark:invert']"
         />
         <span v-if="!iconExists || label">{{ label || fallback }}</span>
