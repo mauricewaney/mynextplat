@@ -698,7 +698,7 @@ class GameController extends Controller
     {
         // Version-based cache: all queries cached for 24h, invalidated when data changes
         $version = Cache::get('games:cache_version', 1);
-        $cacheKey = "games:v{$version}:" . md5(static::normalizeQueryString($request));
+        $cacheKey = "games:v{$version}:" . md5($request->getQueryString() ?? 'default');
 
         $result = Cache::remember($cacheKey, 86400, function () use ($request) {
             $query = Game::select(self::LIST_COLUMNS)
@@ -758,7 +758,7 @@ class GameController extends Controller
 
         foreach ($commonQueries as $qs) {
             $request = Request::create('/api/games?' . $qs);
-            $cacheKey = "games:v{$version}:" . md5(static::normalizeQueryString($request));
+            $cacheKey = "games:v{$version}:" . md5($request->getQueryString() ?? 'default');
 
             if (!Cache::has($cacheKey)) {
                 $query = Game::select(self::LIST_COLUMNS)
@@ -774,17 +774,6 @@ class GameController extends Controller
                 Cache::put($cacheKey, $result, 86400);
             }
         }
-    }
-
-    /**
-     * Normalize query string for consistent cache keys regardless of param order.
-     */
-    private static function normalizeQueryString(Request $request): string
-    {
-        $params = $request->query();
-        ksort($params);
-
-        return http_build_query($params);
     }
 
     /**
