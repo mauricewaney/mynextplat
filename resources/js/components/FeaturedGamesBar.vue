@@ -1,5 +1,5 @@
 <template>
-    <div v-if="games.length > 0" class="mb-3">
+    <div v-if="games.length > 0 || loading" class="mb-3 min-h-[108px]">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-3">
             <!-- Header -->
             <div class="flex items-center gap-2 mb-2.5">
@@ -23,6 +23,8 @@
                         v-if="item.game.cover_url"
                         :src="item.game.cover_url"
                         :alt="item.game.title"
+                        width="48"
+                        height="64"
                         class="w-12 h-16 rounded object-cover shrink-0 ring-1 ring-gray-200 dark:ring-slate-600"
                     />
                     <div v-else class="w-12 h-16 rounded bg-gray-200 dark:bg-slate-700 shrink-0 flex items-center justify-center">
@@ -89,6 +91,7 @@ import { apiPost } from '../utils/api'
 import TrophyIcon from './TrophyIcon.vue'
 
 const games = ref([])
+const loading = ref(true)
 const displayLabel = ref('Featured')
 
 function priceLabel(game) {
@@ -120,6 +123,8 @@ async function fetchFeaturedGames() {
         games.value = data.games || []
     } catch (e) {
         // Silently fail — section just won't render
+    } finally {
+        loading.value = false
     }
 }
 

@@ -20,6 +20,8 @@
                 v-if="game.cover_url"
                 :src="game.cover_url"
                 :alt="game.title"
+                width="112"
+                height="160"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
             />

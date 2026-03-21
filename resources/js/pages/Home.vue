@@ -51,6 +51,8 @@
                                 <img
                                     :src="preset.image"
                                     :alt="preset.label"
+                                    width="264"
+                                    height="374"
                                     class="absolute inset-0 w-full h-full object-cover object-left"
                                     :class="activePreset === preset.label ? 'opacity-90' : 'opacity-50 dark:opacity-40'"
                                     :style="activePreset === preset.label
