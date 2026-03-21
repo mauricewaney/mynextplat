@@ -1,5 +1,5 @@
 <template>
-    <div v-if="games.length > 0 || loading" class="mb-3 min-h-[108px]">
+    <div v-if="games.length > 0" class="mb-3">
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 p-3">
             <!-- Header -->
             <div class="flex items-center gap-2 mb-2.5">
