@@ -11,7 +11,7 @@
         <priority>0.7</priority>
     </url>
     <url>
-        <loc>{{ url('/profiles') }}</loc>
+        <loc>{{ url('/libraries') }}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.4</priority>
     </url>

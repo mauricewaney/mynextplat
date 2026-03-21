@@ -37,7 +37,8 @@ Route::get('/', fn () => view('pages.home'));
 Route::get('/game/{slug}', fn ($slug) => view('pages.game', ['slug' => $slug]));
 Route::get('/contact', fn () => view('pages.contact'));
 Route::get('/privacy', fn () => view('pages.privacy'));
-Route::get('/profiles', fn () => view('pages.profiles'));
+Route::get('/libraries', fn () => view('pages.profiles'));
+Route::get('/profiles', fn () => redirect('/libraries', 301));
 Route::get('/u/{identifier}', fn ($identifier) => view('pages.profile', ['identifier' => $identifier]));
 Route::get('/report-issue', fn () => view('pages.report-issue'));
 

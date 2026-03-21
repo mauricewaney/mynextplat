@@ -21,7 +21,7 @@
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Profile Not Found</h1>
                 <p class="text-gray-500 dark:text-gray-400 mb-6">This profile doesn't exist or is private.</p>
                 <div class="flex items-center justify-center gap-4">
-                    <a href="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
+                    <a href="/libraries" class="text-primary-600 dark:text-primary-400 hover:underline">
                         Browse Libraries
                     </a>
                     <span class="text-gray-300 dark:text-gray-600">|</span>
@@ -53,7 +53,7 @@
                     <span>This library is private</span>
                 </div>
                 <div class="flex items-center justify-center gap-4">
-                    <a href="/profiles" class="text-primary-600 dark:text-primary-400 hover:underline">
+                    <a href="/libraries" class="text-primary-600 dark:text-primary-400 hover:underline">
                         Browse Libraries
                     </a>
                     <span class="text-gray-300 dark:text-gray-600">|</span>
@@ -67,7 +67,7 @@
             <div v-else>
                 <!-- Back to Profiles -->
                 <a
-                    href="/profiles"
+                    href="/libraries"
                     class="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 mb-4 transition-colors"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

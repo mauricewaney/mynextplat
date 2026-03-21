@@ -206,7 +206,7 @@
                             <span class="font-medium">Support</span>
                         </a>
                     @endif
-                    <a href="/profiles" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Libraries</a>
+                    <a href="/libraries" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Libraries</a>
                     <a href="/contact" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Contact</a>
                     <a href="/privacy" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">Privacy</a>
                 </div>

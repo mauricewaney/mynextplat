@@ -69,7 +69,7 @@
                         <div class="border-t border-gray-100 dark:border-slate-700 my-1"></div>
 
                         <a
-                            href="/profiles"
+                            href="/libraries"
                             @click="showMobileMenu = false"
                             class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700"
                         >
@@ -147,7 +147,7 @@
         <!-- Desktop actions -->
         <div class="hidden lg:flex items-center gap-4 text-sm">
             <a
-                href="/profiles"
+                href="/libraries"
                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium transition-colors"
             >
                 Libraries

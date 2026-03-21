@@ -20,7 +20,7 @@
         <a href="/" class="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg shadow-sm transition-colors">
             Browse Games
         </a>
-        <a href="/profiles" class="px-6 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg shadow-sm hover:shadow-md transition-all">
+        <a href="/libraries" class="px-6 py-2.5 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg shadow-sm hover:shadow-md transition-all">
             View Libraries
         </a>
     </div>
