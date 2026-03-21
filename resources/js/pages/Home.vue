@@ -218,26 +218,48 @@
                     </div>
 
                     <!-- Loading State -->
-                    <div v-if="loading && games.length === 0" class="space-y-4">
+                    <div v-if="loading && games.length === 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div
                             v-for="n in 6"
                             :key="n"
-                            class="bg-white dark:bg-slate-800 rounded-xl shadow-sm animate-pulse flex gap-4 p-3 sm:p-4"
+                            class="bg-white dark:bg-slate-800 rounded-xl shadow-sm animate-pulse flex flex-col p-3"
                         >
-                            <div class="w-24 sm:w-28 h-32 sm:h-36 shrink-0 bg-gray-200 dark:bg-slate-700 rounded-lg"></div>
-                            <div class="flex-1 space-y-3">
-                                <div class="h-5 bg-gray-200 dark:bg-slate-700 rounded w-3/4"></div>
-                                <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                    <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded"></div>
-                                    <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded"></div>
-                                    <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded"></div>
-                                    <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded"></div>
+                            <!-- Top: Cover + Info -->
+                            <div class="flex gap-3 sm:gap-4">
+                                <div class="w-28 h-40 sm:h-36 shrink-0 bg-gray-200 dark:bg-slate-700 rounded-lg"></div>
+                                <div class="flex-1 flex flex-col min-w-0">
+                                    <div class="flex items-start gap-2">
+                                        <div class="flex-1 space-y-1.5 mb-1">
+                                            <div class="h-4 bg-gray-200 dark:bg-slate-700 rounded w-3/4"></div>
+                                            <div class="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
+                                        </div>
+                                        <div class="flex gap-1 shrink-0">
+                                            <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gray-200 dark:bg-slate-700 rounded-md sm:rounded-lg"></div>
+                                            <div class="w-6 h-6 sm:w-7 sm:h-7 bg-gray-200 dark:bg-slate-700 rounded-md sm:rounded-lg"></div>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 dark:bg-slate-700/50 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 flex-1">
+                                        <div class="flex gap-1.5 mb-1.5">
+                                            <div class="h-3 w-5 bg-gray-200 dark:bg-slate-600 rounded"></div>
+                                            <div class="h-3 w-5 bg-gray-200 dark:bg-slate-600 rounded"></div>
+                                            <div class="h-3 w-5 bg-gray-200 dark:bg-slate-600 rounded"></div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-x-2 gap-y-1.5">
+                                            <div class="space-y-1"><div class="h-3 bg-gray-200 dark:bg-slate-600 rounded w-2/3"></div><div class="h-2 bg-gray-200 dark:bg-slate-600 rounded w-full"></div></div>
+                                            <div class="space-y-1"><div class="h-3 bg-gray-200 dark:bg-slate-600 rounded w-2/3"></div><div class="h-2 bg-gray-200 dark:bg-slate-600 rounded w-full"></div></div>
+                                            <div class="space-y-1"><div class="h-3 bg-gray-200 dark:bg-slate-600 rounded w-2/3"></div><div class="h-2 bg-gray-200 dark:bg-slate-600 rounded w-full"></div></div>
+                                            <div class="space-y-1"><div class="h-3 bg-gray-200 dark:bg-slate-600 rounded w-2/3"></div><div class="h-2 bg-gray-200 dark:bg-slate-600 rounded w-full"></div></div>
+                                            <div class="space-y-1"><div class="h-3 bg-gray-200 dark:bg-slate-600 rounded w-2/3"></div><div class="h-2 bg-gray-200 dark:bg-slate-600 rounded w-full"></div></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex gap-2 pt-2">
-                                    <div class="h-6 bg-gray-200 dark:bg-slate-700 rounded w-12"></div>
-                                    <div class="h-6 bg-gray-200 dark:bg-slate-700 rounded w-12"></div>
-                                </div>
+                            </div>
+                            <!-- Bottom: Genre tags + Guide links -->
+                            <div class="hidden sm:flex items-center gap-2 mt-2">
+                                <div class="h-5 w-14 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
+                                <div class="h-5 w-12 bg-gray-200 dark:bg-slate-700 rounded-full"></div>
+                                <div class="flex-1"></div>
+                                <div class="h-6 w-24 bg-gray-100 dark:bg-slate-700/50 rounded-lg"></div>
                             </div>
                         </div>
                     </div>
