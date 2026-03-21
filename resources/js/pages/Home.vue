@@ -198,7 +198,6 @@
                                 <option value="user_score">User Score</option>
                                 <option value="critic_score">Critic Score</option>
                                 <option value="playthroughs_required">Playthroughs</option>
-                                <option value="missable_trophies">Missables</option>
                             </select>
                             <button
                                 @click="toggleSortOrder"
