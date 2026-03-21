@@ -505,7 +505,7 @@ import TrophyIcon from '../components/TrophyIcon.vue'
 const props = defineProps({ slug: String })
 
 const { isAuthenticated, loginWithGoogle } = useAuth()
-const { addToList, removeFromList, checkInList, updatePreferredGuide } = useUserGames()
+const { addToList, removeFromList, checkInList, updatePreferredGuide, loadUserGameIds } = useUserGames()
 
 const game = ref(null)
 const loading = ref(true)
@@ -631,9 +631,11 @@ async function fetchGame() {
     }
 }
 
-function checkListStatus() {
+async function checkListStatus() {
     if (!isAuthenticated.value || !game.value) return
 
+    // Ensure user game IDs are loaded before checking (may still be loading from app.js)
+    await loadUserGameIds()
     const result = checkInList(game.value.id)
     inList.value = result.in_list
     userVote.value = result.preferred_guide || null
