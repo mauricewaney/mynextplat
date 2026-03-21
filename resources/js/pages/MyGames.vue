@@ -537,11 +537,11 @@ async function loadGames() {
         lastPage.value = data.last_page
         statusCounts.value = data.status_counts || { all: data.total }
     } catch (e) {
-        if (e.name === 'AbortError') return
+        if (e.name === 'AbortError') return // Don't set loading=false — a newer request is in flight
         console.error('Failed to load games:', e)
-    } finally {
-        loading.value = false
     }
+
+    loading.value = false
 }
 
 function loadMore() {
