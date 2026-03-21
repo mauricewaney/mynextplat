@@ -14,6 +14,9 @@ Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallbac
 
 // SEO routes
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages']);
+Route::get('/sitemap-games-with-guides.xml', [SitemapController::class, 'gamesWithGuides']);
+Route::get('/sitemap-games-{page}.xml', [SitemapController::class, 'games'])->where('page', '[0-9]+');
 Route::get('/robots.txt', [SitemapController::class, 'robots']);
 
 // SEO directory pages (served to everyone — no cloaking)
