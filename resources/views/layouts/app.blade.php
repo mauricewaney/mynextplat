@@ -74,9 +74,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-4">
-                    <a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity" aria-label="MyNextPlat Home">
                         <div class="w-[2.25rem] h-8 bg-primary-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-5 h-6 text-white" fill="currentColor" viewBox="0 0 512 512">
+                            <svg class="w-5 h-6 text-white" fill="currentColor" viewBox="0 0 512 512" aria-hidden="true">
                                 <path d="M102.49,0c0,27.414,0,104.166,0,137.062c0,112.391,99.33,156.25,153.51,156.25c54.18,0,153.51-43.859,153.51-156.25c0-32.896,0-109.648,0-137.062H102.49z M256.289,50.551l-68.164,29.768v98.474l-0.049,19.53c-0.526-0.112-47.274-10.112-47.274-78.391c0-28.17,0-69.6,0-69.6h60.385L256.289,50.551z"/>
                                 <polygon points="315.473,400.717 291.681,367.482 279.791,318.506 256,322.004 232.209,318.506 220.314,367.482 205.347,388.394 196.527,400.476 196.699,400.476 196.527,400.717"/>
                                 <polygon points="366.93,432.24 366.93,432 145.07,432 145.07,511.598 145.07,511.76 145.07,511.76 145.07,512 366.93,512 366.93,432.402 366.93,432.24"/>

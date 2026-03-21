@@ -9,12 +9,14 @@
                 v-model="filters.search"
                 type="text"
                 placeholder="Search games..."
+                aria-label="Search games"
                 class="w-full pl-10 pr-10 py-3 bg-white dark:bg-slate-800 dark:text-gray-200 border border-gray-200 dark:border-slate-600 rounded-xl shadow-sm dark:shadow-none outline-none focus:border-gray-400 dark:focus:border-slate-500 text-sm placeholder-gray-400 dark:placeholder-gray-500"
                 @input="debouncedEmit"
             />
             <button
                 v-if="filters.search"
                 @click="clearSearch"
+                aria-label="Clear search"
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,10 +42,10 @@
         <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm [&>*:first-child]:rounded-t-xl [&>*:last-child]:rounded-b-xl">
             <!-- Platforms -->
             <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                <span class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
                     Platforms
                     <svg @click.stop="filterTooltip.toggle('platforms')" @mouseenter="filterTooltip.show('platforms')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
-                </label>
+                </span>
                 <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('platforms') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.platforms }}</div>
                 <div class="flex flex-wrap gap-1.5">
                     <button
@@ -88,6 +90,7 @@
                         min="0"
                         max="100"
                         step="5"
+                        aria-label="Minimum user score"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onUserScoreMinChange"
                     />
@@ -97,6 +100,7 @@
                         min="0"
                         max="100"
                         step="5"
+                        aria-label="Maximum user score"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onUserScoreMaxChange"
                     />
@@ -129,6 +133,7 @@
                         min="0"
                         max="100"
                         step="5"
+                        aria-label="Minimum critic score"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onCriticScoreMinChange"
                     />
@@ -138,6 +143,7 @@
                         min="0"
                         max="100"
                         step="5"
+                        aria-label="Maximum critic score"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onCriticScoreMaxChange"
                     />
@@ -168,6 +174,7 @@
                         v-model.number="filters.difficulty_min"
                         min="1"
                         max="10"
+                        aria-label="Minimum difficulty"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onDifficultyMinChange"
                     />
@@ -176,6 +183,7 @@
                         v-model.number="filters.difficulty_max"
                         min="1"
                         max="10"
+                        aria-label="Maximum difficulty"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onDifficultyMaxChange"
                     />
@@ -184,10 +192,10 @@
 
             <!-- Has Guide Filter -->
             <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                <span class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
                     Has Guide / No Guide
                     <svg @click.stop="filterTooltip.toggle('has_guide')" @mouseenter="filterTooltip.show('has_guide')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
-                </label>
+                </span>
                 <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('has_guide') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.has_guide }}</div>
                 <div class="flex gap-1.5">
                     <button
@@ -277,10 +285,10 @@
 
             <!-- Playthroughs -->
             <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                <span class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
                     Max Playthroughs
                     <svg @click.stop="filterTooltip.toggle('playthroughs')" @mouseenter="filterTooltip.show('playthroughs')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
-                </label>
+                </span>
                 <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('playthroughs') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.playthroughs }}</div>
                 <div class="flex gap-1.5">
                     <button
@@ -335,6 +343,7 @@
                         min="0"
                         :max="timeMaxIndex"
                         step="1"
+                        aria-label="Minimum completion time"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onTimeMinChange"
                     />
@@ -344,6 +353,7 @@
                         min="0"
                         :max="timeMaxIndex"
                         step="1"
+                        aria-label="Maximum completion time"
                         class="absolute inset-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-primary-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-primary-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer"
                         @change="onTimeMaxChange"
                     />
@@ -367,10 +377,10 @@
 
             <!-- Genres (multiselect dropdown) -->
             <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                <span class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
                     Genres
                     <svg @click.stop="filterTooltip.toggle('genres')" @mouseenter="filterTooltip.show('genres')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
-                </label>
+                </span>
                 <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('genres') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.genres }}</div>
                 <div class="relative" ref="genreDropdownRef">
                     <button
@@ -472,10 +482,10 @@
 
             <!-- Guide Sources -->
             <div class="relative px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
+                <span class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-2 flex items-center gap-1">
                     Guide Sources
                     <svg @click.stop="filterTooltip.toggle('guide_sources')" @mouseenter="filterTooltip.show('guide_sources')" @mouseleave="filterTooltip.hide()" class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-help shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 16v-4m0-4h.01"/></svg>
-                </label>
+                </span>
                 <div :class="['absolute left-4 right-4 top-7 px-2 py-1 text-xs bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded shadow-lg ring-1 ring-black/5 dark:ring-white/10 pointer-events-none z-[100] transition-opacity duration-150', filterTooltip.isVisible('guide_sources') ? 'opacity-100' : 'opacity-0 invisible']">{{ filterDescriptions.guide_sources }}</div>
                 <div class="flex gap-1.5">
                     <button
@@ -516,7 +526,7 @@
 
             <!-- Tags (multiselect dropdown) — hidden until needed -->
             <div v-if="false" class="px-4 py-3">
-                <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Tags</label>
+                <span class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1.5 block">Tags</span>
                 <div class="relative" ref="tagDropdownRef">
                     <button
                         @click="tagDropdownOpen = !tagDropdownOpen"

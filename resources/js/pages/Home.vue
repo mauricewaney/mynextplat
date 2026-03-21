@@ -170,6 +170,7 @@
                             <!-- Filter Button (Mobile) -->
                             <button
                                 @click="showMobileFilters = true"
+                                aria-label="Open filters"
                                 class="lg:hidden flex items-center justify-center p-2 rounded-full transition-all ring-1 bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 ring-gray-200 dark:ring-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,10 +182,12 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <label class="hidden sm:block text-sm text-gray-500 dark:text-gray-400">Sort:</label>
+                            <label for="sort-select" class="sm:block text-sm text-gray-500 dark:text-gray-400"><span class="hidden sm:inline">Sort:</span><span class="sr-only sm:hidden">Sort games by</span></label>
                             <select
+                                id="sort-select"
                                 v-model="sortBy"
                                 @change="loadGames"
+                                aria-label="Sort games by"
                                 class="border-0 bg-gray-100 dark:bg-slate-700 dark:text-gray-200 rounded-lg text-sm py-1.5 pl-3 pr-8 focus:ring-2 focus:ring-primary-500"
                             >
                                 <option value="title">Title</option>
@@ -200,6 +203,7 @@
                                 @click="toggleSortOrder"
                                 class="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                 :title="sortOrder === 'asc' ? 'Ascending' : 'Descending'"
+                                :aria-label="sortOrder === 'asc' ? 'Sort ascending' : 'Sort descending'"
                             >
                                 <svg
                                     :class="['w-5 h-5 transition-transform', sortOrder === 'desc' ? 'rotate-180' : '']"

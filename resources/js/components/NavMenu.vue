@@ -9,6 +9,7 @@
             <div class="relative mobile-menu-container">
                 <button
                     @click.stop="showMobileMenu = !showMobileMenu"
+                    aria-label="Open menu"
                     class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 >
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,6 +162,7 @@
                 @click="toggleDarkMode"
                 class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                 :title="darkMode ? 'Light mode' : 'Dark mode'"
+                :aria-label="darkMode ? 'Switch to light mode' : 'Switch to dark mode'"
             >
                 <svg v-if="darkMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -176,6 +178,7 @@
                 <div class="relative user-menu-container">
                     <button
                         @click.stop="showUserMenu = !showUserMenu"
+                        aria-label="User menu"
                         class="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
                     >
                         <img
