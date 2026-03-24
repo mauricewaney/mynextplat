@@ -4,7 +4,7 @@
 
             <div class="prose prose-gray dark:prose-invert max-w-none space-y-8">
                 <p class="text-gray-600 dark:text-gray-400 text-sm">
-                    Last updated: {{ new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+                    Last updated: March 24, 2026
                 </p>
 
                 <!-- Intro -->
@@ -23,9 +23,19 @@
                         When you sign in with Google, we receive and store your name, email address, and profile picture. We use this information solely to identify your account and display your profile.
                     </p>
 
-                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mt-4 mb-2">Contact Form</h3>
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mt-4 mb-2">Contact Form &amp; Issue Reports</h3>
                     <p class="text-gray-700 dark:text-gray-300">
-                        If you submit a message through our contact form, we store your name, email address, and message content so we can respond to your inquiry.
+                        If you submit a message through our contact form or report an issue with game data, we store your name, email address (if provided), message content, and IP address so we can respond to your inquiry and prevent abuse.
+                    </p>
+
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mt-4 mb-2">PSN Data</h3>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        When you use the PSN lookup feature, we process the PSN username and game library data retrieved from PlayStation Network. This data is used to display your PlayStation game library within the app and is not stored permanently.
+                    </p>
+
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mt-4 mb-2">Public Profiles</h3>
+                    <p class="text-gray-700 dark:text-gray-300">
+                        If you enable a public profile in your settings, your display name and game list will be visible to other users on the Libraries page. You can disable your public profile at any time from your settings.
                     </p>
 
                     <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mt-4 mb-2">Automatically Collected Data</h3>
@@ -56,7 +66,8 @@
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">Third-Party Services</h2>
                     <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
                         <li><strong>Google OAuth</strong> &mdash; Used for account sign-in. Subject to <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="text-primary-600 dark:text-primary-400 hover:underline">Google's Privacy Policy</a>.</li>
-                        <li><strong>Google reCAPTCHA</strong> &mdash; Used on the contact form to prevent spam. Subject to Google's <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="text-primary-600 dark:text-primary-400 hover:underline">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" class="text-primary-600 dark:text-primary-400 hover:underline">Terms of Service</a>.</li>
+                        <li><strong>Google reCAPTCHA</strong> &mdash; Used on the contact and issue report forms to prevent spam. Subject to Google's <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="text-primary-600 dark:text-primary-400 hover:underline">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener" class="text-primary-600 dark:text-primary-400 hover:underline">Terms of Service</a>.</li>
+                        <li><strong>PlayStation Network</strong> &mdash; Game library data is retrieved via PSN when you use the lookup feature. Subject to <a href="https://www.playstation.com/legal/privacy-policy/" target="_blank" rel="noopener" class="text-primary-600 dark:text-primary-400 hover:underline">Sony's Privacy Policy</a>.</li>
                     </ul>
                     <p class="text-gray-700 dark:text-gray-300 mt-3">
                         We do not sell or share your personal data with any other third parties.
