@@ -27,9 +27,9 @@
                 <div class="lg:hidden absolute inset-0 flex items-end">
                     <div class="max-w-6xl mx-auto px-4 pb-6 w-full">
                         <nav class="mb-3 text-sm">
-                            <a href="/" class="text-gray-300 hover:text-white">Home</a>
-                            <span class="mx-2 text-gray-500">/</span>
-                            <span class="text-gray-400">{{ game.title }}</span>
+                            <a href="/" class="text-gray-200 hover:text-white">Home</a>
+                            <span class="mx-2 text-gray-300">/</span>
+                            <span class="text-gray-300">{{ game.title }}</span>
                         </nav>
                         <h1 class="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
                             {{ game.title }}
