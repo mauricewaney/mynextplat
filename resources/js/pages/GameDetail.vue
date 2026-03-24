@@ -100,7 +100,7 @@
                                             <span
                                                 v-for="platform in game.platforms"
                                                 :key="platform.id"
-                                                class="h-8 px-2 inline-flex items-center bg-slate-900/80 text-white text-sm font-medium rounded backdrop-blur-sm"
+                                                class="platform-icon-white h-8 px-2 inline-flex items-center bg-slate-900/80 text-white text-sm font-medium rounded backdrop-blur-sm"
                                             >
                                                 <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-6" />
                                             </span>
@@ -224,7 +224,7 @@
                                     <span
                                         v-for="platform in game.platforms"
                                         :key="platform.id"
-                                        class="h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200 text-xs sm:text-sm font-medium rounded"
+                                        class="platform-icon-white h-7 sm:h-10 px-1.5 sm:px-2 inline-flex items-center bg-slate-900 text-white text-xs sm:text-sm font-medium rounded"
                                     >
                                         <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-5 sm:h-8" />
                                     </span>
@@ -842,3 +842,9 @@ watch(isAuthenticated, (newVal) => {
     }
 })
 </script>
+
+<style scoped>
+.platform-icon-white :deep(img) {
+    filter: brightness(0) invert(1) !important;
+}
+</style>
