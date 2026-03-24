@@ -62,7 +62,7 @@
                         <div class="flex gap-6 items-end">
                             <!-- Cover -->
                             <div class="w-48 shrink-0 -mb-24 ml-4">
-                                <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-center gap-2 mb-2">
+                                <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-start gap-2 mb-2">
                                     <span v-if="game.has_platinum" class="inline-flex items-center gap-1 text-sm font-bold text-blue-300">
                                         <TrophyIcon tier="platinum" size="xs" class="!w-4 !h-4" />1
                                     </span>
@@ -88,7 +88,7 @@
                             </div>
 
                             <!-- Info -->
-                            <div class="flex-1 min-w-0 pb-1">
+                            <div class="flex-1 min-w-0 pb-1 self-start">
                                 <h1 class="text-4xl font-bold text-white drop-shadow-lg mb-2">
                                     {{ game.title }}
                                 </h1>
@@ -162,9 +162,17 @@
                                 </div>
 
                                 <!-- Description -->
-                                <p v-if="game.description" class="text-sm text-gray-300 leading-relaxed mt-3 line-clamp-3">
-                                    {{ game.description }}
-                                </p>
+                                <div v-if="game.description" class="mt-3">
+                                    <p class="text-sm text-gray-300 leading-relaxed line-clamp-3">
+                                        {{ game.description }}
+                                    </p>
+                                    <button
+                                        @click="showDescriptionModal = true"
+                                        class="text-sm text-primary-400 hover:text-primary-300 mt-1 font-medium"
+                                    >
+                                        Read More
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -288,9 +296,17 @@
                         </div>
 
                         <!-- Description -->
-                        <p v-if="game.description" class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-6 sm:line-clamp-none">
-                            {{ game.description }}
-                        </p>
+                        <div v-if="game.description">
+                            <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-6 sm:line-clamp-none">
+                                {{ game.description }}
+                            </p>
+                            <button
+                                @click="showDescriptionModal = true"
+                                class="sm:hidden text-xs text-primary-600 dark:text-primary-400 hover:underline mt-1 font-medium"
+                            >
+                                Read More
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -585,6 +601,25 @@
 
             </div>
         </div>
+    <!-- Description Modal -->
+    <div
+        v-if="showDescriptionModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+        @click.self="showDescriptionModal = false"
+    >
+        <div class="fixed inset-0 bg-black/60" @click="showDescriptionModal = false"></div>
+        <div class="relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto p-6 z-10">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">{{ game.title }}</h2>
+                <button @click="showDescriptionModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">{{ game.description }}</p>
+        </div>
+    </div>
     </div>
 </template>
 
@@ -604,6 +639,7 @@ const { addToList, removeFromList, checkInList, updatePreferredGuide, loadUserGa
 const game = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const showDescriptionModal = ref(false)
 const recommendations = ref([])
 const loadingRecommendations = ref(false)
 const inList = ref(false)
