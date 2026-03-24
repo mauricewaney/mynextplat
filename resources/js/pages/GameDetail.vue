@@ -416,7 +416,7 @@
             </div>
 
             <!-- Recommendations Section -->
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8">
+            <div v-if="loadingRecommendations || recommendations.length" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Players Also Have</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Based on what other trophy hunters have in their lists
