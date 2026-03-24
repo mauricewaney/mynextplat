@@ -61,8 +61,8 @@
                         </nav>
                         <div class="flex gap-6 items-end">
                             <!-- Cover -->
-                            <div class="w-48 shrink-0 -mb-24 ml-4">
-                                <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-start gap-2 mb-2">
+                            <div class="w-48 shrink-0 -mb-24 ml-4 self-start">
+                                <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-start gap-2 mt-2 mb-6">
                                     <span v-if="game.has_platinum" class="inline-flex items-center gap-1 text-sm font-bold text-blue-300">
                                         <TrophyIcon tier="platinum" size="xs" class="!w-4 !h-4" />1
                                     </span>
