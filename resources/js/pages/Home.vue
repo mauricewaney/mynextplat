@@ -1,27 +1,5 @@
 <template>
     <div>
-        <!-- All Games tab — teleported into Blade header (Vue-controlled for PSN view toggle) -->
-        <Teleport to="#home-tab-allgames-mobile">
-            <a
-                href="/"
-                @click.prevent="switchViewMode('all')"
-                class="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                :class="viewMode === 'all' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400'"
-            >
-                All Games
-            </a>
-        </Teleport>
-        <Teleport to="#home-tab-allgames-desktop">
-            <a
-                href="/"
-                @click.prevent="switchViewMode('all')"
-                class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
-                :class="viewMode === 'all' ? 'text-primary-600 dark:text-primary-400' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'"
-            >
-                All Games
-            </a>
-        </Teleport>
-
         <h1 class="sr-only">PlayStation Trophy Guides, Platinum Difficulty Ratings & Completion Times</h1>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex gap-4">
@@ -1071,6 +1049,44 @@ function switchViewMode(mode) {
     games.value = []
     loadGames()
 }
+
+// Sync "All Games" tab active state to the static Blade-rendered links
+function updateAllGamesTabClasses() {
+    const isActive = viewMode.value === 'all'
+    const mobileEl = document.getElementById('home-tab-allgames-mobile')
+    const desktopEl = document.getElementById('home-tab-allgames-desktop')
+    const activeClasses = ['text-primary-600', 'dark:text-primary-400']
+    const inactiveClasses = ['text-gray-600', 'dark:text-gray-400']
+    const desktopInactiveExtra = ['hover:text-gray-900', 'dark:hover:text-white']
+
+    for (const el of [mobileEl, desktopEl]) {
+        if (!el) continue
+        if (isActive) {
+            el.classList.add(...activeClasses)
+            el.classList.remove(...inactiveClasses, ...desktopInactiveExtra)
+        } else {
+            el.classList.remove(...activeClasses)
+            el.classList.add(...inactiveClasses)
+            if (el === desktopEl) el.classList.add(...desktopInactiveExtra)
+        }
+    }
+}
+
+watch(viewMode, updateAllGamesTabClasses)
+
+// Bind click handlers to static "All Games" links
+onMounted(() => {
+    const mobileEl = document.getElementById('home-tab-allgames-mobile')
+    const desktopEl = document.getElementById('home-tab-allgames-desktop')
+    for (const el of [mobileEl, desktopEl]) {
+        if (!el) continue
+        el.addEventListener('click', (e) => {
+            e.preventDefault()
+            switchViewMode('all')
+        })
+    }
+    updateAllGamesTabClasses()
+})
 
 function handlePsnTabClick() {
     if (isPsnLoaded.value) {
