@@ -14,32 +14,164 @@
 
         <!-- Game Content -->
         <div v-else-if="game">
-            <!-- Hero Banner -->
+            <!-- Hero Banner (desktop: full hero with cover+info overlay; mobile: simple banner) -->
             <div
                 v-if="game.banner_url"
-                class="relative h-48 lg:h-60 bg-cover bg-center"
+                class="relative h-48 lg:h-80 bg-cover bg-center"
                 :style="{ backgroundImage: `url(${game.banner_url})` }"
             >
                 <!-- Gradient Overlay -->
                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
 
-                <!-- Content -->
-                <div class="absolute inset-0 flex items-end">
+                <!-- Mobile: just title + breadcrumb -->
+                <div class="lg:hidden absolute inset-0 flex items-end">
                     <div class="max-w-6xl mx-auto px-4 pb-6 w-full">
-                        <!-- Breadcrumb -->
                         <nav class="mb-3 text-sm">
                             <a href="/" class="text-gray-300 hover:text-white">Home</a>
                             <span class="mx-2 text-gray-500">/</span>
                             <span class="text-gray-400">{{ game.title }}</span>
                         </nav>
-                        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg">
+                        <h1 class="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
                             {{ game.title }}
                         </h1>
+                        <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center gap-2 mt-2">
+                            <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 text-xs font-bold text-blue-300">
+                                <TrophyIcon tier="platinum" size="xs" />1
+                            </span>
+                            <span v-if="game.gold_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-400">
+                                <TrophyIcon tier="gold" size="xs" />{{ game.gold_count }}
+                            </span>
+                            <span v-if="game.silver_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-gray-300">
+                                <TrophyIcon tier="silver" size="xs" />{{ game.silver_count }}
+                            </span>
+                            <span v-if="game.bronze_count" class="inline-flex items-center gap-0.5 text-xs font-bold text-amber-400">
+                                <TrophyIcon tier="bronze" size="xs" />{{ game.bronze_count }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop: cover + full info overlay -->
+                <div class="hidden lg:flex absolute inset-0 items-end">
+                    <div class="max-w-6xl mx-auto px-4 pb-8 w-full">
+                        <nav class="mb-4 text-sm">
+                            <a href="/" class="text-gray-300 hover:text-white">Home</a>
+                            <span class="mx-2 text-gray-500">/</span>
+                            <span class="text-gray-400">{{ game.title }}</span>
+                        </nav>
+                        <div class="flex gap-6 items-end">
+                            <!-- Cover -->
+                            <div class="w-48 shrink-0 -mb-24 ml-4">
+                                <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-center gap-2 mb-2">
+                                    <span v-if="game.has_platinum" class="inline-flex items-center gap-1 text-sm font-bold text-blue-300">
+                                        <TrophyIcon tier="platinum" size="xs" class="!w-4 !h-4" />1
+                                    </span>
+                                    <span v-if="game.gold_count" class="inline-flex items-center gap-1 text-sm font-bold text-yellow-400">
+                                        <TrophyIcon tier="gold" size="xs" class="!w-4 !h-4" />{{ game.gold_count }}
+                                    </span>
+                                    <span v-if="game.silver_count" class="inline-flex items-center gap-1 text-sm font-bold text-gray-300">
+                                        <TrophyIcon tier="silver" size="xs" class="!w-4 !h-4" />{{ game.silver_count }}
+                                    </span>
+                                    <span v-if="game.bronze_count" class="inline-flex items-center gap-1 text-sm font-bold text-amber-400">
+                                        <TrophyIcon tier="bronze" size="xs" class="!w-4 !h-4" />{{ game.bronze_count }}
+                                    </span>
+                                </div>
+                                <img
+                                    v-if="game.cover_url"
+                                    :src="game.cover_url"
+                                    :alt="game.title + ' cover'"
+                                    class="w-full h-auto rounded-lg shadow-2xl ring-1 ring-white/10"
+                                />
+                                <div v-else class="w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <span class="text-gray-400 text-4xl">?</span>
+                                </div>
+                            </div>
+
+                            <!-- Info -->
+                            <div class="flex-1 min-w-0 pb-1">
+                                <h1 class="text-4xl font-bold text-white drop-shadow-lg mb-2">
+                                    {{ game.title }}
+                                </h1>
+
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <!-- Platforms -->
+                                        <div v-if="game.platforms?.length" class="flex flex-wrap gap-2 mb-1.5">
+                                            <span
+                                                v-for="platform in game.platforms"
+                                                :key="platform.id"
+                                                class="h-8 px-2 inline-flex items-center bg-slate-900/80 text-white text-sm font-medium rounded backdrop-blur-sm"
+                                            >
+                                                <PlatformIcon :slug="platform.slug" :fallback="platform.short_name" :label="platform.slug === 'ps-vr' ? 'VR' : ''" size-class="h-6" />
+                                            </span>
+                                        </div>
+
+                                        <!-- Developer/Publisher -->
+                                        <div class="text-sm text-gray-300">
+                                            <span v-if="game.developer">{{ game.developer }}</span>
+                                            <span v-if="game.developer && game.publisher"> / </span>
+                                            <span v-if="game.publisher">{{ game.publisher }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Scores -->
+                                    <div class="flex gap-3 shrink-0">
+                                        <div v-if="displayUserScore !== null" class="group/user relative flex flex-col items-center" @click.stop="toggleScoreTooltip('user')">
+                                            <div
+                                                :class="[
+                                                    'w-12 h-12 rounded-lg flex items-center justify-center font-bold text-white shadow-lg',
+                                                    userScoreClass,
+                                                    displayUserScore === 'N/A' ? 'text-sm' : 'text-xl'
+                                                ]"
+                                            >
+                                                {{ displayUserScore }}
+                                            </div>
+                                            <span class="text-[10px] text-gray-300 mt-0.5">User</span>
+                                            <div
+                                                :class="[
+                                                    'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-800 text-gray-200 text-xs rounded shadow-lg pointer-events-none z-50 transition-opacity duration-150',
+                                                    showScoreTooltip === 'user' ? 'opacity-100' : 'opacity-0 hidden group-hover/user:block group-hover/user:opacity-100'
+                                                ]"
+                                            >
+                                                <template v-if="displayUserScore === 'N/A'">Not enough IGDB user ratings</template>
+                                                <template v-else>IGDB User Score ({{ game.user_score_count }} ratings)</template>
+                                            </div>
+                                        </div>
+                                        <div v-if="displayCriticScore !== null" class="group/critic relative flex flex-col items-center" @click.stop="toggleScoreTooltip('critic')">
+                                            <div
+                                                :class="[
+                                                    'w-12 h-12 rounded-lg flex items-center justify-center font-bold border-2 shadow-lg',
+                                                    criticScoreClass,
+                                                    displayCriticScore === 'N/A' ? 'text-sm' : 'text-xl'
+                                                ]"
+                                            >
+                                                {{ displayCriticScore }}
+                                            </div>
+                                            <span class="text-[10px] text-gray-300 mt-0.5">Critic</span>
+                                            <div
+                                                :class="[
+                                                    'absolute bottom-full right-0 mb-1.5 px-2 py-1 whitespace-nowrap bg-gray-800 text-gray-200 text-xs rounded shadow-lg pointer-events-none z-50 transition-opacity duration-150',
+                                                    showScoreTooltip === 'critic' ? 'opacity-100' : 'opacity-0 hidden group-hover/critic:block group-hover/critic:opacity-100'
+                                                ]"
+                                            >
+                                                <template v-if="displayCriticScore === 'N/A'">Not enough IGDB critic reviews</template>
+                                                <template v-else>IGDB Critic Score ({{ game.critic_score_count }} sources)</template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <p v-if="game.description" class="text-sm text-gray-300 leading-relaxed mt-3 line-clamp-3">
+                                    {{ game.description }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="max-w-6xl mx-auto px-4 py-8">
+            <div class="max-w-6xl mx-auto px-4 py-8" :class="game.banner_url ? 'lg:pt-4' : ''">
                 <!-- Breadcrumb (only if no banner) -->
                 <nav v-if="!game.banner_url" class="mb-6 text-sm">
                     <a href="/" class="text-primary-600 hover:underline">Home</a>
@@ -49,10 +181,10 @@
 
             <!-- Header Section -->
             <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg mb-8">
-                <!-- Top: Cover + Title/Platforms/Developer side-by-side -->
-                <div class="flex p-4 sm:p-6 gap-4 sm:gap-6">
+                <!-- Top: Cover + Title/Platforms/Developer (mobile/tablet only when banner exists, always on no-banner) -->
+                <div :class="game.banner_url ? 'lg:hidden' : ''" class="flex p-4 sm:p-6 gap-4 sm:gap-6">
                     <!-- Cover Image -->
-                    <div class="w-28 sm:w-48 md:w-56 shrink-0">
+                    <div class="w-28 sm:w-48 md:w-56 shrink-0" :class="game.banner_url ? 'lg:hidden' : ''">
                         <img
                             v-if="game.cover_url"
                             :src="game.cover_url"
@@ -62,7 +194,14 @@
                         <div v-else class="w-full aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
                             <span class="text-gray-400 text-4xl">?</span>
                         </div>
-                        <div v-if="game.has_platinum || game.gold_count || game.silver_count || game.bronze_count" class="flex items-center justify-center gap-2 sm:gap-3 mt-2">
+                    </div>
+
+                    <!-- Info beside cover -->
+                    <div class="flex-1 min-w-0 flex flex-col">
+                        <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                            {{ game.title }}
+                        </h1>
+                        <div v-if="!game.banner_url && (game.has_platinum || game.gold_count || game.silver_count || game.bronze_count)" class="flex items-center gap-2 sm:gap-3 mb-2">
                             <span v-if="game.has_platinum" class="inline-flex items-center gap-0.5 sm:gap-1 text-xs sm:text-base font-bold text-blue-300 dark:text-blue-200">
                                 <TrophyIcon tier="platinum" size="xs" class="sm:!w-5 sm:!h-5" />1
                             </span>
@@ -76,13 +215,6 @@
                                 <TrophyIcon tier="bronze" size="xs" class="sm:!w-5 sm:!h-5" />{{ game.bronze_count }}
                             </span>
                         </div>
-                    </div>
-
-                    <!-- Info beside cover -->
-                    <div class="flex-1 min-w-0 flex flex-col">
-                        <h1 v-if="!game.banner_url" class="text-lg sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            {{ game.title }}
-                        </h1>
 
                         <!-- Platforms + Developer / Scores row -->
                         <div class="flex items-start justify-between gap-4 mb-3">
@@ -156,11 +288,14 @@
                         </div>
 
                         <!-- Description -->
-                        <p v-if="game.description" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-6 sm:line-clamp-none">
+                        <p v-if="game.description" class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-6 sm:line-clamp-none">
                             {{ game.description }}
                         </p>
                     </div>
                 </div>
+
+                <!-- Desktop with banner: spacer so card starts below the overflowing cover with a gap -->
+                <div v-if="game.banner_url" class="hidden lg:block h-16 bg-transparent"></div>
 
                 <!-- Bottom: Stats + Guides two-column on desktop -->
                 <div class="px-4 sm:px-6 pb-4 sm:pb-6">
