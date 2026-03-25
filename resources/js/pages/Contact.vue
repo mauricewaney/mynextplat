@@ -11,19 +11,13 @@
                 <p class="text-gray-600 dark:text-gray-400 mb-6">
                     Thank you for reaching out. We'll get back to you as soon as possible.
                 </p>
-                <div class="flex justify-center gap-3">
+                <div class="flex justify-center">
                     <a
                         href="/"
                         class="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                     >
                         Back to Home
                     </a>
-                    <button
-                        @click="resetForm"
-                        class="px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
-                    >
-                        Send Another Message
-                    </button>
                 </div>
             </div>
 
