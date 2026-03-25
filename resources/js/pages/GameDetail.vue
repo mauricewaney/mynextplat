@@ -449,7 +449,9 @@
 
                         <!-- Right column: Trophy Guides + Voting (desktop) -->
                         <div v-if="hasGuides" class="flex-1 min-w-0">
-                            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Trophy Guides</h3>
+                            <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Trophy Guides</h3>
+                            <p v-if="guideVotes?.voting_enabled" class="text-xs text-gray-400 dark:text-gray-500 mb-3">Vote for the guide you'd recommend to other players</p>
+                            <p v-else class="mb-3"></p>
                             <div class="space-y-2">
                                 <div
                                     v-for="guide in sortedGuides"
@@ -490,7 +492,7 @@
                                     <div v-if="guideVotes?.voting_enabled && guideVotes.total_votes > 0" class="px-3 py-2 bg-gray-50 dark:bg-slate-700/30">
                                         <div class="flex items-center justify-between mb-1">
                                             <span class="text-xs font-medium text-gray-600 dark:text-gray-300">
-                                                {{ guideVotes.results[guide.key]?.percentage || 0 }}%
+                                                {{ guideVotes.results[guide.key]?.percentage || 0 }}% preferred
                                             </span>
                                             <span class="text-xs text-gray-400 dark:text-gray-500">
                                                 {{ guideVotes.results[guide.key]?.count || 0 }} {{ (guideVotes.results[guide.key]?.count || 0) === 1 ? 'vote' : 'votes' }}
