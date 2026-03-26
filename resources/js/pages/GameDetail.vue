@@ -18,7 +18,7 @@
             <div
                 v-if="game.banner_url"
                 class="relative h-48 lg:h-80 bg-cover bg-center"
-                :style="{ backgroundImage: `url(${game.banner_url})` }"
+                :style="{ backgroundImage: `url(${game.banner_url}), url(/images/fallback-banner.svg)` }"
             >
                 <!-- Gradient Overlay -->
                 <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
@@ -77,14 +77,11 @@
                                     </span>
                                 </div>
                                 <img
-                                    v-if="game.cover_url"
-                                    :src="game.cover_url"
+                                    :src="game.cover_url || '/images/fallback-cover.svg'"
                                     :alt="game.title + ' cover'"
                                     class="w-full h-auto rounded-lg shadow-2xl ring-1 ring-white/10"
+                                    @error="$event.target.src = '/images/fallback-cover.svg'"
                                 />
-                                <div v-else class="w-full aspect-[3/4] bg-gray-700 rounded-lg flex items-center justify-center">
-                                    <span class="text-gray-400 text-4xl">?</span>
-                                </div>
                             </div>
 
                             <!-- Info -->
@@ -194,14 +191,11 @@
                     <!-- Cover Image -->
                     <div class="w-28 sm:w-48 md:w-56 shrink-0" :class="game.banner_url ? 'lg:hidden' : ''">
                         <img
-                            v-if="game.cover_url"
-                            :src="game.cover_url"
+                            :src="game.cover_url || '/images/fallback-cover.svg'"
                             :alt="game.title + ' cover'"
                             class="w-full h-auto rounded-lg"
+                            @error="$event.target.src = '/images/fallback-cover.svg'"
                         />
-                        <div v-else class="w-full aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
-                            <span class="text-gray-400 text-4xl">?</span>
-                        </div>
                     </div>
 
                     <!-- Info beside cover -->
@@ -552,11 +546,11 @@
                     >
                         <div class="relative aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg overflow-hidden mb-2">
                             <img
-                                v-if="rec.cover_url"
-                                :src="rec.cover_url"
+                                :src="rec.cover_url || '/images/fallback-cover.svg'"
                                 :alt="rec.title"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 loading="lazy"
+                                @error="$event.target.src = '/images/fallback-cover.svg'"
                             />
                             <!-- Overlap Percentage Badge -->
                             <div class="absolute top-2 right-2 px-2 py-1 bg-black/70 rounded text-white text-xs font-bold">

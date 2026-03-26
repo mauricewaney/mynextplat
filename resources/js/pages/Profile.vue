@@ -200,11 +200,11 @@
                     >
                         <div class="relative aspect-[3/4] bg-gray-200 dark:bg-slate-700 rounded-lg overflow-hidden mb-2">
                             <img
-                                v-if="game.cover_url"
-                                :src="game.cover_url"
+                                :src="game.cover_url || '/images/fallback-cover.svg'"
                                 :alt="game.title"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 loading="lazy"
+                                @error="$event.target.src = '/images/fallback-cover.svg'"
                             />
                             <!-- Status Badge (owner only) -->
                             <div v-if="isOwner" class="absolute top-2 right-2">
