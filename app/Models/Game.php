@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Game extends Model
@@ -125,9 +126,14 @@ class Game extends Model
     /**
      * Get all PSN titles linked to this game
      */
-    public function psnTitles(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function psnTitles(): HasMany
     {
         return $this->hasMany(PsnTitle::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(GameReview::class);
     }
 
     // Helper methods

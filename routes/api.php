@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\DirectoryPageController as AdminDirectoryPageController;
 use App\Http\Controllers\FeaturedPlacementController;
 use App\Http\Controllers\FeaturedClickController;
+use App\Http\Controllers\GameReviewController;
 use App\Http\Controllers\Admin\FeaturedPlacementController as AdminFeaturedPlacementController;
 
 /*
@@ -30,6 +31,7 @@ Route::prefix('games')->group(function () {
     Route::get('/{idOrSlug}', [GameController::class, 'show']);
     Route::get('/{idOrSlug}/recommendations', [GameController::class, 'recommendations']);
     Route::get('/{idOrSlug}/guide-votes', [GameController::class, 'guideVotes']);
+    Route::get('/{idOrSlug}/reviews', [GameReviewController::class, 'index']);
 });
 
 // PSN Library Lookup (public, rate limited)
@@ -89,6 +91,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{gameId}/check', [UserGameController::class, 'check']);
         Route::put('/{gameId}', [UserGameController::class, 'update']);
         Route::delete('/{gameId}', [UserGameController::class, 'destroy']);
+
+        Route::post('/{gameId}/review', [GameReviewController::class, 'store']);
+        Route::put('/{gameId}/review', [GameReviewController::class, 'update']);
+        Route::delete('/{gameId}/review', [GameReviewController::class, 'destroy']);
     });
 });
 

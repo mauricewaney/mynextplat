@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -95,6 +96,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Game::class, 'user_game')
             ->withPivot(['status', 'notes', 'guide_notified_at', 'preferred_guide'])
             ->withTimestamps();
+    }
+
+    public function gameReviews(): HasMany
+    {
+        return $this->hasMany(GameReview::class);
     }
 
     /**

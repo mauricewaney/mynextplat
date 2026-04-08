@@ -521,6 +521,14 @@
                 </div>
             </div>
 
+            <!-- Platinum Reviews -->
+            <PlatinumReviews
+                v-if="game"
+                :game-id="game.id"
+                :game-slug="game.slug"
+                :user-status="userGameStatus"
+            />
+
             <!-- Recommendations Section -->
             <div v-if="loadingRecommendations || recommendations.length" class="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Players Also Have</h2>
@@ -626,11 +634,12 @@ import { useUserGames } from '../composables/useUserGames'
 import { apiPost } from '../utils/api'
 import PlatformIcon from '../components/PlatformIcon.vue'
 import TrophyIcon from '../components/TrophyIcon.vue'
+import PlatinumReviews from '../components/PlatinumReviews.vue'
 
 const props = defineProps({ slug: String })
 
 const { isAuthenticated, loginWithGoogle } = useAuth()
-const { addToList, removeFromList, checkInList, updatePreferredGuide, loadUserGameIds } = useUserGames()
+const { addToList, removeFromList, checkInList, updatePreferredGuide, loadUserGameIds, userGameMap } = useUserGames()
 
 const game = ref(null)
 const loading = ref(true)
@@ -666,6 +675,12 @@ const availableGuides = computed(() => {
 })
 
 const hasGuides = computed(() => availableGuides.value.length > 0)
+
+const userGameStatus = computed(() => {
+    if (!game.value || !isAuthenticated.value) return null
+    const entry = userGameMap[game.value.id]
+    return entry ? entry.status : null
+})
 
 const sortedGuides = computed(() => {
     if (!guideVotes.value?.total_votes) return availableGuides.value
