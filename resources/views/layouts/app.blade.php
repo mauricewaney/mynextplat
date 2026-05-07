@@ -38,11 +38,11 @@
     <link rel="preconnect" href="https://images.igdb.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.igdb.com">
 
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png?v=20260507" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260507" />
+    <link rel="shortcut icon" href="/favicon.ico?v=20260507" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260507" />
+    <link rel="manifest" href="/site.webmanifest?v=20260507" />
 
     {{-- Ahrefs --}}
     <script src="https://analytics.ahrefs.com/analytics.js" data-key="EwmZjm+zQ4UD20MWX0JQZg" async></script>
@@ -75,7 +75,7 @@
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-4">
                     <a href="/" class="flex items-center hover:opacity-80 transition-opacity" aria-label="MyNextPlatinum Home">
-                        <img src="/images/mnplogo.png" alt="MyNextPlatinum" class="h-12 w-12 rounded-lg" />
+                        <img src="/images/mnplogo.png" alt="MyNextPlatinum" class="h-10 w-auto rounded-lg" />
                     </a>
 
                     @hasSection('nav-tabs')
