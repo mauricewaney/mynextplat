@@ -60,6 +60,10 @@ Route::prefix('corrections')->group(function () {
 // Contact Form (public)
 Route::post('/contact', [ContactController::class, 'store']);
 
+// Email-only notification opt-in (public, rate limited to prevent abuse)
+Route::post('/notify', [\App\Http\Controllers\NotifyController::class, 'subscribe'])
+    ->middleware('throttle:5,1');
+
 // Featured Games (public)
 Route::get('/featured-games', [FeaturedPlacementController::class, 'index']);
 Route::post('/featured-clicks', [FeaturedClickController::class, 'store']);

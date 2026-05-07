@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DirectoryController;
+use App\Http\Controllers\NotifyController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,9 @@ Route::get('/login', function (\Illuminate\Http\Request $request) {
 // Google OAuth routes
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+
+// Email-only notification opt-in (magic link target)
+Route::get('/notify/confirm/{user}', [NotifyController::class, 'confirm'])->name('notify.confirm');
 
 // SEO routes
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
