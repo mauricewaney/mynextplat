@@ -1,21 +1,12 @@
 <template>
     <div class="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
-        <!-- Sent state -->
-        <div v-if="state === 'sent'" class="text-center py-2">
-            <svg class="w-8 h-8 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">Check your email</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">We sent a confirmation link to <span class="font-medium text-gray-700 dark:text-gray-300">{{ submittedEmail }}</span></p>
-        </div>
-
-        <!-- Subscribed state (already verified) -->
-        <div v-else-if="state === 'subscribed'" class="text-center py-2">
+        <!-- Subscribed state -->
+        <div v-if="state === 'subscribed'" class="text-center py-2">
             <svg class="w-8 h-8 mx-auto mb-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
             </svg>
             <p class="text-sm font-semibold text-gray-900 dark:text-white">You're subscribed</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">We'll email you when a guide is added.</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">We'll email <span class="font-medium text-gray-700 dark:text-gray-300">{{ submittedEmail }}</span> when a guide is added.</p>
         </div>
 
         <!-- Form state -->
@@ -64,7 +55,7 @@ const props = defineProps({
 
 const email = ref('')
 const submittedEmail = ref('')
-const state = ref('idle') // 'idle' | 'loading' | 'sent' | 'subscribed' | 'error'
+const state = ref('idle') // 'idle' | 'loading' | 'subscribed'
 const error = ref('')
 
 async function submit() {
@@ -72,12 +63,12 @@ async function submit() {
     state.value = 'loading'
     error.value = ''
     try {
-        const { data } = await axios.post('/api/notify', {
+        await axios.post('/api/notify', {
             email: email.value.trim(),
             game_id: props.gameId,
         })
         submittedEmail.value = email.value.trim()
-        state.value = data.status === 'subscribed' ? 'subscribed' : 'sent'
+        state.value = 'subscribed'
     } catch (e) {
         state.value = 'idle'
         if (e.response?.status === 429) {

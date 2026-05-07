@@ -39,11 +39,11 @@ class SendNewGuideNotifications extends Command
             $this->info('DRY RUN - No emails will be sent');
         }
 
-        // Get users who have notifications enabled. Skip unverified email-only opt-ins
-        // until they confirm via magic link — otherwise we'd spam typo'd or hostile addresses.
+        // Get users who have notifications enabled. Email-only opt-ins are
+        // immediately eligible — abuse is mitigated via the unsubscribe link
+        // in each notification mail.
         $usersQuery = User::where('notify_new_guides', true)
-            ->whereNotNull('email')
-            ->whereNotNull('email_verified_at');
+            ->whereNotNull('email');
 
         if ($specificUserId) {
             $usersQuery->where('id', $specificUserId);

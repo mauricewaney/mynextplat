@@ -18,8 +18,8 @@ Route::get('/login', function (\Illuminate\Http\Request $request) {
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 
-// Email-only notification opt-in (magic link target)
-Route::get('/notify/confirm/{user}', [NotifyController::class, 'confirm'])->name('notify.confirm');
+// One-click unsubscribe target (signed URL embedded in notification emails)
+Route::get('/notify/unsubscribe/{user}', [NotifyController::class, 'unsubscribe'])->name('notify.unsubscribe');
 
 // SEO routes
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);

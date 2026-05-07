@@ -1,26 +1,5 @@
 <template>
     <div>
-        <!-- Magic-link confirmation banner -->
-        <Transition
-            enter-active-class="transition ease-out duration-300"
-            enter-from-class="opacity-0 -translate-y-2"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-active-class="transition ease-in duration-200"
-            leave-from-class="opacity-100"
-            leave-to-class="opacity-0"
-        >
-            <div v-if="notifyConfirmed" class="sticky top-0 z-50 bg-emerald-50 dark:bg-emerald-900/40 border-b border-emerald-200 dark:border-emerald-800">
-                <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
-                    <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p class="text-sm text-emerald-800 dark:text-emerald-200">
-                        <strong>You're subscribed.</strong> We'll email you when a guide is added.
-                    </p>
-                </div>
-            </div>
-        </Transition>
-
         <!-- Loading -->
         <div v-if="loading" class="flex justify-center items-center h-96">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -917,22 +896,7 @@ async function fetchRecommendations() {
     }
 }
 
-// Show one-shot banner when user lands here via the magic link confirm redirect
-const notifyConfirmed = ref(false)
-
-onMounted(() => {
-    fetchGame()
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('notify') === 'confirmed') {
-        notifyConfirmed.value = true
-        // Strip the param so a refresh doesn't keep showing the banner
-        params.delete('notify')
-        const cleanQuery = params.toString()
-        const cleanUrl = window.location.pathname + (cleanQuery ? '?' + cleanQuery : '')
-        window.history.replaceState({}, '', cleanUrl)
-        setTimeout(() => { notifyConfirmed.value = false }, 6000)
-    }
-})
+onMounted(fetchGame)
 
 // Check list status when auth state changes
 watch(isAuthenticated, (newVal) => {

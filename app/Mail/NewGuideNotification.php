@@ -43,12 +43,18 @@ class NewGuideNotification extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Signed URL — no login required, works for email-only opt-ins too.
+        $unsubscribeUrl = \Illuminate\Support\Facades\URL::signedRoute(
+            'notify.unsubscribe',
+            ['user' => $this->user->id]
+        );
+
         return new Content(
             markdown: 'emails.new-guide',
             with: [
                 'user' => $this->user,
                 'games' => $this->games,
-                'unsubscribeUrl' => url('/my-games?notifications=off'),
+                'unsubscribeUrl' => $unsubscribeUrl,
             ],
         );
     }
