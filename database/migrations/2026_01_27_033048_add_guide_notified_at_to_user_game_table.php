@@ -17,14 +17,15 @@ return new class extends Migration
         });
 
         // Mark existing entries with guides as already notified (don't spam existing users)
-        \DB::statement("
-            UPDATE user_game ug
-            JOIN games g ON ug.game_id = g.id
-            SET ug.guide_notified_at = NOW()
-            WHERE g.psnprofiles_url IS NOT NULL
-               OR g.playstationtrophies_url IS NOT NULL
-               OR g.powerpyx_url IS NOT NULL
-        ");
+        \DB::table('user_game')
+            ->whereIn('game_id', function ($query) {
+                $query->select('id')
+                    ->from('games')
+                    ->whereNotNull('psnprofiles_url')
+                    ->orWhereNotNull('playstationtrophies_url')
+                    ->orWhereNotNull('powerpyx_url');
+            })
+            ->update(['guide_notified_at' => now()]);
     }
 
     /**

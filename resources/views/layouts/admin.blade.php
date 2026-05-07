@@ -10,10 +10,11 @@
     <title>@yield('title', 'Admin | ' . config('app.name', 'MyNextPlat'))</title>
     <meta name="robots" content="noindex, nofollow">
 
-    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png?v=20260507" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260507" />
+    <link rel="shortcut icon" href="/favicon.ico?v=20260507" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=20260507" />
+    <link rel="manifest" href="/site.webmanifest?v=20260507" />
 
     {{-- Prevent flash of wrong theme --}}
     <script>
