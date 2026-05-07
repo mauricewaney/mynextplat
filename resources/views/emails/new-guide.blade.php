@@ -30,7 +30,7 @@ View My Games
 Happy trophy hunting!
 
 <x-mail::subcopy>
-Don't want these emails? [Unsubscribe]({{ $unsubscribeUrl }}) or manage your notification preferences in your account settings.
+You signed up to be notified when a guide was added — that's it, this is your one-and-done email per game. We won't mail you again unless you opt in for another game.
 </x-mail::subcopy>
 
 Thanks,<br>

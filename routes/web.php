@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DirectoryController;
-use App\Http\Controllers\NotifyController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,9 +16,6 @@ Route::get('/login', function (\Illuminate\Http\Request $request) {
 // Google OAuth routes
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
-
-// One-click unsubscribe target (signed URL embedded in notification emails)
-Route::get('/notify/unsubscribe/{user}', [NotifyController::class, 'unsubscribe'])->name('notify.unsubscribe');
 
 // SEO routes
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
