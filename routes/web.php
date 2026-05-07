@@ -53,5 +53,34 @@ Route::middleware(['auth:sanctum', 'admin'])
     ->get('/admin/{any?}', fn () => view('pages.admin'))
     ->where('any', '.*');
 
+// Local-only mail previews. Visit these in the browser to render any Mailable
+// as inline HTML — no SMTP needed. Returning a Mailable from a route triggers
+// Laravel's built-in render-to-response behavior.
+if (app()->environment('local')) {
+    Route::prefix('dev/mail')->group(function () {
+        Route::get('/', function () {
+            return response('<ul style="font: 14px sans-serif; padding: 24px;">'
+                . '<li><a href="/dev/mail/new-guide">new-guide</a> — sent when a trophy guide drops for a subscribed game</li>'
+                . '</ul>');
+        });
+
+        Route::get('/new-guide', function () {
+            $user = \App\Models\User::first() ?? new \App\Models\User([
+                'name' => 'maurice',
+                'email' => 'maurice@example.com',
+            ]);
+            $games = \App\Models\Game::where(fn ($q) => $q->whereNotNull('psnprofiles_url')
+                ->orWhereNotNull('powerpyx_url')
+                ->orWhereNotNull('playstationtrophies_url'))
+                ->limit(3)
+                ->get();
+            if ($games->isEmpty()) {
+                $games = \App\Models\Game::limit(3)->get();
+            }
+            return new \App\Mail\NewGuideNotification($user, $games);
+        });
+    });
+}
+
 // 404 catch-all
 Route::fallback(fn () => response()->view('pages.not-found', [], 404));
