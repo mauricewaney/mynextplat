@@ -169,3 +169,21 @@ Schedule::command('notifications:new-guides')
     ->name('new-guide-notifications')
     ->withoutOverlapping()
     ->onOneServer();
+
+/*
+|--------------------------------------------------------------------------
+| PSN Token Health Check
+|--------------------------------------------------------------------------
+|
+| Verifies the PSN_NPSSO can still authenticate with Sony. Mails admin if
+| broken so the token gets refreshed before users notice library imports
+| stop working. Runs before the trophy-discovery + notification chain.
+|
+*/
+
+Schedule::command('psn:check-token')
+    ->daily()
+    ->at('05:30')
+    ->name('psn-token-check')
+    ->withoutOverlapping()
+    ->onOneServer();
