@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdminInboxNotification;
 use App\Models\ContactMessage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -65,6 +66,12 @@ class ContactController extends Controller
         ]);
 
         RateLimiter::hit($rateLimitKey, 3600); // 1 hour window
+
+        try {
+            AdminInboxNotification::notifyAdmin('contact', $contactMessage);
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return response()->json([
             'message' => 'Thank you! Your message has been sent and we\'ll get back to you soon.',

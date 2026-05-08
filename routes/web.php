@@ -61,6 +61,8 @@ if (app()->environment('local')) {
         Route::get('/', function () {
             return response('<ul style="font: 14px sans-serif; padding: 24px;">'
                 . '<li><a href="/dev/mail/new-guide">new-guide</a> — sent when a trophy guide drops for a subscribed game</li>'
+                . '<li><a href="/dev/mail/admin-contact">admin-contact</a> — admin alert for a new contact message</li>'
+                . '<li><a href="/dev/mail/admin-correction">admin-correction</a> — admin alert for a new game correction</li>'
                 . '</ul>');
         });
 
@@ -78,6 +80,39 @@ if (app()->environment('local')) {
                 $games = \App\Models\Game::limit(3)->get();
             }
             return new \App\Mail\NewGuideNotification($user, $games);
+        });
+
+        Route::get('/admin-contact', function () {
+            $msg = \App\Models\ContactMessage::latest()->first() ?? new \App\Models\ContactMessage([
+                'name' => 'Jane Tester',
+                'email' => 'jane@example.com',
+                'category' => 'bug_report',
+                'subject' => 'Trophy count off on Returnal',
+                'message' => "The Veteran trophy isn't showing up in the list. Could you check?",
+                'ip_address' => '127.0.0.1',
+            ]);
+            $msg->created_at ??= now();
+            $cap = (int) config('mail.admin_inbox_daily_cap', 5);
+            $capReached = request()->boolean('cap');
+            return new \App\Mail\AdminInboxNotification('contact', $msg, $capReached, $cap);
+        });
+
+        Route::get('/admin-correction', function () {
+            $correction = \App\Models\GameCorrection::with('game')->latest()->first();
+            if (!$correction) {
+                $correction = new \App\Models\GameCorrection([
+                    'category' => 'guide_links',
+                    'description' => 'The PowerPyx link 404s for this game.',
+                    'source_url' => 'https://www.powerpyx.com/',
+                    'email' => 'reporter@example.com',
+                    'ip_address' => '127.0.0.1',
+                ]);
+                $correction->setRelation('game', \App\Models\Game::first());
+                $correction->created_at = now();
+            }
+            $cap = (int) config('mail.admin_inbox_daily_cap', 5);
+            $capReached = request()->boolean('cap');
+            return new \App\Mail\AdminInboxNotification('correction', $correction, $capReached, $cap);
         });
     });
 }

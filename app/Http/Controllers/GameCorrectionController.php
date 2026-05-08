@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AdminInboxNotification;
 use App\Models\Game;
 use App\Models\GameCorrection;
 use Illuminate\Http\JsonResponse;
@@ -95,6 +96,12 @@ class GameCorrectionController extends Controller
         ]);
 
         RateLimiter::hit($rateLimitKey, 3600); // 1 hour window
+
+        try {
+            AdminInboxNotification::notifyAdmin('correction', $correction->loadMissing('game'));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return response()->json([
             'message' => 'Thank you! Your correction has been submitted and will be reviewed.',
