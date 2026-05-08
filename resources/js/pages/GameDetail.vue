@@ -439,12 +439,12 @@
                                 </a>
                             </div>
 
-                            <!-- Email-only opt-in (anonymous visitors) -->
-                            <div v-else class="space-y-2">
+                            <!-- Email-only opt-in (anonymous visitors, no guide yet) -->
+                            <div v-else-if="!hasGuides" class="space-y-2">
                                 <NotifySignupForm
                                     :game-id="game.id"
-                                    :headline="hasGuides ? `Track ${game.title}` : `Get notified when a guide is added for ${game.title}`"
-                                    :subline="hasGuides ? 'We\'ll email you when sequel/DLC guides drop, or when guide rankings change.' : 'No spam — only when an actual guide is published.'"
+                                    :headline="`Get notified when a guide is added for ${game.title}`"
+                                    subline="No spam — only when an actual guide is published."
                                 />
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     Or
