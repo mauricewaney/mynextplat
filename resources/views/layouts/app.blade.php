@@ -75,8 +75,8 @@
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-4">
                     <a href="/" class="flex items-center hover:opacity-80 transition-opacity" aria-label="MyNextPlatinum Home">
-                        <img src="/images/mnplogo.png" alt="MyNextPlatinum" class="h-10 w-auto rounded-lg" />
-                        <span class="text-primary-800 font-bold hidden sm:block text-sm">MyNextPlat</span>
+                        <img src="/images/mnplogo.png" alt="MyNextPlatinum" class="h-8 w-auto rounded-lg" />
+                        <span class="text-primary-800 font-bold hidden sm:block text-sm ml-2">MyNextPlat</span>
                     </a>
 
                     @hasSection('nav-tabs')
