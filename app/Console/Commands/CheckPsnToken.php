@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Services\PSNService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class CheckPsnToken extends Command
@@ -15,6 +16,8 @@ class CheckPsnToken extends Command
 
     public function handle(PSNService $psn): int
     {
+        Log::info('[psn-token-check] starting');
+
         $npsso = config('services.psn.npsso');
 
         if (!$npsso) {
@@ -27,12 +30,15 @@ class CheckPsnToken extends Command
             return $this->notifyFailure('PSN authentication failed with the current NPSSO. Token has likely expired.');
         }
 
+        Log::info('[psn-token-check] passed — token is valid');
         $this->info('PSN token is valid.');
         return Command::SUCCESS;
     }
 
     private function notifyFailure(string $reason): int
     {
+        Log::warning('[psn-token-check] FAILED — ' . $reason);
+
         $to = config('mail.admin_notify_to', 'mjwaney@gmail.com');
         $appUrl = config('app.url');
 
